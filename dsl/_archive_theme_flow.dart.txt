@@ -1,0 +1,98 @@
+// ---------------------------------------------------------------------------
+// Theme, from the design handoff's design-tokens.json.
+//
+// Setting this centrally is what makes the rest of the handoff cheap: every
+// screen built after this inherits the palette instead of hard-coding hexes,
+// which is how the two-greens problem happened in the first place.
+// ---------------------------------------------------------------------------
+
+// Brand
+const _forest = 0xFF07533A;     // primary — controls, headings
+const _leaf = 0xFF83BD43;       // accent
+const _cream = 0xFFFAF9F3;
+const _graphite = 0xFF202826;   // the feature panel on Home
+
+// Surfaces
+const _page = 0xFFF7F7F0;       // warm cream ground for everyday screens
+const _card = 0xFFFFFFFF;
+const _subtle = 0xFFEDF2E8;
+const _border = 0xFFDCE3D7;
+
+// Text
+const _ink = 0xFF202C24;
+const _inkSoft = 0xFF59665D;
+
+// Status colours (§10). Paired fg/bg from the handoff. Past Best Before is a
+// muted purple, deliberately NOT the red used by Past Use By: one means "have
+// a look at it", the other means "throw it out".
+const _statusFreshBg = 0xFFEAF3E5;
+const _statusUseByFg = 0xFFA02929;
+const _statusUseByBg = 0xFFFCE8E6;
+
+void buildStarterEditFlow(App app) {
+  // ------------------------------------------------------------------
+  // The fridge was being bypassed, and changing SignInPage's ROUTE to "/"
+  // was not enough. FlutterFlow generates the root as:
+  //
+  //   path: '/'  ->  loggedIn ? NavBarPage() : WelcomePageWidget()
+  //
+  // The logged-out half comes from the project's ENTRY PAGE setting, which is
+  // separate config from any page's route. That is why the route swap looked
+  // like it worked but nothing changed on screen.
+  //
+  // (Logged-IN going straight to Home is correct and stays — the flow doc says
+  // returning authenticated users skip the entrance.)
+  // ------------------------------------------------------------------
+  app.raw((project) {
+    setInitialPage(project, pageName: 'SignInPage');
+  });
+
+  // ---- palette ----------------------------------------------------
+  app.themeColor('primary', _forest);
+  app.themeColor('secondary', _leaf);
+  app.themeColor('tertiary', _graphite);
+  app.themeColor('alternate', _border);
+
+  app.themeColor('primaryBackground', _page);
+  app.themeColor('secondaryBackground', _card);
+
+  app.themeColor('primaryText', _ink);
+  app.themeColor('secondaryText', _inkSoft);
+
+  app.themeColor('accent1', _subtle);
+  app.themeColor('accent2', _cream);
+  app.themeColor('accent3', _statusFreshBg);
+  app.themeColor('accent4', _statusUseByBg);
+
+  // Semantic slots. These are separate from the accent hue on purpose —
+  // "this food is dangerous" must never be carried by the brand colour.
+  app.themeColor('success', 0xFF285B34);
+  app.themeColor('warning', 0xFF79500F);
+  app.themeColor('error', _statusUseByFg);
+  app.themeColor('info', 0xFF275E85);
+
+  // ---- type -------------------------------------------------------
+  // Figtree for structure, Nunito for reading.
+  //
+  // NOTE: design-tokens.json says "Nunito Sans", which is a DIFFERENT family
+  // from Nunito. The app and every screen built so far use Nunito. Going with
+  // Nunito for consistency; flag if the design genuinely means Nunito Sans,
+  // because it changes every body style in the app.
+  app.primaryFont('Figtree');
+  app.secondaryFont('Nunito');
+
+  app.typography('displaySmall', fontFamily: 'Figtree', fontSize: 32, fontWeight: 800);
+  app.typography('headlineLarge', fontFamily: 'Figtree', fontSize: 28, fontWeight: 700);
+  app.typography('headlineMedium', fontFamily: 'Figtree', fontSize: 24, fontWeight: 700);
+  app.typography('headlineSmall', fontFamily: 'Figtree', fontSize: 20, fontWeight: 700);
+  app.typography('titleLarge', fontFamily: 'Figtree', fontSize: 18, fontWeight: 700);
+  app.typography('titleMedium', fontFamily: 'Figtree', fontSize: 16, fontWeight: 700);
+  app.typography('titleSmall', fontFamily: 'Figtree', fontSize: 15, fontWeight: 700);
+
+  app.typography('bodyLarge', fontFamily: 'Nunito', fontSize: 16, fontWeight: 400);
+  app.typography('bodyMedium', fontFamily: 'Nunito', fontSize: 14, fontWeight: 400);
+  app.typography('bodySmall', fontFamily: 'Nunito', fontSize: 13, fontWeight: 400);
+  app.typography('labelMedium', fontFamily: 'Figtree', fontSize: 13, fontWeight: 600);
+  app.typography('labelSmall', fontFamily: 'Figtree', fontSize: 11, fontWeight: 600,
+      letterSpacing: 0.8);
+}

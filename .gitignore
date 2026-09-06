@@ -1,0 +1,54 @@
+# =============================================================================
+# Use It Fresh — what belongs in git
+#
+# The DSL is the source of truth: dsl/, supabase/migrations/, design/scripts/,
+# docs/ and the typed SDK. Those are small, diff cleanly, and can rebuild the
+# app. Everything below is either regenerated, enormous, or secret.
+# =============================================================================
+
+# --- secrets: never commit -----------------------------------------------
+.env
+.env.*
+*.p8
+*.p12
+*.keystore
+*.jks
+.flutterflow/.env
+
+# --- regenerated on every push -------------------------------------------
+# generated_code/ is the exported Flutter app. It is rewritten wholesale each
+# time, so committing it means a 78MB diff per push and no readable history.
+# The DSL that produces it IS committed, which is the part worth versioning.
+generated_code/
+.dart_tool/
+.packages
+build/
+.ffai_staging/
+
+# --- SDK + local run state ------------------------------------------------
+.flutterflow/sdk/
+.flutterflow/runs.jsonl
+.flutterflow/history/
+.flutterflow/traces/
+.flutterflow/backups/
+.flutterflow/support/
+.flutterflow/workspace.json
+.flutterflow/last_run.json
+.flutterflow/recovery.json
+.flutterflow/plan.md
+.flutterflow/project_sdk_meta.json
+.flutterflow/generated_code_state.json
+
+# --- design binaries ------------------------------------------------------
+# 62MB of source zips and render output. Git keeps every version of a binary
+# forever, so these would permanently bloat the clone for everyone.
+# design/scripts/ IS committed and can re-render the clips from source.
+design/*.zip
+design/*.mp4
+design/*.png
+design/*.jpg
+design/*.webp
+
+# Keep the render pipeline and the docs that explain it.
+!design/scripts/**
+!design/*.md

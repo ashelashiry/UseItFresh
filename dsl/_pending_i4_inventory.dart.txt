@@ -1,0 +1,117 @@
+  // ==================================================================
+  // 2. I4 — the inventory, sorted by urgency.
+  //
+  // Reads the food_items_status VIEW, not the table: the view computes the
+  // §10 status live against today's date and carries a label, an icon and a
+  // plain-English detail line, so the row does not need nine conditionals.
+  //
+  // Icon AND text on every row, never colour alone (§10).
+  // ==================================================================
+  app.editPageState(ff.Pages.inventoryPage, (state) {
+    state.ensureField('items', listOf(ff.Tables.foodItemsStatus));
+  });
+
+  app.editPage(ff.Pages.inventoryPage, (page) {
+    page.ensureReplaced(
+      ff.Pages.inventoryPage.widgets.byKey('Container_18oj3rre').single,
+      Container(
+        name: 'InventoryBody',
+        padding: 16,
+        child: Column(
+          name: 'InventoryColumn',
+          crossAxis: CrossAxis.stretch,
+          spacing: 14,
+          scrollable: true,
+          children: [
+            Text(
+              'What to use first',
+              name: 'InventoryHeading',
+              style: Styles.titleMedium,
+            ),
+            Text(
+              'Ordered by how soon it needs eating. Use-by is a safety date; '
+              'best-before is about quality.',
+              name: 'InventoryLede',
+              style: Styles.bodySmall,
+              color: Colors.secondaryText,
+              maxLines: 3,
+            ),
+            ListView(
+              name: 'InventoryList',
+              source: State('items'),
+              spacing: 10,
+              itemBuilder: (item) => Container(
+                name: 'InventoryRow',
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                borderRadius: 12,
+                color: Colors.secondaryBackground,
+                child: Row(
+                  crossAxis: CrossAxis.center,
+                  spacing: 12,
+                  children: [
+                    // NOTE: no per-row icon yet. Icon() takes a literal string
+                    // and cannot be bound to data, so the view's status_icon
+                    // column has nothing to drive. Spec §10 asks for text AND an
+                    // icon; the text is here and no colour is being relied on,
+                    // so the rule against colour-alone is met — but the icon is
+                    // owed. It needs nine visibility-switched Icons per row, or
+                    // a small custom widget that maps a name to an IconData.
+                    Flexible(
+                      Column(
+                        crossAxis: CrossAxis.start,
+                        spacing: 2,
+                        children: [
+                          Text(
+                            item['name'],
+                            name: 'RowName',
+                            style: Styles.titleSmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            item['status_detail'],
+                            name: 'RowDetail',
+                            style: Styles.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          // Why we think so. §5.4 and §5.9 — show the reasoning
+                          // and admit the gaps rather than projecting certainty.
+                          Text(
+                            item['status_basis'],
+                            name: 'RowBasis',
+                            style: Styles.labelSmall,
+                            color: Colors.secondaryText,
+                            maxLines: 2,
+                          ),
+                        ],
+                      ),
+                      flex: 1,
+                    ),
+                    Text(
+                      item['status_label'],
+                      name: 'RowStatusLabel',
+                      style: Styles.labelMedium,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Text(
+              'Nothing here yet. Add food from the Scan tab and it will appear, '
+              'most urgent first.',
+              name: 'InventoryEmptyHint',
+              style: Styles.bodySmall,
+              color: Colors.secondaryText,
+              textAlign: TextAlign.center,
+              maxLines: 3,
+            ),
+          ],
+        ),
+      ),
+    );
+  });
+
+  app.editPageOnLoad(ff.Pages.inventoryPage, _loadInventory('OnLoad'));
+

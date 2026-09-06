@@ -1,0 +1,135 @@
+/// The sign-in backdrop, uploaded to FlutterFlow assets on 2026-09-06.
+///
+/// This is the FINAL FRAME of `design/fridge-opening-phonecrop.mp4`, cropped to
+/// phone aspect from the 1080x1920 master. Clip and still were cropped with one
+/// identical rectangle so the intro animation lands on exactly these pixels —
+/// if either is ever regenerated, regenerate both together or the handoff jumps.
+const _kSignInBackdrop =
+    'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets/7mimx8o93ti4'
+    '/signin-bg-fridge-v2%403x.jpg';
+
+/// Deep forest green from the design pack. Legible on the fridge's pale
+/// central panel; would NOT be legible on the app's dark post-auth surfaces.
+const _kBrandGreen = 0xFF28533A;
+const _kSloganInk = 0xFF33422F;
+
+void buildStarterEditFlow(App app) {
+  // ------------------------------------------------------------------
+  // D2 — rebuild SignInPage as the "front door": the live form sitting
+  // inside the open fridge.
+  //
+  // Variant 1 from the design review: NO card behind the form. Only the
+  // fields and buttons are opaque, so the shelves, jars and crisper stay
+  // visible. The form is centred on the fridge's clear central panel,
+  // which the artwork deliberately leaves empty for exactly this.
+  //
+  // Email-only on purpose. Google/Apple are drawn in the design but not
+  // built (C2/C3), and shipping a provider button that does nothing is
+  // worse than not showing it. The icon row drops in later without
+  // disturbing anything above it.
+  // ------------------------------------------------------------------
+  app.editPage(ff.Pages.signInPage, (page) {
+    // The app bar would band the top of the fridge and cost ~56dp of the
+    // clear panel. The artwork runs full-bleed instead.
+    page.ensureRemoved(
+      ff.Pages.signInPage.widgets.byKey('AppBar_xt2fsvbl').single,
+    );
+
+    page.ensureReplaced(
+      ff.Pages.signInPage.widgets.byKey('Container_0fsjm7fs').single,
+      Stack(
+        name: 'SignInStack',
+        alignment: Alignment.center,
+        children: [
+          Image(
+            _kSignInBackdrop,
+            name: 'SignInBackdrop',
+            fit: ImageFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          // Scrollable so the keyboard and large-text settings can never
+          // push a control out of reach — the pack's handoff is explicit
+          // that the form must not be pinned to a fixed vertical position.
+          Column(
+            name: 'SignInForm',
+            mainAxis: MainAxis.center,
+            crossAxis: CrossAxis.stretch,
+            spacing: 12,
+            scrollable: true,
+            padding: EdgeInsets.symmetric(horizontal: 46, vertical: 28),
+            children: [
+              Text(
+                'Use It Fresh',
+                name: 'SignInBrand',
+                style: Styles.headlineMedium,
+                color: Colors.hex(_kBrandGreen),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+              ),
+              Text(
+                'Use what you have. Waste less.',
+                name: 'SignInSlogan',
+                style: Styles.bodyMedium,
+                color: Colors.hex(_kSloganInk),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+              ),
+              TextField(
+                name: 'SignInEmailField',
+                label: 'Email',
+                keyboard: Keyboard.email,
+                onChanged: SetState(
+                  ff.Pages.signInPage.state.email,
+                  const TextValue(),
+                ),
+              ),
+              TextField(
+                name: 'SignInPasswordField',
+                label: 'Password',
+                obscureText: true,
+                onChanged: SetState(
+                  ff.Pages.signInPage.state.password,
+                  const TextValue(),
+                ),
+              ),
+              // 46dp controls. The raster mockup drew 38, which is under
+              // both Apple's 44pt and Material's 48dp minimums.
+              Button(
+                'Sign In',
+                name: 'SignInButton',
+                width: double.infinity,
+                height: 46,
+                borderRadius: 10,
+                color: Colors.hex(_kBrandGreen),
+                onTap: [
+                  LoginEmailPassword(
+                    State(ff.Pages.signInPage.state.email),
+                    State(ff.Pages.signInPage.state.password),
+                  ),
+                ],
+              ),
+              Button(
+                'Create Account',
+                name: 'CreateAccountButton',
+                variant: ButtonVariant.outlined,
+                width: double.infinity,
+                height: 46,
+                borderRadius: 10,
+                onTap: Navigate(ff.Pages.signUpPage),
+              ),
+              Button(
+                'Forgot password?',
+                name: 'ForgotPasswordButton',
+                variant: ButtonVariant.text,
+                width: double.infinity,
+                onTap: Navigate(ff.Pages.resetPasswordPage),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  });
+}

@@ -1,0 +1,703 @@
+<title>Use It Fresh Build Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ---- Light palette (complete, on bare :root) ---- */
+  :root {
+    --ground:        #FAF8F1;
+    --surface:       #FFFFFF;
+    --surface-sunk:  #F2EFE4;
+    --line:          #E2DED0;
+    --line-soft:     #EDEAE0;
+
+    --ink:           #22301F;
+    --ink-mid:       #4A5747;
+    --ink-soft:      #5C6A58;
+    --ink-faint:     #8B9787;
+
+    --accent:        #2F8A57;
+    --accent-deep:   #1F5C3D;
+    --accent-wash:   #E8F1EA;
+
+    --warn:          #E8853D;
+    --warn-wash:     #FBEDE1;
+    --danger:        #C44536;
+    --danger-wash:   #F8E5E2;
+    --info:          #3B78B5;
+    --info-wash:     #E5EDF6;
+
+    --shadow: 0 1px 2px rgba(34,48,31,.05), 0 4px 16px rgba(34,48,31,.05);
+
+    --f-display: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body:    "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  /* ---- Dark: system default (no stamp), unless explicitly light ---- */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:       #141A14;
+      --surface:      #1C241C;
+      --surface-sunk: #222B22;
+      --line:         #33402F;
+      --line-soft:    #2A342A;
+
+      --ink:          #E6EDE3;
+      --ink-mid:      #BAC7B6;
+      --ink-soft:     #9FAF9B;
+      --ink-faint:    #7B8A77;
+
+      --accent:       #5FB57F;
+      --accent-deep:  #3E7A5A;
+      --accent-wash:  #1E2E24;
+
+      --warn:         #E8944F;
+      --warn-wash:    #33261A;
+      --danger:       #E08A79;
+      --danger-wash:  #35211E;
+      --info:         #86AED6;
+      --info-wash:    #1C2732;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.28);
+    }
+  }
+
+  /* ---- Dark: explicit toggle ---- */
+  :root[data-theme="dark"] {
+    --ground:       #141A14;
+    --surface:      #1C241C;
+    --surface-sunk: #222B22;
+    --line:         #33402F;
+    --line-soft:    #2A342A;
+
+    --ink:          #E6EDE3;
+    --ink-mid:      #BAC7B6;
+    --ink-soft:     #9FAF9B;
+    --ink-faint:    #7B8A77;
+
+    --accent:       #5FB57F;
+    --accent-deep:  #3E7A5A;
+    --accent-wash:  #1E2E24;
+
+    --warn:         #E8944F;
+    --warn-wash:    #33261A;
+    --danger:       #E08A79;
+    --danger-wash:  #35211E;
+    --info:         #86AED6;
+    --info-wash:    #1C2732;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.28);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 15.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 22px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(30px, 5vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -.022em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sub {
+    color: var(--ink-soft);
+    margin: 10px 0 0;
+    max-width: 60ch;
+    font-size: 15px;
+  }
+  .stamp {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    line-height: 1.8;
+    color: var(--ink-faint);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .stamp b { color: var(--ink-mid); font-weight: 600; }
+
+  /* ---------- Stat tiles ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    gap: 12px;
+    margin: 26px 0 0;
+  }
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 15px 16px 14px;
+    box-shadow: var(--shadow);
+  }
+  .tile .k {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: 7px;
+  }
+  .tile .v {
+    font-family: var(--f-display);
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .tile .n { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+  .tile.is-good .v   { color: var(--accent); }
+  .tile.is-block .v  { color: var(--danger); }
+  .tile.is-warn .v   { color: var(--warn); }
+
+  /* ---------- Sections ---------- */
+  section { margin-top: 54px; }
+  h2 {
+    font-family: var(--f-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.015em;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 11px;
+  }
+  h2 .idx {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+  .lede {
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+    max-width: 72ch;
+    font-size: 14.5px;
+  }
+
+  /* ---------- Blocker cards ---------- */
+  .blockers { display: grid; gap: 11px; }
+  .blocker {
+    display: grid;
+    grid-template-columns: 4px 1fr;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .blocker .stripe { background: var(--warn); }
+  .blocker.sev-critical .stripe { background: var(--danger); }
+  .blocker.sev-admin    .stripe { background: var(--info); }
+  .blocker .inner { padding: 15px 18px 16px; }
+  .blocker h3 {
+    font-family: var(--f-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+  }
+  .blocker p { margin: 0; color: var(--ink-soft); font-size: 14.5px; max-width: 78ch; }
+  .blocker p + p { margin-top: 8px; }
+  .owner {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--surface-sunk);
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .owner.you  { background: var(--info-wash);   color: var(--info);   border-color: transparent; }
+  .owner.me   { background: var(--accent-wash); color: var(--accent-deep); border-color: transparent; }
+  :root[data-theme="dark"] .owner.me,
+  :root:not([data-theme="light"]) .owner.me { color: var(--accent); }
+
+  code, .mono { font-family: var(--f-mono); font-size: .88em; }
+  code {
+    background: var(--surface-sunk);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--ink-mid);
+  }
+  pre {
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    background: var(--surface-sunk);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--danger);
+    border-radius: 7px;
+    padding: 13px 15px;
+    overflow-x: auto;
+    margin: 11px 0 0;
+    color: var(--ink-mid);
+  }
+
+  /* ---------- Phase blocks ---------- */
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 15px;
+  }
+  .phase-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--surface-sunk);
+    border-bottom: 1px solid var(--line);
+  }
+  .phase-head .no {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    letter-spacing: .08em;
+  }
+  .phase-head h3 {
+    font-family: var(--f-display);
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -.01em;
+    flex: 1 1 auto;
+  }
+  .pill {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: 3.5px 9px;
+    border-radius: 20px;
+  }
+  .pill.done    { background: var(--accent-wash); color: var(--accent-deep); }
+  .pill.now     { background: var(--danger-wash); color: var(--danger); }
+  .pill.next    { background: var(--warn-wash);   color: var(--warn); }
+  .pill.later   { background: var(--surface);     color: var(--ink-faint); border: 1px solid var(--line); }
+  :root[data-theme="dark"] .pill.done,
+  :root:not([data-theme="light"]) .pill.done { color: var(--accent); }
+
+  .rollup {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .t-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  th {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: left;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th.c, td.c { text-align: center; }
+  td {
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+    font-size: 14.5px;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.id {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    padding-top: 13px;
+  }
+  td .story { display: block; }
+  td .why {
+    display: block;
+    color: var(--ink-faint);
+    font-size: 13px;
+    margin-top: 3px;
+    max-width: 62ch;
+  }
+
+  .size {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    min-width: 34px;
+    padding: 3px 0;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid var(--line);
+    background: var(--surface-sunk);
+    color: var(--ink-soft);
+  }
+  .size.s-xs { background: var(--accent-wash); color: var(--accent-deep); border-color: transparent; }
+  .size.s-s  { background: var(--accent-wash); color: var(--accent-deep); border-color: transparent; font-weight: 700; }
+  .size.s-m  { background: var(--warn-wash);   color: var(--warn);        border-color: transparent; font-weight: 700; }
+  .size.s-l  { background: var(--danger-wash); color: var(--danger);      border-color: transparent; font-weight: 700; }
+  :root[data-theme="dark"] .size.s-xs, :root:not([data-theme="light"]) .size.s-xs,
+  :root[data-theme="dark"] .size.s-s,  :root:not([data-theme="light"]) .size.s-s { color: var(--accent); }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--info-wash);
+    color: var(--info);
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+  .tag.dec { background: var(--warn-wash); color: var(--warn); }
+
+  /* ---------- Legend / decisions ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    align-items: center;
+  }
+  .legend .li { display: flex; align-items: center; gap: 8px; }
+
+  .decisions { display: grid; gap: 10px; }
+  .dec {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 17px;
+    box-shadow: var(--shadow);
+  }
+  .dec .q {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: var(--warn);
+    background: var(--warn-wash);
+    padding: 3px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .dec h4 { font-family: var(--f-display); font-size: 15px; font-weight: 700; margin: 0 0 3px; }
+  .dec p  { margin: 0; font-size: 14px; color: var(--ink-soft); max-width: 76ch; }
+
+  ul.plain { margin: 0; padding-left: 19px; color: var(--ink-soft); font-size: 14.5px; }
+  ul.plain li { margin-bottom: 6px; }
+  ul.plain li::marker { color: var(--accent); }
+
+  footer {
+    margin-top: 62px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 26px;
+    justify-content: space-between;
+  }
+  footer .mono { font-size: 11.5px; }
+
+  a { color: var(--accent-deep); }
+  :root[data-theme="dark"] a, :root:not([data-theme="light"]) a { color: var(--accent); }
+  a:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  @media (max-width: 620px) {
+    .stamp { text-align: left; }
+    .wrap { padding: 28px 16px 72px; }
+  }
+</style>
+
+<style>
+  .todo{display:grid;gap:14px;margin-top:4px}
+  .job{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+       box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-columns:5px 1fr}
+  .job .bar{background:var(--danger)}
+  .job.soft .bar{background:var(--warn)}
+  .job .in{padding:16px 20px 18px}
+  .job h3{font-family:var(--f-display);font-size:17px;font-weight:700;margin:0 0 3px;
+          display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .job .why{color:var(--ink-soft);font-size:14px;margin:0 0 12px;max-width:76ch}
+  .mins{font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.09em;
+        text-transform:uppercase;padding:3px 8px;border-radius:4px;
+        background:var(--danger-wash);color:var(--danger)}
+  .job.soft .mins{background:var(--warn-wash);color:var(--warn)}
+  ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
+  ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 34px;
+              border-bottom:1px solid var(--line-soft);font-size:14.5px}
+  ol.steps li:last-child{border-bottom:none}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:22px;height:22px;
+    border-radius:50%;background:var(--surface-sunk);border:1px solid var(--line);
+    font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--ink-mid);
+    display:flex;align-items:center;justify-content:center}
+  .done-note{margin-top:11px;padding:10px 13px;background:var(--accent-wash);border-radius:8px;
+             font-size:13.5px;color:var(--ink-mid)}
+  :root[data-theme="dark"] .done-note,
+  :root:not([data-theme="light"]) .done-note{color:var(--ink-soft)}
+  .path{font-family:var(--f-mono);font-size:12.5px;background:var(--surface-sunk);
+        border:1px solid var(--line-soft);border-radius:5px;padding:2px 6px;
+        word-break:break-all;color:var(--ink-mid)}
+  .live{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .live a{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:9px;
+          background:var(--accent-wash);color:var(--accent-deep);text-decoration:none;
+          font-family:var(--f-display);font-weight:600;font-size:14px}
+  :root[data-theme="dark"] .live a,
+  :root:not([data-theme="light"]) .live a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Build status · Supabase + FlutterFlow</p>
+      <h1>Use It Fresh</h1>
+      <p class="sub">Everything below the first section is done and needs nothing from you.
+      The first section is the short list of things only you can do.</p>
+    </div>
+    <div class="stamp">
+      project <b>fridge-wise-gvpy0s</b><br>
+      commit <b>10XbVggzpUQKxRr0hsuC</b><br>
+      pages live <b>14</b><br>
+      updated <b>7 Sep 2026</b>
+    </div>
+  </header>
+
+  <div class="tiles">
+    <div class="tile is-block">
+      <span class="k">Needs you</span>
+      <div class="v">4</div>
+      <div class="n">~9 min in total</div>
+    </div>
+    <div class="tile is-good">
+      <span class="k">Shipped today</span>
+      <div class="v">9</div>
+      <div class="n">pushes, all validated</div>
+    </div>
+    <div class="tile is-good">
+      <span class="k">Migrations</span>
+      <div class="v">5 / 5</div>
+      <div class="n">applied and verified</div>
+    </div>
+    <div class="tile">
+      <span class="k">Components</span>
+      <div class="v">5</div>
+      <div class="n">theme + 4 reusable</div>
+    </div>
+  </div>
+
+  <!-- ================= YOUR LIST ================= -->
+  <section>
+    <h2><span class="idx">01</span> Your list</h2>
+    <p class="lede">Four jobs. Two unblock me, two are housekeeping. Nothing here needs code —
+    they are all clicks in FlutterFlow or Supabase.</p>
+
+    <div class="todo">
+
+      <div class="job">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>The fridge is skipped when signed out <span class="mins">1 min</span></h3>
+          <p class="why">The app's front door still points at the old welcome screen. This is
+          the single click that makes the fridge the first thing a new user sees.</p>
+          <ol class="steps">
+            <li>Open the project in <b>FlutterFlow</b></li>
+            <li>Left sidebar, bottom → <b>Settings</b> (the gear)</li>
+            <li>Under <b>App Settings</b> → <b>Authentication</b></li>
+            <li>Find <b>Entry Page</b> (sometimes labelled <i>Initial Page</i>)</li>
+            <li>Change it from <b>WelcomePage</b> to <b>SignInPage</b></li>
+            <li>Save</li>
+          </ol>
+          <div class="done-note"><b>Why I can't do this one:</b> the setting lives in the auth
+          config, and writing Supabase auth config from code can clobber your OAuth connection —
+          they share a protobuf field. I tried the two safe routes (changing the page's route,
+          then <span class="path">setInitialPage</span>); both pushed cleanly and neither moved
+          it. The UI toggle is zero risk.</div>
+        </div>
+      </div>
+
+      <div class="job">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>Re-sync the database schema <span class="mins">1 min</span></h3>
+          <p class="why">I added three columns to the food view (a friendly status label, a
+          plain-English detail line, an icon name). FlutterFlow's copy of your database is from
+          before that, so the inventory screen won't compile until it catches up.</p>
+          <ol class="steps">
+            <li>In <b>FlutterFlow</b> → <b>Settings</b></li>
+            <li><b>Integrations</b> → <b>Supabase</b></li>
+            <li>Click <b>Get Schema</b></li>
+            <li>Wait for it to say <b>15 tables imported</b> (not 14)</li>
+          </ol>
+          <div class="done-note">The inventory screen is already written and waiting in
+          <span class="path">dsl/_pending_i4_inventory.dart.txt</span> — one push after this.</div>
+        </div>
+      </div>
+
+      <div class="job soft">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>Rotate the database password <span class="mins">2 min</span></h3>
+          <p class="why">It was pasted into a chat transcript once. Treat any credential that
+          lands in a transcript as burned. Nothing in the app uses it, so rotating breaks nothing.</p>
+          <ol class="steps">
+            <li>Open <b>Supabase</b> → your project</li>
+            <li><b>Project Settings</b> → <b>Database</b></li>
+            <li><b>Reset database password</b></li>
+            <li>Save the new one in your password manager. You do not need to tell me.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="job soft">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>Point password-reset emails at the right page <span class="mins">2 min</span></h3>
+          <p class="why">Someone who resets their password gets an email, and that link currently
+          lands on the wrong screen. Change-password from inside Profile already works — this is
+          only the email route.</p>
+          <ol class="steps">
+            <li><b>Supabase</b> → <b>Authentication</b></li>
+            <li><b>URL Configuration</b></li>
+            <li>Under <b>Redirect URLs</b>, add your site URL followed by
+              <span class="path">/update-password</span></li>
+            <li>Save</li>
+          </ol>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= LOOKING AT IT ================= -->
+  <section>
+    <h2><span class="idx">02</span> Seeing the app</h2>
+    <p class="lede">The app runs on your own machine now — far quicker than Test Mode, and I can
+    read the console when something breaks.</p>
+    <div class="live">
+      <a href="http://localhost:8080" target="_blank" rel="noopener">localhost:8080 — the app</a>
+      <a href="http://localhost:8081/preview.html" target="_blank" rel="noopener">localhost:8081 — the fridge clips</a>
+    </div>
+    <div class="done-note" style="margin-top:14px">
+      <b>Open the app in a private window.</b> The intro is designed to play once and the app
+      remembers you have seen it, so a normal tab jumps straight past the fridge and looks broken.
+      <br><br>
+      <b>If a link does nothing:</b> the server is not running. Ask me to start it — I have to stop
+      it whenever I push, because it holds the code folder open.
+    </div>
+  </section>
+
+  <!-- ================= DONE ================= -->
+  <section>
+    <h2><span class="idx">03</span> Done, nothing needed from you</h2>
+    <p class="lede">Today's work, newest first.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>What</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><b>Design components</b></td><td>FoodCard, StatusBadge, SectionHeading, FeaturePanel — the pieces Home and Inventory are assembled from.</td></tr>
+          <tr><td><b>Theme</b></td><td>Your brand palette and fonts applied project-wide, so screens stop hard-coding colours.</td></tr>
+          <tr><td><b>Create household — fixed</b></td><td>The button had no action behind it at all. One insert now sets up your household, three storage places and a shopping list.</td></tr>
+          <tr><td><b>Urgency engine</b></td><td>The database now works out what to use first, recalculated against today's date, following the food-safety rules. Verified working.</td></tr>
+          <tr><td><b>Fridge entrance</b></td><td>Closed fridge with a glint on the handle → tap → door opens → the form fades in. Once per device.</td></tr>
+          <tr><td><b>Add food, storage places</b></td><td>Both screens built and working.</td></tr>
+          <tr><td><b>Door animation</b></td><td>Rebuilt in 3D from your artwork. Scripts kept, so re-rendering it later is one command.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= NEXT ================= -->
+  <section>
+    <h2><span class="idx">04</span> What I do next</h2>
+    <p class="lede">In this order. Only the third waits on you.</p>
+    <ul class="plain">
+      <li><b>Restyle the bottom navigation</b> — it exists and works, but uses default icons.
+      Your design pack has a proper icon set and a raised Scan/Add button.</li>
+      <li><b>Home</b> — greet by name rather than email address, add the dark feature card,
+      and show what to use first.</li>
+      <li><b>Inventory</b> — search, filters, and the food list. <i>Waits on the schema re-sync.</i></li>
+      <li><b>Add-food flow</b> — the review step before anything saves.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Everything in "Your list" is a click. Nothing there needs code from you.</span>
+    <span class="mono">UseItFresh · fridge-wise-gvpy0s · 7 Sep 2026</span>
+  </footer>
+
+</div>

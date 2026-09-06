@@ -1,0 +1,134 @@
+    page.ensureReplaced(
+      ff.Pages.signInPage.widgets.byKey('Stack_5n4wnuv4').single,
+      Stack(
+        name: 'SignInStack',
+        alignment: Alignment.center,
+        children: [
+          // 1. The resting open fridge. Always present underneath, so when the
+          //    clip unmounts there is never a blank frame.
+          Image(
+            _kOpenBackdrop,
+            name: 'SignInBackdrop',
+            fit: ImageFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+
+          // 2. The opening clip. VideoPlayer has no play action in the DSL —
+          //    autoPlay fires when the widget mounts, so toggling visibility IS
+          //    the play trigger.
+          VideoPlayer(
+            _kOpeningClip,
+            name: 'FridgeOpeningClip',
+            autoPlay: true,
+            looping: false,
+            showControls: false,
+            width: double.infinity,
+            height: double.infinity,
+            visible: State('introPlaying'),
+          ),
+
+          // 3. Closed fridge + the tap target. Container takes onTap, so the
+          //    whole screen is tappable rather than a button someone has to find.
+          Container(
+            name: 'ClosedFridgeTapTarget',
+            width: double.infinity,
+            height: double.infinity,
+            visible: State('introPending'),
+            onTap: _openChain(),
+            child: Image(
+              _kClosedFridge,
+              name: 'ClosedFridgeImage',
+              fit: ImageFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          ),
+
+          // 4. The form.
+          Container(
+            name: 'SignInFormPanel',
+            width: double.infinity,
+            visible: State('formShown'),
+            padding: EdgeInsets.symmetric(horizontal: 22, vertical: 26),
+            margin: EdgeInsets.symmetric(horizontal: 26, vertical: 0),
+            borderRadius: 18,
+            color: Colors.hex(_kFormPanel),
+            child: Column(
+              name: 'SignInForm',
+              mainAxis: MainAxis.center,
+              crossAxis: CrossAxis.stretch,
+              spacing: 12,
+              scrollable: true,
+              children: [
+                Text(
+                  'Use It Fresh',
+                  name: 'SignInBrand',
+                  style: Styles.headlineMedium,
+                  color: Colors.hex(_kBrandGreen),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+                Text(
+                  'Use what you have. Waste less.',
+                  name: 'SignInSlogan',
+                  style: Styles.bodyMedium,
+                  color: Colors.hex(_kSloganInk),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                ),
+                TextField(
+                  name: 'SignInEmailField',
+                  label: 'Email',
+                  keyboard: Keyboard.email,
+                  onChanged: SetState(
+                    ff.Pages.signInPage.state.email,
+                    const TextValue(),
+                  ),
+                ),
+                TextField(
+                  name: 'SignInPasswordField',
+                  label: 'Password',
+                  obscureText: true,
+                  onChanged: SetState(
+                    ff.Pages.signInPage.state.password,
+                    const TextValue(),
+                  ),
+                ),
+                Button(
+                  'Sign In',
+                  name: 'SignInButton',
+                  width: double.infinity,
+                  height: 46,
+                  borderRadius: 10,
+                  color: Colors.hex(_kBrandGreen),
+                  onTap: [
+                    LoginEmailPassword(
+                      State(ff.Pages.signInPage.state.email),
+                      State(ff.Pages.signInPage.state.password),
+                    ),
+                  ],
+                ),
+                Button(
+                  'Create Account',
+                  name: 'CreateAccountButton',
+                  variant: ButtonVariant.outlined,
+                  width: double.infinity,
+                  height: 46,
+                  borderRadius: 10,
+                  onTap: Navigate(ff.Pages.signUpPage),
+                ),
+                Button(
+                  'Forgot password?',
+                  name: 'ForgotPasswordButton',
+                  variant: ButtonVariant.text,
+                  width: double.infinity,
+                  onTap: Navigate(ff.Pages.resetPasswordPage),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+

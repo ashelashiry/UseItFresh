@@ -1,0 +1,303 @@
+<title>Use It Fresh Design Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --forest:#07533A; --fresh:#83BD43; --cream:#FAF9F3; --charcoal:#202826;
+
+    --ground:#F3F1E9; --surface:#FFFFFF; --sunk:#EAE7DC; --line:#DCD8CA; --line-soft:#E8E5D9;
+    --ink:#1B2620; --ink-mid:#455049; --ink-soft:#6B776E; --ink-faint:#8E9990;
+
+    --ok:#2F7D4F; --ok-wash:#E6F0E8;
+    --soon:#A8760F; --soon-wash:#F7EFDD;
+    --today:#B85C1B; --today-wash:#FAEADE;
+    --stop:#B3382C; --stop-wash:#F8E4E1;
+    --quality:#6B5344; --quality-wash:#F0E9E3;
+    --cold:#2E6C93; --cold-wash:#E3EDF4;
+    --idk:#6E7A72; --idk-wash:#EBEEEB;
+
+    --shadow:0 1px 2px rgba(20,32,24,.05), 0 6px 20px rgba(20,32,24,.06);
+    --fd:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    --fb:"Nunito",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    --fm:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#12160F; --surface:#1A1F17; --sunk:#212719; --line:#333B2B; --line-soft:#2A3122;
+      --ink:#E9EEE2; --ink-mid:#BCC6B4; --ink-soft:#95A18C; --ink-faint:#7A8573;
+      --ok:#6FBF88; --ok-wash:#18291D; --soon:#D9A040; --soon-wash:#2C2415;
+      --today:#E28B4C; --today-wash:#312114; --stop:#E0796B; --stop-wash:#331C19;
+      --quality:#B49A85; --quality-wash:#2A231D; --cold:#7BB0D2; --cold-wash:#182630;
+      --idk:#9BA79E; --idk-wash:#232823;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 6px 20px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#12160F; --surface:#1A1F17; --sunk:#212719; --line:#333B2B; --line-soft:#2A3122;
+    --ink:#E9EEE2; --ink-mid:#BCC6B4; --ink-soft:#95A18C; --ink-faint:#7A8573;
+    --ok:#6FBF88; --ok-wash:#18291D; --soon:#D9A040; --soon-wash:#2C2415;
+    --today:#E28B4C; --today-wash:#312114; --stop:#E0796B; --stop-wash:#331C19;
+    --quality:#B49A85; --quality-wash:#2A231D; --cold:#7BB0D2; --cold-wash:#182630;
+    --idk:#9BA79E; --idk-wash:#232823;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 6px 20px rgba(0,0,0,.3);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--fb);font-size:15.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:40px 24px 100px}
+
+  header.top{border-bottom:2px solid var(--ink);padding-bottom:22px;display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:flex-end}
+  .eyebrow{font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--forest);margin:0 0 8px}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .eyebrow{color:var(--fresh)}}
+  :root[data-theme="dark"] .eyebrow{color:var(--fresh)}
+  h1{font-family:var(--fd);font-weight:800;font-size:clamp(30px,5vw,44px);line-height:1.04;letter-spacing:-.022em;margin:0;text-wrap:balance}
+  .sub{color:var(--ink-soft);margin:10px 0 0;max-width:62ch}
+  .stamp{font-family:var(--fm);font-size:11.5px;line-height:1.8;color:var(--ink-faint);text-align:right}
+  .stamp b{color:var(--ink-mid);font-weight:600}
+
+  section{margin-top:56px}
+  h2{font-family:var(--fd);font-size:22px;font-weight:700;letter-spacing:-.015em;margin:0 0 6px;display:flex;align-items:baseline;gap:11px}
+  h2 .n{font-family:var(--fm);font-size:12px;font-weight:600;color:var(--ink-faint)}
+  .lede{color:var(--ink-soft);margin:0 0 22px;max-width:74ch;font-size:14.5px}
+  h3{font-family:var(--fd);font-size:15px;font-weight:700;margin:26px 0 10px}
+
+  .sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:12px}
+  .chip{background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden;box-shadow:var(--shadow)}
+  .chip .fill{height:74px}
+  .chip .meta{padding:11px 13px}
+  .chip .nm{font-family:var(--fd);font-weight:700;font-size:14px}
+  .chip .hx{font-family:var(--fm);font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+  .chip .use{font-size:12.5px;color:var(--ink-faint);margin-top:5px;line-height:1.45}
+
+  table{width:100%;border-collapse:collapse;min-width:640px}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--shadow)}
+  th{font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:13px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top;font-size:14.5px}
+  tr:last-child td{border-bottom:none}
+  code{font-family:var(--fm);font-size:.86em;background:var(--sunk);border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px;color:var(--ink-mid)}
+
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;border-radius:999px;font-family:var(--fd);font-weight:600;font-size:13px;white-space:nowrap}
+  .pill svg{width:15px;height:15px;flex:0 0 auto}
+  .s-ok{background:var(--ok-wash);color:var(--ok)} .s-soon{background:var(--soon-wash);color:var(--soon)}
+  .s-today{background:var(--today-wash);color:var(--today)} .s-stop{background:var(--stop-wash);color:var(--stop)}
+  .s-qual{background:var(--quality-wash);color:var(--quality)} .s-cold{background:var(--cold-wash);color:var(--cold)}
+  .s-idk{background:var(--idk-wash);color:var(--idk)}
+
+  .type-row{display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+  .type-row:last-child{border-bottom:none}
+  .type-row .lbl{font-family:var(--fm);font-size:11px;color:var(--ink-faint);width:150px;flex:0 0 auto}
+
+  .comp{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:17px;box-shadow:var(--shadow)}
+  .card h4{font-family:var(--fd);font-size:14px;margin:0 0 4px}
+  .card p{margin:0 0 12px;color:var(--ink-soft);font-size:13.5px}
+
+  .btn{display:flex;align-items:center;justify-content:center;height:46px;border-radius:10px;font-family:var(--fd);font-weight:600;font-size:15px}
+  .btn.pri{background:var(--forest);color:#fff}
+  .btn.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.txt{background:transparent;color:var(--forest);text-decoration:underline}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.pri{background:var(--fresh);color:#12160F}
+    :root:not([data-theme="light"]) .btn.txt{color:var(--fresh)}}
+  :root[data-theme="dark"] .btn.pri{background:var(--fresh);color:#12160F}
+  :root[data-theme="dark"] .btn.txt{color:var(--fresh)}
+  .field{height:46px;border-radius:10px;border:1px solid var(--line);background:var(--sunk);display:flex;align-items:center;padding:0 13px;color:var(--ink-faint);font-size:14.5px}
+  .stack{display:flex;flex-direction:column;gap:9px}
+
+  .row{display:flex;gap:13px;align-items:flex-start;padding:13px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}
+  .row .ic{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .row .body{flex:1;min-width:0}
+  .row .nm{font-family:var(--fd);font-weight:700;font-size:15px}
+  .row .dt{color:var(--ink-soft);font-size:13px;margin-top:1px}
+  .row .why{color:var(--ink-faint);font-size:12px;margin-top:3px;font-style:italic}
+
+  .flag{background:var(--soon-wash);border-left:3px solid var(--soon);border-radius:8px;padding:13px 16px;margin-top:14px}
+  .flag h4{font-family:var(--fd);font-size:14px;margin:0 0 4px;color:var(--soon)}
+  .flag p{margin:0;font-size:14px;color:var(--ink-soft)}
+  .flag p+p{margin-top:7px}
+
+  ul.plain{margin:0;padding-left:19px;color:var(--ink-soft);font-size:14.5px}
+  ul.plain li{margin-bottom:6px}
+  ul.plain li::marker{color:var(--forest)}
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:13px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div>
+    <p class="eyebrow">Design kit · working reference</p>
+    <h1>Use It Fresh</h1>
+    <p class="sub">The tokens, the status system and the components as they exist in the build today —
+    so new screens can be designed against what actually ships, not against a mockup.</p>
+  </div>
+  <div class="stamp">
+    project <b>fridge-wise-gvpy0s</b><br>
+    pages live <b>14</b><br>
+    updated <b>6 Sep 2026</b>
+  </div>
+</header>
+
+<!-- ============ BRAND ============ -->
+<section>
+  <h2><span class="n">01</span> Brand colour</h2>
+  <p class="lede">Straight from <code>brand-colors.json</code> in the logo pack. Four colours, and only four —
+  everything else on this page is a neutral or a status colour.</p>
+  <div class="sw">
+    <div class="chip"><div class="fill" style="background:#07533A"></div><div class="meta">
+      <div class="nm">Forest</div><div class="hx">#07533A</div>
+      <div class="use">Primary. Headings, primary buttons, links.</div></div></div>
+    <div class="chip"><div class="fill" style="background:#83BD43"></div><div class="meta">
+      <div class="nm">Fresh</div><div class="hx">#83BD43</div>
+      <div class="use">Accent, and the primary on dark grounds where forest goes muddy.</div></div></div>
+    <div class="chip"><div class="fill" style="background:#FAF9F3"></div><div class="meta">
+      <div class="nm">Cream</div><div class="hx">#FAF9F3</div>
+      <div class="use">The magnet plate, light panels, the sign-in card.</div></div></div>
+    <div class="chip"><div class="fill" style="background:#202826"></div><div class="meta">
+      <div class="nm">Charcoal</div><div class="hx">#202826</div>
+      <div class="use">Body text on light. Near-black without being flat black.</div></div></div>
+  </div>
+
+  <div class="flag">
+    <h4>Two greens are in play and they need reconciling</h4>
+    <p>The brand pack says <code>#07533A</code>. The sign-in screen I built uses <code>#28533A</code>,
+    which came from the fridge design pack before the logo existed. They are close enough to look like
+    a mistake rather than a choice.</p>
+    <p>My recommendation: <b>the logo wins</b>. Say the word and I'll patch the sign-in to
+    <code>#07533A</code> — it's a fast-lane change, seconds not minutes.</p>
+  </div>
+</section>
+
+<!-- ============ STATUS ============ -->
+<section>
+  <h2><span class="n">02</span> The status system</h2>
+  <p class="lede">The most important component in the app, and the one most likely to be got wrong.
+  These nine are fixed by spec §10 — not a palette decision. Every one carries an icon <em>and</em> a word,
+  because §10 forbids relying on colour alone, and because a colour-blind user still needs to know
+  whether to eat something.</p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Status</th><th>What it means</th><th>Row detail</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill s-stop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2 2 20h20L12 2z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg>Past use-by</span></td>
+            <td>A <b>safety</b> limit has passed.</td><td>Throw this out</td><td><code>past_use_by</code></td></tr>
+        <tr><td><span class="pill s-today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v10"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg>Use today</span></td>
+            <td>Today is the last day.</td><td>Use it today</td><td><code>use_today</code></td></tr>
+        <tr><td><span class="pill s-qual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.4V13"/><circle cx="12" cy="16.5" r=".7" fill="currentColor"/></svg>Past best before</span></td>
+            <td><b>Quality</b>, not safety. Often still fine.</td><td>Check it before using</td><td><code>past_best_before</code></td></tr>
+        <tr><td><span class="pill s-soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Use soon</span></td>
+            <td>Inside the category's warning window.</td><td>3 days left</td><td><code>use_soon</code></td></tr>
+        <tr><td><span class="pill s-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>Fresh</span></td>
+            <td>Comfortably in date.</td><td>9 days left</td><td><code>fresh</code></td></tr>
+        <tr><td><span class="pill s-cold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9"/></svg>Frozen</span></td>
+            <td>Clock stopped.</td><td>Frozen — clock stopped</td><td><code>frozen</code></td></tr>
+        <tr><td><span class="pill s-idk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.4V13"/><circle cx="12" cy="16.5" r=".7" fill="currentColor"/></svg>Not sure</span></td>
+            <td>Not enough recorded to judge.</td><td>No date recorded</td><td><code>unknown</code></td></tr>
+        <tr><td><span class="pill s-idk">Used</span></td><td>Consumed. Terminal, user-set.</td><td>Used</td><td><code>consumed</code></td></tr>
+        <tr><td><span class="pill s-idk">Thrown out</span></td><td>Discarded. Terminal, user-set.</td><td>Thrown out</td><td><code>discarded</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flag">
+    <h4>Past use-by and past best before must never look alike</h4>
+    <p>One is "throw this out", the other is "have a look at it". Spec §5.2 turns on that difference and
+    the database already encodes it. Red belongs only to the first; the second is a muted brown so it
+    reads as a prompt, not an alarm.</p>
+    <p>Every row also carries a <code>status_basis</code> — <i>"past the printed use-by"</i>,
+    <i>"open too long"</i>, <i>"a typical shelf life — no date recorded"</i> — plus a
+    <code>has_unknowns</code> flag. The UI should show its reasoning and admit its gaps (§5.4, §5.9),
+    not project confidence it doesn't have.</p>
+  </div>
+
+  <h3>The inventory row, assembled</h3>
+  <div class="stack" style="max-width:520px">
+    <div class="row"><div class="ic" style="background:var(--stop-wash);color:var(--stop)">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2 2 20h20L12 2z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></div>
+      <div class="body"><div class="nm">Chicken thighs</div><div class="dt">Throw this out · Fridge</div>
+      <div class="why">past the printed use-by</div></div>
+      <span class="pill s-stop">Past use-by</span></div>
+
+    <div class="row"><div class="ic" style="background:var(--today-wash);color:var(--today)">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v10"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg></div>
+      <div class="body"><div class="nm">Leftover risotto</div><div class="dt">Use it today · Fridge</div>
+      <div class="why">open too long — when you opened it</div></div>
+      <span class="pill s-today">Use today</span></div>
+
+    <div class="row"><div class="ic" style="background:var(--idk-wash);color:var(--idk)">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.4V13"/><circle cx="12" cy="16.5" r=".7" fill="currentColor"/></svg></div>
+      <div class="body"><div class="nm">Cheddar</div><div class="dt">No date recorded · Fridge</div>
+      <div class="why">we don't know enough to judge this one</div></div>
+      <span class="pill s-idk">Not sure</span></div>
+  </div>
+</section>
+
+<!-- ============ TYPE ============ -->
+<section>
+  <h2><span class="n">03</span> Type</h2>
+  <p class="lede">Figtree for anything structural, Nunito for reading. Both are already in the app.</p>
+  <div class="type-row"><span class="lbl">Figtree 800 · 34px</span><span style="font-family:var(--fd);font-weight:800;font-size:34px;letter-spacing:-.02em">Use It Fresh</span></div>
+  <div class="type-row"><span class="lbl">Figtree 700 · 22px</span><span style="font-family:var(--fd);font-weight:700;font-size:22px">Use first</span></div>
+  <div class="type-row"><span class="lbl">Figtree 700 · 15px</span><span style="font-family:var(--fd);font-weight:700;font-size:15px">Chicken thighs</span></div>
+  <div class="type-row"><span class="lbl">Nunito 400 · 15px</span><span style="font-size:15px">Use what you have. Waste less.</span></div>
+  <div class="type-row"><span class="lbl">Nunito 400 · 13px</span><span style="font-size:13px;color:var(--ink-soft)">Throw this out · Fridge</span></div>
+  <div class="type-row"><span class="lbl">Mono 500 · 11px</span><span style="font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)">Storage locations</span></div>
+</section>
+
+<!-- ============ COMPONENTS ============ -->
+<section>
+  <h2><span class="n">04</span> Components in the build</h2>
+  <p class="lede">Sizes here are the ones actually shipping — 46&nbsp;px controls, 10&nbsp;px radius,
+  12&nbsp;px gaps. 46 rather than the 38 in the original mockup, because 38 is under both Apple's 44&nbsp;pt
+  and Material's 48&nbsp;dp minimums.</p>
+  <div class="comp">
+    <div class="card"><h4>Buttons</h4><p>Filled for the one real action, outlined for the alternative, text for the escape hatch.</p>
+      <div class="stack"><div class="btn pri">Sign In</div><div class="btn sec">Create Account</div><div class="btn txt">Forgot password?</div></div></div>
+    <div class="card"><h4>Fields</h4><p>Floating label, 46&nbsp;px tall. Labels sit inside — stacking a label above <em>and</em> a floating one reads as a bug.</p>
+      <div class="stack"><div class="field">you@example.com</div><div class="field">••••••••</div></div></div>
+    <div class="card"><h4>Empty state</h4><p><code>EmptyStateCard</code> exists already. Say what will appear here, not just that nothing has.</p>
+      <div style="border:1px dashed var(--line);border-radius:11px;padding:22px;text-align:center">
+        <div style="font-family:var(--fd);font-weight:700;font-size:15px">Nothing to use up yet</div>
+        <div style="color:var(--ink-soft);font-size:13px;margin-top:4px">Once your inventory is in, the items to use first show up here.</div></div></div>
+  </div>
+</section>
+
+<!-- ============ BUILT ============ -->
+<section>
+  <h2><span class="n">05</span> What exists today</h2>
+  <p class="lede">14 pages live. This is the honest state — several are shells with nothing wired behind them.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Screen</th><th>State</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><b>SignInPage</b> <code>/</code></td><td>Built</td><td>The front door. Closed fridge → tap → opens → form fades in. First run only.</td></tr>
+        <tr><td><b>StorageLocationsPage</b></td><td>Built</td><td>List, add, remove. I1.</td></tr>
+        <tr><td><b>AddFoodItemPage</b></td><td>Built</td><td>Four fields. I2.</td></tr>
+        <tr><td><b>HomePage</b></td><td>Shell</td><td>"Use first" is an empty state. Needs the urgency query wired.</td></tr>
+        <tr><td><b>InventoryPage</b></td><td>Shell</td><td>Next up — the sorted list against the urgency view.</td></tr>
+        <tr><td><b>ScanAddPage</b></td><td>Shell</td><td>Four scan buttons with nothing behind them. "Add manually" now works.</td></tr>
+        <tr><td><b>HouseholdSetupPage</b></td><td>Broken</td><td>"Create household" does nothing — no action wired. Blocking: no food can be added without one.</td></tr>
+        <tr><td>Recipes · Profile · Onboarding</td><td>Shell</td><td>Later phases.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ ASSETS ============ -->
+<section>
+  <h2><span class="n">06</span> Assets on hand</h2>
+  <ul class="plain">
+    <li><b>Logo pack</b> — vector, transparent PNG to 4096, web, favicons, iOS and Android app icons, print. Covers the store listings (C7) and the website when we get there.</li>
+    <li><b>Fridge, closed</b> — <code>fridge-closed-v7.jpg</code>, and a blank-door version with no magnet so the logo composites in at render time.</li>
+    <li><b>Fridge, opening</b> — <code>fridge-opening-v7.mp4</code>, 2.13&nbsp;s, ends on the exact sign-in backdrop.</li>
+    <li><b>Glint</b> — <code>fridge-closed-glint-loop.mp4</code>, handle shine on a 2.53&nbsp;s loop.</li>
+    <li><b>Render pipeline</b> — <code>design/scripts/</code>. The door swing is rebuildable from source; changing the logo is one command.</li>
+  </ul>
+</section>
+
+<footer>
+  Tokens and sizes here match the build, not a mockup. Where they disagree, the build is what users see —
+  tell me and I'll change the build.
+</footer>
+</div>

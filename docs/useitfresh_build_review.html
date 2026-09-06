@@ -1,0 +1,382 @@
+<title>Use It Fresh Build Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #FBFAF6;
+    --surface: #FFFFFF;
+    --surface-2: #F2F1EA;
+    --ink: #22301F;
+    --ink-soft: #5C6A58;
+    --line: #E2E1D6;
+    --accent: #2E7D4F;
+    --accent-soft: #E3F0E7;
+    --ok: #2E7D4F;
+    --ok-bg: #E3F0E7;
+    --partial: #9A6B15;
+    --partial-bg: #F6ECD8;
+    --missing: #B3402F;
+    --missing-bg: #F8E5E1;
+    --info: #33618F;
+    --info-bg: #E2EBF4;
+    --chip-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #141A14;
+      --surface: #1C241C;
+      --surface-2: #232D23;
+      --ink: #E6EDE3;
+      --ink-soft: #9FAF9B;
+      --line: #33402F;
+      --accent: #6DBE8E;
+      --accent-soft: #24382B;
+      --ok: #6DBE8E;
+      --ok-bg: #24382B;
+      --partial: #D9A54A;
+      --partial-bg: #3A3120;
+      --missing: #E08A79;
+      --missing-bg: #3F2822;
+      --info: #86AED6;
+      --info-bg: #223342;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #141A14;
+    --surface: #1C241C;
+    --surface-2: #232D23;
+    --ink: #E6EDE3;
+    --ink-soft: #9FAF9B;
+    --line: #33402F;
+    --accent: #6DBE8E;
+    --accent-soft: #24382B;
+    --ok: #6DBE8E;
+    --ok-bg: #24382B;
+    --partial: #D9A54A;
+    --partial-bg: #3A3120;
+    --missing: #E08A79;
+    --missing-bg: #3F2822;
+    --info: #86AED6;
+    --info-bg: #223342;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 20px 96px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+
+  h1, h2, h3 {
+    font-family: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
+    text-wrap: balance;
+    line-height: 1.15;
+  }
+  h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 700; margin: 0 0 10px; }
+  h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 6px; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 6px; }
+
+  header { padding: 56px 0 28px; border-bottom: 2px solid var(--accent); margin-bottom: 8px; }
+  .eyebrow {
+    font-family: var(--chip-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .lede { color: var(--ink-soft); max-width: 62ch; margin: 0 0 22px; font-size: 1.05rem; }
+
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .meta {
+    font-family: var(--chip-mono);
+    font-size: 0.74rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 10px;
+    color: var(--ink-soft);
+  }
+  .meta strong { color: var(--ink); font-weight: 500; }
+
+  section { padding: 36px 0 8px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .section-note { color: var(--ink-soft); font-size: 0.95rem; max-width: 68ch; margin: 0 0 18px; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.93rem; }
+  th {
+    text-align: left;
+    font-family: var(--chip-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.area { font-weight: 600; white-space: nowrap; }
+  td.num { font-family: var(--chip-mono); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--chip-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .chip.ok      { color: var(--ok);      background: var(--ok-bg); }
+  .chip.partial { color: var(--partial); background: var(--partial-bg); }
+  .chip.missing { color: var(--missing); background: var(--missing-bg); }
+  .chip.info    { color: var(--info);    background: var(--info-bg); }
+  .chip.adopt   { color: var(--ok);      background: var(--ok-bg); }
+  .chip.drop    { color: var(--missing); background: var(--missing-bg); }
+  .chip.nice    { color: var(--info);    background: var(--info-bg); }
+
+  .cardgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+  }
+  .card h3 { margin-bottom: 8px; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 0.92rem; }
+  .card ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 0.92rem; }
+  .card li { margin-bottom: 4px; }
+
+  .callout {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 22px;
+    margin: 20px 0;
+  }
+  .callout h3 { color: var(--accent); }
+  .callout ol { margin: 8px 0 0; padding-left: 20px; }
+  .callout li { margin-bottom: 10px; }
+  .callout .sub { color: var(--ink-soft); font-size: 0.92rem; }
+
+  .verdict {
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 18px;
+    margin: 18px 0;
+    max-width: 68ch;
+  }
+  .verdict p { margin: 0; }
+
+  .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .steps li {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px 14px 52px;
+    position: relative;
+  }
+  .steps li::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 16px; top: 14px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--ground);
+    font-family: var(--chip-mono);
+    font-size: 0.78rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps .who {
+    font-family: var(--chip-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .steps .done { text-decoration: line-through; color: var(--ink-soft); }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Spec vs. build · Working review</div>
+    <h1>Use It Fresh Build Review</h1>
+    <p class="lede">What the FridgeWise prototype delivers against the AI&nbsp;Fridge build spec, which prototype ideas are worth folding back into the spec, and the decisions still open before the Phase&nbsp;1 rebuild begins.</p>
+    <div class="meta-row">
+      <span class="meta">Updated <strong>31 Aug 2026</strong></span>
+      <span class="meta">Project <strong>fridge-wise-gvpy0s · rebuilt as Use It Fresh</strong></span>
+      <span class="meta">Backend <strong>Supabase · UseItFresh (schema live ✓)</strong></span>
+      <span class="meta"><strong>Phase 1 PUSHED ✓</strong> commit vdRf5mGO…</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Where things stand</h2>
+    <p class="section-note">The prototype is a polished <em>single-user UI mock</em> — 9 pages, 19 components, 5 flat Firestore-style collections, 13 local helper functions. The spec demands a Supabase foundation (auth, households, RLS, realtime) that the prototype never started. The foundation is now ready on the database side: all 13 tables, 45 RLS policies, 3 storage buckets, and the invite-join RPC are live in the UseItFresh Supabase project, and the database password has been reset.</p>
+    <div class="cardgrid">
+      <div class="card">
+        <h3>Prototype has</h3>
+        <ul>
+          <li>Inventory dashboard, search, category chips</li>
+          <li>Add item (manual), item detail + safety tips</li>
+          <li>Recipe generator UI + step-by-step instructions</li>
+          <li>Shopping list, waste analytics, settings</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Prototype lacks</h3>
+        <ul>
+          <li>Auth, households, sharing — no user model at all</li>
+          <li>All AI capture (photo / barcode / receipt / fridge scan)</li>
+          <li>Opened-date &amp; use-by vs best-before tracking</li>
+          <li>Notifications, assessment engine, entitlements</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Decided so far</h3>
+        <ul>
+          <li>Backend: <strong>Supabase</strong> (same stack as spot-a-paw)</li>
+          <li>Name: <strong>Use It Fresh</strong></li>
+          <li>Rebuild from spec, phase by phase</li>
+          <li>First milestone: <strong>Phase 1 — Foundation</strong></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Spec coverage, feature by feature</h2>
+    <p class="section-note">How each spec area fares against what was actually built. Section numbers reference the AI&nbsp;Fridge build spec.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Spec area</th><th>Status</th><th>Notes</th></tr>
+        <tr><td class="area">§8.3 Onboarding</td><td><span class="chip partial">PARTIAL</span></td><td>Page exists; no household create/join, no dietary or allergy capture.</td></tr>
+        <tr><td class="area">§8.5 Inventory + urgency</td><td><span class="chip partial">PARTIAL</span></td><td>Dashboard, search, category filter built; no location tabs, opened filter, or bulk operations.</td></tr>
+        <tr><td class="area">§8.6 Add / scan flow</td><td><span class="chip missing">MISSING</span></td><td>Manual entry only. No photo, barcode, receipt, fridge scan, or AI review screen.</td></tr>
+        <tr><td class="area">§8.7 Item details</td><td><span class="chip partial">PARTIAL</span></td><td>Detail page with safety tips; missing opened / date-type / confidence / activity fields.</td></tr>
+        <tr><td class="area">§8.8 “Is this still good?”</td><td><span class="chip missing">MISSING</span></td><td>Static safety tips exist, but no questionnaire → categorized assessment engine.</td></tr>
+        <tr><td class="area">§8.9 Recipes</td><td><span class="chip partial">PARTIAL</span></td><td>Generator + instructions pages and missing-ingredient flags built; no real AI, no allergen constraints.</td></tr>
+        <tr><td class="area">§8.10 Shopping list</td><td><span class="chip partial">PARTIAL</span></td><td>Works locally; no household sharing or purchased → inventory conversion.</td></tr>
+        <tr><td class="area">§8.12 Insights</td><td><span class="chip partial">PARTIAL</span></td><td>Waste Analytics page maps well; adds environmental impact the spec lacks (see below).</td></tr>
+        <tr><td class="area">§8.14 Settings</td><td><span class="chip partial">PARTIAL</span></td><td>Units and alert days; no account, privacy, or export controls.</td></tr>
+        <tr><td class="area">§8.1–8.2 Auth &amp; welcome</td><td><span class="chip missing">MISSING</span></td><td>No authentication anywhere in the prototype.</td></tr>
+        <tr><td class="area">§7, §8.13 Households</td><td><span class="chip missing">MISSING</span></td><td>Zero household concept in the data model.</td></tr>
+        <tr><td class="area">§8.11, §14 Notifications</td><td><span class="chip missing">MISSING</span></td><td>None.</td></tr>
+        <tr><td class="area">§9 Canonical bottom nav</td><td><span class="chip missing">MISSING</span></td><td>No 5-tab shell.</td></tr>
+        <tr><td class="area">§10 Status model</td><td><span class="chip missing">GAP</span></td><td>String expiry date + a freshness score vs the spec’s 9 statuses, date types, opened / frozen tracking.</td></tr>
+        <tr><td class="area">§11 Data model</td><td><span class="chip ok">DONE ✓</span></td><td>Rebuilt properly: 13 Postgres tables + RLS now live in Supabase (was the biggest gap).</td></tr>
+        <tr><td class="area">§6, §13 AI backend</td><td><span class="chip missing">MISSING</span></td><td>No APIs or edge functions — the AI pages are UI shells.</td></tr>
+        <tr><td class="area">§15 Monetisation</td><td><span class="chip info">DEFERRED</span></td><td>Per spec: design entitlement checks now, add billing after retention is validated.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Prototype ideas the spec doesn’t have</h2>
+    <p class="section-note">The reverse comparison — features invented for the prototype that are absent from the spec, each with a recommendation. Adopting all five “adopt” rows changes no architecture; they are columns and content on top of the spec’s model.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>#</th><th>Prototype feature</th><th>In spec?</th><th>Recommendation</th></tr>
+        <tr>
+          <td class="num">1</td>
+          <td><strong>Environmental impact tracking</strong> — kg of food waste avoided, per-recipe impact, running total</td>
+          <td>No — §8.12 insights are money-only</td>
+          <td><span class="chip adopt">ADOPT</span> Genuine differentiator; demos beautifully. Add “waste avoided (kg)” to Insights and per-recipe impact.</td>
+        </tr>
+        <tr>
+          <td class="num">2</td>
+          <td><strong>Critical-step flags in recipes</strong> — each step can carry a tip and a “critical” safety marker</td>
+          <td>No — §13.5 recipe JSON has no step-level safety</td>
+          <td><span class="chip adopt">ADOPT</span> Dovetails with the §5 food-safety rules: safety inside the cooking flow, cheap schema addition.</td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td><strong>Recipe metadata</strong> — difficulty, calories, prep time on every recipe</td>
+          <td>Partly — inputs exist, output schema doesn’t require them</td>
+          <td><span class="chip adopt">ADOPT</span> Add to the structured recipe JSON; label calories as estimates per the §8.12 rule.</td>
+        </tr>
+        <tr>
+          <td class="num">4</td>
+          <td><strong>Recipe-linked shopping items</strong> — each list item can point at its source recipe</td>
+          <td>Partly — has <code>source: recipe</code> but no link to which</td>
+          <td><span class="chip adopt">ADOPT</span> One column (<code>source_recipe_id</code>); enables recipe context and bulk un-adding.</td>
+        </tr>
+        <tr>
+          <td class="num">5</td>
+          <td><strong>Per-food storage &amp; safety tips library</strong> — static “how to store, how long it lasts” per category</td>
+          <td>No — only the interactive assessment (§8.8)</td>
+          <td><span class="chip adopt">ADOPT</span> Zero-AI-cost education; reduces assessment queries and builds trust.</td>
+        </tr>
+        <tr>
+          <td class="num">6</td>
+          <td><strong>Storage-location stat cards</strong> — item counts per fridge / freezer / pantry on the dashboard</td>
+          <td>Partly — §8.4 counts are urgency-based only</td>
+          <td><span class="chip nice">NICE-TO-HAVE</span> Secondary dashboard row; trivial once inventory exists.</td>
+        </tr>
+        <tr>
+          <td class="num">7</td>
+          <td><strong>Freshness score</strong> — a 0–100 gauge per item</td>
+          <td>No — spec uses 9 discrete statuses (§10)</td>
+          <td><span class="chip drop">DROP AS SAFETY SIGNAL</span> Implies precision the app can’t claim. At most a visual sort aid — never labelled as safety.</td>
+        </tr>
+      </table>
+    </div>
+    <div class="verdict">
+      <p><strong>Everything else in the prototype</strong> (search, chips, alert-day settings, metric/imperial, checked-off shopping items) is already in the spec in more rigorous form. The prototype’s data model — string dates, no opened tracking, no households — is strictly worse than the spec’s; nothing to salvage there.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Open decisions</h2>
+    <div class="callout">
+      <h3>Decided ✓ &nbsp;·&nbsp; and what’s left for you</h3>
+      <ol>
+        <li>
+          <strong>Features 1–5 adopted</strong> — written into <code>USEITFRESH_SPEC_ADDENDUM.md</code>; database changes prepared in migration <code>20260829130000_adopted_features.sql</code>.
+          <div class="sub">→ <strong>Your action:</strong> run that second migration in the Supabase SQL editor (adds the shopping-item recipe link + the food care guide with 12 seeded categories).</div>
+        </li>
+        <li>
+          <strong>Path B — rebuilt in place.</strong> The prototype was removed and Phase 1 pushed into the same project in one commit. One project, one workspace, one agent.
+          <div class="sub">→ <strong>Your action:</strong> rename the project to <em>UseItFresh</em> in the FlutterFlow dashboard (cosmetic; nothing breaks), then test sign-up → onboarding → create household in the app.</div>
+        </li>
+      </ol>
+    </div>
+    <p class="section-note">Also queued for later phases: AI provider for vision/recipes (match spot-a-paw?), Open Food Facts for barcodes, push-notification strategy (FF push needs Firebase; alternatives are OneSignal or local-only for MVP), a free-tier scan limit (placeholder: 10/month), and reserving the <code>useitfresh.app/join/&lt;code&gt;</code> invite-link format.</p>
+  </section>
+
+  <section>
+    <h2>Phase 1 plan</h2>
+    <p class="section-note">Foundation only, per spec §19 — finish, validate, and review before Phase 2.</p>
+    <ol class="steps">
+      <li><span class="who">Done · You</span><span class="done">Create Supabase project UseItFresh, run the schema migration, reset the DB password.</span></li>
+      <li><span class="who">Done · Agent</span><span class="done">Author the Phase 1 flow: Supabase email auth, §16 theme, canonical 5-tab nav, Welcome → Sign in/up → Onboarding → Household setup, Home/Inventory/Scan/Recipes/Profile shells (11 pages).</span></li>
+      <li><span class="who">Done · Agent</span><span class="done">Tests passed; pushed as commit vdRf5mGO… — prototype removed and Phase 1 landed in one atomic commit.</span></li>
+      <li><span class="who">You</span>Run migration <code>20260829130000_adopted_features.sql</code>, rename the project to UseItFresh in FlutterFlow, and test sign-up → onboarding → create household.</li>
+      <li><span class="who">Next</span>Phase 2 — Inventory MVP: manual add/edit, lists and filters, opened/consumed/discarded actions, urgency calculation. Then Google sign-in + invite-code joining (needs Supabase Get Schema sync).</li>
+    </ol>
+  </section>
+
+  <footer>
+    Prepared by the Use It Fresh build agent · Full session state lives in <code>USEITFRESH_BUILD_STATE.md</code> in the FlutterFlow AI workspace · Spec: <code>AI_FRIDGE_FLUTTERFLOW_BUILD_SPEC</code> §references throughout.
+  </footer>
+</div>

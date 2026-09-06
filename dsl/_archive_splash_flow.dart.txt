@@ -1,0 +1,196 @@
+// ---------------------------------------------------------------------------
+// Assets. Replace these three when a new render is uploaded — nothing else in
+// this file needs to change.
+// ---------------------------------------------------------------------------
+
+/// Frame 1 of the clip: the closed fridge. The resting state before a tap.
+const _kClosedFridge = 'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets/wte62cfd8wp4/fridge-closed-v7.jpg';
+
+/// The 2.13s opening clip.
+const _kOpeningClip = 'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets/x0v3t51qxz8w/fridge-opening-v7.mp4';
+
+/// The closed fridge with the handle glint, on a 2.53s loop. This is the
+/// resting state -- it replaces the static closed still so the glint keeps
+/// running until the user taps.
+const _kClosedGlintLoop =
+    'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets/fxd3apptc2ex/fridge-closed-glint-loop.mp4';
+
+/// The clip's FINAL frame. Must be exactly that, or the handoff jumps.
+const _kOpenBackdrop = 'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets/idrydfzf2f4s/signin-bg-fridge-v7.jpg';
+
+/// Clip length + a little slack, so the form never appears over a door still
+/// in motion. Keep in step with the render (currently 2.133s at 30fps).
+const _kClipMs = 2250;
+
+const _kBrandGreen = 0xFF28533A;
+const _kSloganInk = 0xFF33422F;
+
+/// The form's backing panel. Variant 2 from the design review: translucent
+/// enough to read against photography, sheer enough that the fridge still
+/// shows through. Without it the heading lands on the eggs and "Forgot
+/// password?" disappears into the broccoli.
+const _kFormPanel = 0xEBF4F6F2;
+
+void buildStarterEditFlow(App app) {
+  // Persisted, so it survives an app restart. This is what makes the intro
+  // happen once rather than every launch.
+  //
+  // Scope is per-install, not per-account: a returning user on a new phone
+  // gets the intro again, which is the right way round — the alternative is
+  // that someone's first run on a new device silently skips it.
+  app.state('hasOpenedFridge', bool_, persisted: true);
+
+  // The three flags that drive which of the two states the page is in.
+  // Page-local and transient on purpose: only hasOpenedFridge needs to survive
+  // a restart, and persisting UI flags would strand someone mid-animation if
+  // the app were killed during the clip.
+  app.editPageState(ff.Pages.signInPage, (state) {
+    state.ensureField('introPending', bool_);
+    state.ensureField('introPlaying', bool_);
+    state.ensureField('formShown', bool_);
+  });
+
+  app.editPage(ff.Pages.signInPage, (page) {
+    // ------------------------------------------------------------------
+    // Splash + sign-in, on ONE page.
+    //
+    // Deliberately not a separate splash route: the clip's last frame and the
+    // sign-in background are the same pixels, and any page transition between
+    // them would show a seam. Keeping it on one page means the door finishes
+    // opening and the form simply arrives over it.
+    //
+    //   first run   closed fridge (shimmering) -> tap -> door opens -> form fades in
+    //   after that  straight to the open fridge with the form already there
+    // ------------------------------------------------------------------
+    // The Stack structure was pushed in commit espEHan838n3qjTUjd92 and lives
+    // in the project now. ensureReplaced() is NOT re-runnable here: replacing a
+    // node mints a new key, so a second run cannot find the original. The
+    // source is archived at dsl/_archive_splash_structure.dart.txt.
+
+    // The resting state becomes the looping glint clip rather than a still.
+    // Baking the glint into the video keeps it welded to the artwork: a
+    // percentage-positioned overlay in a Stack would drift off the handle the
+    // next time the fridge is re-rendered.
+    page.ensureReplaced(
+      ff.Pages.signInPage.widgets.byKey('Image_hjuvpcht').single,
+      VideoPlayer(
+        _kClosedGlintLoop,
+        name: 'ClosedFridgeGlint',
+        autoPlay: true,
+        looping: true,
+        showControls: false,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+    );
+
+    // ---- pass 2: the animations -------------------------------------
+    // These are separate from the structure above because page.update()
+    // resolves against the typed SDK, which only learned about these widgets
+    // on the previous push.
+
+    // The glint. A sheen crossing the closed door on a loop -- it says "this
+    // does something" without a label telling anyone to tap. Long duration and
+    // a slow curve, because a fast repeating shimmer reads as a loading state.
+    // The door sheen: ONE flash across the whole door, about a second in.
+    // Attached to the container rather than the clip inside it, so the two
+    // effects stay independent -- the sheen fires once, the glint keeps looping.
+    page.update(
+      ff.Pages.signInPage.widgets.byKey('Container_o5pu6w5t').single,
+      (patch) {
+        patch.animations([
+          WidgetAnimation(
+            trigger: AnimationTrigger.onPageLoad,
+            loop: false,
+            effects: [
+              // curve is NOT optional in practice: leaving it unset makes
+              // FlutterFlow emit `Curves.curveUndefined`, which does not exist
+              // and breaks the build. Validation does not catch it.
+              ShimmerEffect(
+                color: Colors.hex(0x59FFFFFF),
+                angleDegrees: 24,
+                durationMs: 900,
+                delayMs: 1000,
+                curve: AnimationCurve.easeInOut,
+              ),
+            ],
+          ),
+        ]);
+      },
+    );
+
+    // The form fades in rather than appearing. Triggered from the tap chain
+    // once the door has finished opening, not on page load.
+    page.update(
+      ff.Pages.signInPage.widgets.byKey('Container_yyjai4fl').single,
+      (patch) {
+        patch.animations([
+          WidgetAnimation(
+            trigger: AnimationTrigger.onActionTrigger,
+            hideBeforeAnimating: true,
+            effects: [
+              FadeEffect(
+                begin: 0,
+                end: 1,
+                durationMs: 650,
+                curve: AnimationCurve.easeOut,
+              ),
+              SlideEffect(
+                beginDy: 16,
+                endDy: 0,
+                durationMs: 650,
+                curve: AnimationCurve.easeOut,
+              ),
+            ],
+          ),
+        ]);
+      },
+    );
+  });
+
+  // ------------------------------------------------------------------
+  // Make the fridge the app's front door.
+  //
+  // WelcomePage held the root route (""), so the intro sat one screen deep
+  // behind "I already have an account" and nobody saw it. The brief was
+  // fridge -> tap -> login, with no interstitial, so SignInPage takes the root.
+  //
+  // WelcomePage is kept, not deleted — it moves to /welcome and stays
+  // reachable if we want an onboarding path back. Two pages cannot share the
+  // root route, so it has to be moved BEFORE SignInPage claims it.
+  // ------------------------------------------------------------------
+  app.raw((project) {
+    setPageRoute(project, pageName: 'WelcomePage', route: '/welcome');
+    setPageRoute(project, pageName: 'SignInPage', route: '/');
+  });
+
+  // Decide on load which of the two states we are in.
+  app.editPageOnLoad(ff.Pages.signInPage, [
+    If(
+      AppState('hasOpenedFridge'),
+      then: [SetState('formShown', true)],
+      orElse: [SetState('introPending', true)],
+    ),
+  ]);
+}
+
+/// Tap -> open -> reveal.
+///
+/// The Wait is what sequences it: there is no "video finished" trigger in the
+/// DSL, so the form is revealed on a timer matched to the clip's length. If the
+/// clip is ever re-cut, _kClipMs moves with it.
+List<DslAction> _openChain() => [
+  SetState('introPending', false),
+  SetState('introPlaying', true),
+  const Wait(_kClipMs),
+  // Hide the player once it has finished so the still underneath takes over —
+  // a paused video's last frame and the still are identical, so nothing moves.
+  SetState('introPlaying', false),
+  SetState('formShown', true),
+  const StartAnimation('SignInFormPanel'),
+  UpdateAppState.set('hasOpenedFridge', true),
+];

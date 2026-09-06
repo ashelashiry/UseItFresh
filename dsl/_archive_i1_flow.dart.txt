@@ -1,0 +1,183 @@
+/// Storage-location types allowed by the `storage_locations.location_type`
+/// CHECK constraint in migration 1. Anything else is rejected by Postgres.
+const _kLocationTypes = <String>['fridge', 'freezer', 'pantry', 'other'];
+
+/// Re-read the household's locations. Used on page load and after every write,
+/// so the list never drifts from the database.
+///
+/// No household filter: RLS (`locations_select_member`) already scopes reads to
+/// the caller's household, and duplicating that client-side would be a lie —
+/// the server is the only thing actually enforcing it.
+/// [tag] keeps the action's output variable unique. FlutterFlow rejects two
+/// actions in one chain sharing an output name, so every reload site needs its
+/// own — hence add/delete/load each pass a different tag.
+List<DslAction> _loadLocations(String tag) => [
+  PostgresQuery(
+    ff.Tables.storageLocations,
+    outputAs: 'loaded$tag',
+    query: PostgresQuerySpec(
+      orderBys: const [PostgresOrderBy('location_type'), PostgresOrderBy('name')],
+    ),
+  ),
+  SetState('locations', ActionOutput('loaded$tag')),
+];
+
+void buildStarterEditFlow(App app) {
+  // ------------------------------------------------------------------
+  // I1 — manage storage locations.
+  //
+  // First piece of Phase 2, and deliberately first: the urgency engine (I3)
+  // derives shelf life partly from WHERE something is stored, and every food
+  // item carries a storage_location_id. Nothing else in the phase works
+  // without this.
+  //
+  // The signup trigger already seeds three defaults (fridge/freezer/pantry)
+  // per household — this exposes them and lets people add their own
+  // ("garage freezer", "wine fridge").
+  //
+  // household_id is NOT set on insert. Migration 3 defaults it to
+  // current_household_id() server-side, so the client cannot spoof it.
+  // ------------------------------------------------------------------
+  final storageLocationsPage = app.ensurePage(
+    'StorageLocationsPage',
+    route: '/storage-locations',
+    description:
+        'Add, rename and remove the places food is kept — fridge, freezer, '
+        'pantry or anywhere else in the household.',
+    state: {
+      'locations': listOf(ff.Tables.storageLocations),
+      'newName': string.withDefault(''),
+      'newType': string.withDefault('fridge'),
+      'isEmpty': bool_.withDefault(false),
+    },
+    onLoad: _loadLocations('OnLoad'),
+    body: Scaffold(
+      appBar: AppBar(title: 'Storage locations'),
+      body: Container(
+        padding: 20,
+        child: Column(
+          crossAxis: CrossAxis.stretch,
+          spacing: 18,
+          scrollable: true,
+          children: [
+            Text(
+              'Where do you keep food? These are used to sort your inventory '
+              'and to work out how long things last.',
+              name: 'StorageLocationsIntro',
+              style: Styles.bodyMedium,
+              color: Colors.secondaryText,
+              maxLines: 3,
+            ),
+
+            ListView(
+              name: 'StorageLocationsList',
+              source: State('locations'),
+              spacing: 10,
+              itemBuilder: (item) => Container(
+                name: 'StorageLocationRow',
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                borderRadius: 12,
+                color: Colors.secondaryBackground,
+                child: Row(
+                  crossAxis: CrossAxis.center,
+                  children: [
+                    Flexible(
+                      ListTile(
+                        title: item['name'],
+                        subtitle: item['location_type'],
+                        leadingIcon: 'kitchen',
+                      ),
+                      flex: 1,
+                    ),
+                    // RLS only lets household ADMINS delete a location
+                    // (`locations_delete_admin`). A member tapping this gets a
+                    // permission error from Postgres rather than a silent
+                    // no-op — surfacing roles properly is H2.
+                    IconButton(
+                      'delete_outline',
+                      name: 'DeleteLocationButton',
+                      onTap: [
+                        PostgresDelete(
+                          ff.Tables.storageLocations,
+                          query: PostgresQuerySpec(
+                            filters: [
+                              PostgresFilter(
+                                'id',
+                                relation: PostgresFilterRelation.equalTo,
+                                value: item['id'],
+                              ),
+                            ],
+                          ),
+                        ),
+                        ..._loadLocations('AfterDelete'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Divider(name: 'AddLocationDivider'),
+
+            Text(
+              'Add a location',
+              name: 'AddLocationHeading',
+              style: Styles.titleMedium,
+            ),
+            TextField(
+              name: 'NewLocationNameField',
+              label: 'Name',
+              hint: 'Garage freezer',
+              onChanged: SetState('newName', const TextValue()),
+            ),
+            Dropdown(
+              name: 'NewLocationTypeDropdown',
+              label: 'Type',
+              options: _kLocationTypes,
+              value: State('newType'),
+              onChanged: SetState('newType', const WidgetValue()),
+            ),
+            Button(
+              'Add location',
+              name: 'AddLocationButton',
+              width: double.infinity,
+              height: 46,
+              borderRadius: 10,
+              onTap: [
+                PostgresCreate(
+                  ff.Tables.storageLocations,
+                  // Explicit output name: this chain also runs a query, and
+                  // FlutterFlow rejects two actions whose outputs collide.
+                  outputAs: 'createdLocation',
+                  fields: {
+                    'name': State('newName'),
+                    'location_type': State('newType'),
+                    'is_default': false,
+                    // household_id: omitted on purpose — see migration 3.
+                  },
+                ),
+                SetState('newName', ''),
+                ..._loadLocations('AfterAdd'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  // Reachable from Profile, next to the existing household controls.
+  app.editPage(ff.Pages.profilePage, (page) {
+    page.ensureInsertedAfter(
+      ff.Pages.profilePage.widgets.byKey('Button_s1lf9l7y').single,
+      Button(
+        'Storage locations',
+        name: 'ManageStorageLocationsButton',
+        variant: ButtonVariant.outlined,
+        width: double.infinity,
+        borderRadius: 12,
+        onTap: Navigate(storageLocationsPage),
+      ),
+    );
+  });
+}

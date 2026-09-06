@@ -1,0 +1,195 @@
+/// The 12 categories seeded into `food_care_guides` by migration 2. Stored as
+/// keys, not display names, because R6 (care guides) joins on this column.
+/// TODO: prettier labels need a value/label map the Dropdown doesn't expose yet.
+const _kCategories = <String>[
+  'dairy', 'meat_poultry', 'seafood', 'eggs', 'cooked_leftovers', 'fruit',
+  'vegetables', 'bread_bakery', 'pantry_dry', 'frozen', 'condiments_sauces',
+  'infant_food',
+];
+
+/// Spec §5.2 draws a hard line between these: use-by is a SAFETY date,
+/// best-before is a QUALITY one. The urgency engine (I3) treats them very
+/// differently, so capturing which kind it is matters more than the date itself.
+const _kDateTypes = <String>['best_before', 'use_by', 'sell_by', 'unknown'];
+
+List<DslAction> _loadLocations(String tag) => [
+  PostgresQuery(
+    ff.Tables.storageLocations,
+    outputAs: 'loc$tag',
+    query: PostgresQuerySpec(
+      orderBys: const [PostgresOrderBy('location_type'), PostgresOrderBy('name')],
+    ),
+  ),
+  SetState('locations', ActionOutput('loc$tag')),
+];
+
+void buildStarterEditFlow(App app) {
+  // ------------------------------------------------------------------
+  // I2 — add a food item by hand.
+  //
+  // Deliberately short. Spec §8.6: "adding must not feel like a long form."
+  // Only `name` is required by the database; everything else has a default,
+  // so the form asks for four things and nothing more:
+  //
+  //   what it is · where it lives · the printed date · what KIND of date
+  //
+  // That last one is not padding. Spec §5.2 makes use-by (safety) and
+  // best-before (quality) mean different things, and I3 branches on it.
+  //
+  // household_id and created_by are omitted — migration 3 fills both
+  // server-side, so a modified client cannot write into another household.
+  // ------------------------------------------------------------------
+  final addItemPage = app.ensurePage(
+    'AddFoodItemPage',
+    route: '/add-item',
+    description:
+        'Adds one food item by hand — name, where it is kept, and the printed '
+        'date. The quickest path into the inventory.',
+    state: {
+      'itemName': string.withDefault(''),
+      'category': string.withDefault('vegetables'),
+      'locationId': string.withDefault(''),
+      'locationLabel': string.withDefault('Tap to choose'),
+      'printedDate': dateTime,
+      'printedDateType': string.withDefault('best_before'),
+      'locations': listOf(ff.Tables.storageLocations),
+    },
+    onLoad: _loadLocations('OnLoad'),
+    body: Scaffold(
+      appBar: AppBar(title: 'Add food'),
+      body: Container(
+        padding: 20,
+        child: Column(
+          crossAxis: CrossAxis.stretch,
+          spacing: 16,
+          scrollable: true,
+          children: [
+            TextField(
+              name: 'ItemNameField',
+              label: 'What is it?',
+              hint: 'Cheddar, leftovers, spinach…',
+              onChanged: SetState('itemName', const TextValue()),
+            ),
+
+            Text('Where is it kept?',
+                name: 'LocationHeading', style: Styles.titleSmall),
+            Text(State('locationLabel'),
+                name: 'ChosenLocationText',
+                style: Styles.bodyMedium,
+                color: Colors.primary),
+            ListView(
+              name: 'LocationChoiceList',
+              source: State('locations'),
+              spacing: 8,
+              itemBuilder: (item) => Container(
+                name: 'LocationChoiceRow',
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                borderRadius: 10,
+                color: Colors.secondaryBackground,
+                child: ListTile(
+                  title: item['name'],
+                  subtitle: item['location_type'],
+                  leadingIcon: 'kitchen',
+                  onTap: [
+                    SetState('locationId', item['id']),
+                    SetState('locationLabel', item['name']),
+                  ],
+                ),
+              ),
+            ),
+
+            Dropdown(
+              name: 'CategoryDropdown',
+              label: 'Category',
+              options: _kCategories,
+              value: State('category'),
+              onChanged: SetState('category', const WidgetValue()),
+            ),
+
+            Text('Printed date', name: 'DateHeading', style: Styles.titleSmall),
+            Button(
+              'Pick the date on the pack',
+              name: 'PickPrintedDateButton',
+              variant: ButtonVariant.outlined,
+              width: double.infinity,
+              height: 46,
+              borderRadius: 10,
+              onTap: [
+                DatePicker(outputAs: 'pickedPrintedDate'),
+                SetState('printedDate', ActionOutput('pickedPrintedDate')),
+              ],
+            ),
+            Dropdown(
+              name: 'DateTypeDropdown',
+              label: 'Which kind of date?',
+              options: _kDateTypes,
+              value: State('printedDateType'),
+              onChanged: SetState('printedDateType', const WidgetValue()),
+            ),
+            Text(
+              'Use-by is about safety. Best-before is about quality — food is '
+              'often fine after it, once you have checked.',
+              name: 'DateTypeHelpText',
+              style: Styles.bodySmall,
+              color: Colors.secondaryText,
+              maxLines: 3,
+            ),
+
+            Button(
+              'Add to inventory',
+              name: 'SaveFoodItemButton',
+              width: double.infinity,
+              height: 48,
+              borderRadius: 10,
+              onTap: [_saveItemChain()],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  // The Scan/Add hub already offers "Add manually" — point it somewhere.
+  app.editPage(ff.Pages.scanAddPage, (page) {
+    page.ensureActions(
+      ff.Pages.scanAddPage.widgets.byKey('Button_t3tag9d4').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [Navigate(addItemPage)],
+    );
+  });
+}
+
+/// Guarded save.
+///
+/// `storage_location_id` is a uuid column, so writing the empty-string default
+/// would be a Postgres cast error rather than a friendly message. The guard
+/// also covers a blank name, which the NOT NULL constraint would reject.
+///
+/// Nested rather than combined: the DSL has `Equals` and `Not` but no `And`,
+/// and nesting gives each failure its own message anyway.
+DslAction _saveItemChain() => If(
+  Not(Equals(State('itemName'), '')),
+  then: [
+    If(
+      Not(Equals(State('locationId'), '')),
+      then: [
+        PostgresCreate(
+          ff.Tables.foodItems,
+          outputAs: 'createdFoodItem',
+          fields: {
+            'name': State('itemName'),
+            'category': State('category'),
+            'storage_location_id': State('locationId'),
+            'printed_date': State('printedDate'),
+            'printed_date_type': State('printedDateType'),
+            'source_type': 'manual',
+            // household_id / created_by: server-side defaults, migration 3.
+          },
+        ),
+        const NavigateBack(),
+      ],
+      orElse: [Snackbar('Choose where it is kept.')],
+    ),
+  ],
+  orElse: [Snackbar('Give it a name first.')],
+);

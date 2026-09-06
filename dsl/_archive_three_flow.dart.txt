@@ -1,0 +1,82 @@
+/// The brand's forest green, from the logo pack's brand-colors.json.
+/// Replaces #28533A, which came from the fridge artwork before the logo
+/// existed. Two near-identical greens read as a mistake, so the logo wins.
+const _kForest = 0xFF07533A;
+
+/// Re-read the inventory, urgency-first. Sorting happens in Postgres because
+/// urgency_rank is computed there against today's date — see migration 4.
+List<DslAction> _loadInventory(String tag) => [
+  PostgresQuery(
+    ff.Tables.foodItemsStatus,
+    outputAs: 'inv$tag',
+    query: PostgresQuerySpec(
+      orderBys: const [
+        PostgresOrderBy('urgency_rank'),
+        PostgresOrderBy('days_left'),
+      ],
+    ),
+  ),
+  SetState('items', ActionOutput('inv$tag')),
+];
+
+void buildStarterEditFlow(App app) {
+  // ==================================================================
+  // 1. "Create household" did nothing — the button had no action.
+  //
+  // Only `name` is needed. owner_id defaults to auth.uid(), invite_code
+  // generates itself, and the on_household_created trigger does the rest:
+  // owner membership, three storage locations, and a shopping list.
+  //
+  // This was blocking everything downstream — food_items.household_id comes
+  // from current_household_id(), which returns null with no household, so
+  // every insert failed its NOT NULL constraint.
+  // ==================================================================
+  app.editPageState(ff.Pages.householdSetupPage, (state) {
+    state.ensureField('householdName', string);
+  });
+
+  app.editPage(ff.Pages.householdSetupPage, (page) {
+    page.ensureActions(
+      ff.Pages.householdSetupPage.widgets.byKey('TextField_cg0goaa0').single,
+      triggerType: FFActionTriggerType.ON_TEXTFIELD_CHANGE,
+      actions: [SetState('householdName', const TextValue())],
+    );
+    page.ensureActions(
+      ff.Pages.householdSetupPage.widgets.byKey('Button_2y0hi6fk').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        If(
+          Not(Equals(State('householdName'), '')),
+          then: [
+            PostgresCreate(
+              ff.Tables.households,
+              outputAs: 'createdHousehold',
+              fields: {'name': State('householdName')},
+            ),
+            Navigate(ff.Pages.homePage),
+          ],
+          orElse: [Snackbar('Give your household a name first.')],
+        ),
+      ],
+    );
+  });
+
+  // I4 (the inventory list) is held back one push: it reads status_label /
+  // status_detail from the view, and FlutterFlow's schema snapshot predates
+  // migration 5, so those columns do not exist for the compiler yet. One
+  // Get Schema and it goes in. Source parked in dsl/_pending_i4_inventory.dart.txt.
+
+  // ==================================================================
+  // 3. One brand green, not two.
+  // ==================================================================
+  app.editPage(ff.Pages.signInPage, (page) {
+    page.update(
+      ff.Pages.signInPage.widgets.byKey('Text_b2xtyddb').single,
+      (patch) => patch.color(Colors.hex(_kForest)),
+    );
+    page.update(
+      ff.Pages.signInPage.widgets.byKey('Button_tkcn9h16').single,
+      (patch) => patch.color(Colors.hex(_kForest)),
+    );
+  });
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Use It Fresh — glint preview</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;background:#0b0f0c;color:#cfd8cb;font:14px/1.6 system-ui,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:20px;margin:0 0 4px;color:#e8efe4}
+  p.sub{margin:0 0 26px;color:#8b9a86}
+  .row{display:flex;gap:26px;flex-wrap:wrap}
+  figure{margin:0;flex:0 0 auto}
+  video,img{width:300px;border-radius:12px;display:block;background:#000}
+  figcaption{margin-top:8px;font-size:13px;color:#8b9a86;max-width:300px}
+  b{color:#cfd8cb}
+  .full{margin-top:34px}
+  .full video{width:min(100%,380px)}
+</style>
+<div class="wrap">
+  <h1>Glint + opening, as they'll play</h1>
+  <p class="sub">Served from <code>design/</code>. These are the actual files — what you see is what ships.</p>
+
+  <figure style="margin:0 0 34px">
+    <video src="glint-sequence-demo.mp4" autoplay loop muted playsinline controls style="width:min(100%,400px)"></video>
+    <figcaption style="max-width:600px"><b>The full sequence, as it will run.</b> One second of stillness &rarr;
+    the side flash crosses the door, once &rarr; then the handle glint loops until they tap.
+    Looping here so you can watch it repeat; in the app only the handle part repeats.</figcaption>
+  </figure>
+
+  <div class="row">
+    <figure>
+      <video src="fridge-closed-glint-loop.mp4" autoplay loop muted playsinline></video>
+      <figcaption><b>Handle glint — loops.</b> Now decelerates and <b>stops at the end of the handle</b> instead of sailing past it. 850&nbsp;ms sweep, 1.65&nbsp;s rest.</figcaption>
+    </figure>
+    <figure>
+      <video src="glint-B-sheen.mp4" autoplay loop muted playsinline></video>
+      <figcaption><b>Door sheen — fires once.</b> Shown looping here so you can see it; in the app it runs a second after load and stops.</figcaption>
+    </figure>
+    <figure>
+      <video src="fridge-opening-v7.mp4" autoplay loop muted playsinline></video>
+      <figcaption><b>The opening.</b> 2.13&nbsp;s. Plays on tap, then the form fades in over its final frame.</figcaption>
+    </figure>
+  </div>
+
+  <div class="full">
+    <h1>Opening, larger</h1>
+    <p class="sub">Same clip at closer to phone size.</p>
+    <video src="fridge-opening-v7.mp4" autoplay loop muted playsinline controls></video>
+  </div>
+</div>
