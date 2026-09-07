@@ -139,247 +139,61 @@ Options:
   --help, -h                Show this help.
 ''');
 }
+// ---------------------------------------------------------------------------
+// Two seconds of black after the tap.
+//
+// Measured: frames at 0.30s, 0.90s and 1.60s after the tap were empty, and
+// only at 2.50s did anything appear. The cause is a gap in the layering. The
+// closed fridge was bound to "while pending", so the tap removed it
+// instantly; the opening clip took its place, and a clip that has not
+// finished loading draws nothing. Between those two facts sat two seconds of
+// the scaffold's background.
+//
+// The closed fridge now stays until the FORM appears, sitting under the clip
+// the whole way. Its last state is a shut door and the clip's first frame is
+// the same shut door, so the changeover is invisible, and if the clip is slow
+// the screen shows a fridge rather than nothing.
+//
+// The warm-up was also still naming the v9 file. Replacing the page-load chain
+// did not update it — the chain's shape was unchanged, so the existing action
+// node was left as it was, argument and all. Rewriting the string in place
+// instead, which does not depend on the chain being rebuilt.
+// ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Reusable components, from the design handoff.
-//
-// The handoff's own priority is "reusable theme/components and navigation".
-// The theme landed in n7Q5WS0QYlYcKGlDUAaH; these are the pieces every
-// everyday screen is assembled from, so Home and Inventory become composition
-// rather than a fresh build each time.
-//
-// Colours come from theme slots, not hexes. Hard-coding is what produced two
-// different brand greens in the first place.
-// ---------------------------------------------------------------------------
+const _kOldClip = 'fridge-opening-v9-912.webp';
+const _kNewClip =
+    'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets/g98rh4e8sl38/fridge-opening-v10.webp';
 
 void buildStarterEditFlow(App app) {
-  // ================================================================
-  // StatusBadge — the §10 status, as a pill.
-  //
-  // `label` and `detail` are passed in from the food_items_status view, which
-  // computes them in SQL. That keeps the nine-way mapping in one place instead
-  // of repeating nine conditionals in every list that shows an item.
-  //
-  // KNOWN GAP: no icon. Icon() takes a literal string and cannot be bound to a
-  // param, so the view's status_icon column has nothing to drive. §10 wants
-  // text AND an icon; the text is here and colour is never the only signal, so
-  // the colour-alone rule holds — but the icon is still owed. It needs nine
-  // visibility-switched Icons or a small custom widget mapping name -> IconData.
-  // ================================================================
-  app.component(
-    'StatusBadge',
-    description:
-        'One of the nine §10 food statuses as a pill. Label comes from the '
-        'food_items_status view so the wording stays consistent everywhere.',
-    params: {
-      'label': string.withDefault('Fresh'),
-      // No `tone` param: ColorToken is not an expression, so a colour cannot be
-      // driven from a component param any more than an icon name can. Per-status
-      // colouring needs either nine variants or a custom widget. Recorded, not
-      // faked -- the label alone still satisfies the never-colour-alone rule.
-    },
-    body: Container(
-      name: 'StatusBadgeShell',
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      borderRadius: 999,
-      color: Colors.accent3,
-      child: Text(
-        Param('label'),
-        name: 'StatusBadgeLabel',
-        style: Styles.labelMedium,
-        maxLines: 1,
-      ),
-    ),
-  );
+  app.editPage(ff.Pages.signInPage, (page) {
+    page.bindVisible(
+      ff.Pages.signInPage.widgets.byPath('SignInPage.body[0].children[1]').single,
+      Not(State(ff.Pages.signInPage.state.formShown)),
+    );
+  });
 
-  // ================================================================
-  // FoodCard — the row used by Home's "Use first" and by Inventory.
-  //
-  // Four lines, in the order the handoff draws them:
-  //   name · "1 bag · Fridge" · status badge · the date line
-  //
-  // That last line matters more than it looks. Spec §5.2 requires a printed
-  // manufacturer date and an app estimate to be visually distinguishable, and
-  // the handoff does it with wording: "Best-before · 8 Sep" versus
-  // "Window ends 9 Sep · estimate". `dateLine` carries whichever applies,
-  // already worded by the view's status_basis.
-  // ================================================================
-  app.component(
-    'FoodCard',
-    description:
-        'One food item in a list. Shows what it is, where it lives, its §10 '
-        'status and the date it is judged on — printed dates and app estimates '
-        'worded differently, per §5.2.',
-    params: {
-      'itemName': string.withDefault('Baby spinach'),
-      'meta': string.withDefault('Fridge'),
-      'statusLabel': string.withDefault('Use soon'),
-      'dateLine': string.withDefault('Best-before · 8 Sep'),
-    },
-    body: Container(
-      name: 'FoodCardShell',
-      padding: 14,
-      borderRadius: 14,
-      color: Colors.secondaryBackground,
-      child: Row(
-        crossAxis: CrossAxis.center,
-        spacing: 12,
-        children: [
-          // Category tile. A flat token rather than a photo: most items are
-          // added by hand with no image, and an empty photo frame on every row
-          // looks broken.
-          Container(
-            name: 'FoodCardTile',
-            width: 46,
-            height: 46,
-            borderRadius: 12,
-            color: Colors.accent1,
-            child: Icon('eco', size: 22, name: 'FoodCardTileIcon'),
-          ),
-          Flexible(
-            Column(
-              crossAxis: CrossAxis.start,
-              spacing: 3,
-              children: [
-                Text(
-                  Param('itemName'),
-                  name: 'FoodCardName',
-                  style: Styles.titleSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  Param('meta'),
-                  name: 'FoodCardMeta',
-                  style: Styles.bodySmall,
-                  color: Colors.secondaryText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                // Inlined rather than ff.Components.statusBadge(...): the
-                // typed SDK is generated from the LAST push, so a component
-                // created in this same script cannot be referenced yet. Swap
-                // it for the component reference on the next pass.
-                Container(
-                  name: 'FoodCardStatus',
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  borderRadius: 999,
-                  color: Colors.accent3,
-                  child: Text(
-                    Param('statusLabel'),
-                    name: 'FoodCardStatusLabel',
-                    style: Styles.labelMedium,
-                    maxLines: 1,
-                  ),
-                ),
-                Text(
-                  Param('dateLine'),
-                  name: 'FoodCardDateLine',
-                  style: Styles.bodySmall,
-                  color: Colors.secondaryText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            flex: 1,
-          ),
-          Icon('chevron_right', size: 22, name: 'FoodCardChevron'),
-        ],
-      ),
-    ),
-  );
+  app.raw((project) {
+    final page = findPage(project, name: 'SignInPage');
+    if (page == null) return;
+    for (final trigger in page.node.triggerActions) {
+      _retargetWarmUp(trigger.rootAction);
+    }
+  });
+}
 
-  // ================================================================
-  // SectionHeading — "Use first" / "See all", the pattern on Home.
-  // ================================================================
-  app.component(
-    'SectionHeading',
-    description: 'A section title with an optional trailing action, as used '
-        'above the Use first list on Home.',
-    params: {
-      'title': string.withDefault('Use first'),
-      'action': string.withDefault('See all'),
-    },
-    body: Row(
-      name: 'SectionHeadingRow',
-      mainAxis: MainAxis.spaceBetween,
-      crossAxis: CrossAxis.center,
-      children: [
-        Text(
-          Param('title'),
-          name: 'SectionHeadingTitle',
-          style: Styles.titleLarge,
-          maxLines: 1,
-        ),
-        Text(
-          Param('action'),
-          name: 'SectionHeadingAction',
-          style: Styles.labelMedium,
-          color: Colors.primary,
-          maxLines: 1,
-        ),
-      ],
-    ),
-  );
-
-  // ================================================================
-  // FeaturePanel — the graphite card at the top of Home.
-  //
-  // The one place the dark fridge palette carries into the everyday screens,
-  // which is what keeps the entrance and the app feeling like one product.
-  // ================================================================
-  app.component(
-    'FeaturePanel',
-    description:
-        'The graphite hero card on Home. Carries the next useful action, not '
-        'decoration.',
-    params: {
-      'eyebrow': string.withDefault('SMALL HABITS, FRESH STARTS'),
-      'headline': string.withDefault('Make room for something delicious.'),
-      'supporting': string.withDefault('3 items to check first today.'),
-      'cta': string.withDefault('See what to use first'),
-    },
-    body: Container(
-      name: 'FeaturePanelShell',
-      padding: 22,
-      borderRadius: 20,
-      color: Colors.tertiary,
-      child: Column(
-        crossAxis: CrossAxis.start,
-        spacing: 10,
-        children: [
-          Text(
-            Param('eyebrow'),
-            name: 'FeaturePanelEyebrow',
-            style: Styles.labelSmall,
-            color: Colors.secondary,
-            maxLines: 1,
-          ),
-          Text(
-            Param('headline'),
-            name: 'FeaturePanelHeadline',
-            style: Styles.headlineSmall,
-            color: Colors.accent2,
-            maxLines: 3,
-          ),
-          Text(
-            Param('supporting'),
-            name: 'FeaturePanelSupporting',
-            style: Styles.bodyMedium,
-            color: Colors.accent1,
-            maxLines: 2,
-          ),
-          Button(
-            Param('cta'),
-            name: 'FeaturePanelCta',
-            height: 48,
-            borderRadius: 12,
-            color: Colors.accent3,
-            textColor: Colors.primary,
-          ),
-        ],
-      ),
-    ),
-  );
+/// Points any warm-up call still naming the retired clip at the current one.
+void _retargetWarmUp(FFActionNode node) {
+  if (node.hasAction() && node.action.hasCustomAction()) {
+    for (final arg
+        in node.action.customAction.argumentValues.arguments.values) {
+      // serializedValue holds the bare string, not a JSON literal — wrapping
+      // it in quotes shipped a URL with the quote marks in it.
+      final raw = arg.value.inputValue.serializedValue;
+      if (raw.contains(_kOldClip) || raw.contains('"')) {
+        arg.value.inputValue.serializedValue = _kNewClip;
+      }
+    }
+  }
+  if (node.hasFollowUpAction()) _retargetWarmUp(node.followUpAction);
 }

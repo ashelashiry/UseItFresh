@@ -1226,6 +1226,42 @@ final class FoodItemsStatusFields extends MapBase<String, ffai.PostgresTableFiel
     isRequired: false,
     hasDefault: false,
   );
+  final statusDetail = ffai.ProjectTableFieldHandle(
+    name: "status_detail",
+    key: "",
+    typeName: "String",
+    type: ffai.string,
+    description: "",
+    postgresType: "text",
+    foreignKey: null,
+    isPrimaryKey: false,
+    isRequired: false,
+    hasDefault: false,
+  );
+  final statusIcon = ffai.ProjectTableFieldHandle(
+    name: "status_icon",
+    key: "",
+    typeName: "String",
+    type: ffai.string,
+    description: "",
+    postgresType: "text",
+    foreignKey: null,
+    isPrimaryKey: false,
+    isRequired: false,
+    hasDefault: false,
+  );
+  final statusLabel = ffai.ProjectTableFieldHandle(
+    name: "status_label",
+    key: "",
+    typeName: "String",
+    type: ffai.string,
+    description: "",
+    postgresType: "text",
+    foreignKey: null,
+    isPrimaryKey: false,
+    isRequired: false,
+    hasDefault: false,
+  );
   final storageLocationId = ffai.ProjectTableFieldHandle(
     name: "storage_location_id",
     key: "",
@@ -1321,6 +1357,9 @@ final class FoodItemsStatusFields extends MapBase<String, ffai.PostgresTableFiel
     "source_type",
     "status",
     "status_basis",
+    "status_detail",
+    "status_icon",
+    "status_label",
     "storage_location_id",
     "storage_tips",
     "unit",
@@ -1362,6 +1401,9 @@ final class FoodItemsStatusFields extends MapBase<String, ffai.PostgresTableFiel
     "source_type" => sourceType,
     "status" => status,
     "status_basis" => statusBasis,
+    "status_detail" => statusDetail,
+    "status_icon" => statusIcon,
+    "status_label" => statusLabel,
     "storage_location_id" => storageLocationId,
     "storage_tips" => storageTips,
     "unit" => unit,
@@ -2883,10 +2925,17 @@ final class StorageLocationsFields extends MapBase<String, ffai.PostgresTableFie
 
 abstract final class CustomCode {
   static const functions = <String>[
+    "greetingName",
+    "hasRows",
   ];
   static const actions = <String>[
+    "LetTapsThroughVideos",
+    "WarmImageCache",
   ];
   static const widgets = <String>[
+    "AnimatedRemoteImage",
+    "LoopingRemoteImage",
+    "StatusIcon",
   ];
 }
 

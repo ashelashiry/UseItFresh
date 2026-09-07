@@ -19,6 +19,12 @@ final class InventoryPageParams {
 
 final class InventoryPageState {
   const InventoryPageState();
+  ffai.ProjectStateFieldHandle get items =>
+      const ffai.ProjectStateFieldHandle(
+        name: "items",
+        key: "ehauywrm",
+        typeName: "List<PostgresRow>",
+      );
 }
 
 abstract final class InventoryPageWidgets {
@@ -28,6 +34,9 @@ abstract final class InventoryPageWidgets {
       type: "Scaffold",
       path: "InventoryPage",
       name: "InventoryPage",
+      triggers: const <String>[
+        "ON_INIT_STATE",
+      ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
         "appBar": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
@@ -50,23 +59,99 @@ abstract final class InventoryPageWidgets {
         ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
-            key: "Container_18oj3rre",
+            key: "Container_9u8bwt59",
             type: "Container",
             path: "InventoryPage.body[0]",
-            name: "Container",
+            name: "InventoryBody",
             children: <ffai.ProjectWidgetHandle>[
               ffai.ProjectWidgetHandle(
-                key: "Column_ek0iqk3m",
+                key: "Column_29fevh38",
                 type: "Column",
                 path: "InventoryPage.body[0].children[0]",
-                name: "Column",
+                name: "InventoryColumn",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
-                    key: "Container_wwcirn1p",
-                    type: "Container",
+                    key: "Text_hg1a3ug3",
+                    type: "Text",
                     path: "InventoryPage.body[0].children[0].children[0]",
-                    name: "EmptyStateCard",
-                    componentName: "EmptyStateCard",
+                    name: "InventoryHeading",
+                    text: "What to use first",
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Text_403jzbco",
+                    type: "Text",
+                    path: "InventoryPage.body[0].children[0].children[1]",
+                    name: "InventoryLede",
+                    text: "Ordered by how soon it needs eating. Use-by is a safety date; best-before is about quality.",
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "ListView_be08fv74",
+                    type: "ListView",
+                    path: "InventoryPage.body[0].children[0].children[2]",
+                    name: "InventoryList",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_0io42tol",
+                        type: "Container",
+                        path: "InventoryPage.body[0].children[0].children[2].children[0]",
+                        name: "InventoryRow",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Row_exatiz42",
+                            type: "Row",
+                            path: "InventoryPage.body[0].children[0].children[2].children[0].children[0]",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_ez0o16ti",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[0]",
+                                name: "RowStatusIcon",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Column_0x7ogyts",
+                                type: "Column",
+                                path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[1]",
+                                name: "Column",
+                                children: <ffai.ProjectWidgetHandle>[
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Text_qsztn2mw",
+                                    type: "Text",
+                                    path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[1].children[0]",
+                                    name: "RowName",
+                                  ),
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Text_q43ygpit",
+                                    type: "Text",
+                                    path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[1].children[1]",
+                                    name: "RowDetail",
+                                  ),
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Text_72pvic8w",
+                                    type: "Text",
+                                    path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[1].children[2]",
+                                    name: "RowBasis",
+                                  ),
+                                ],
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_e80bkr1v",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[2]",
+                                name: "RowStatusLabel",
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Text_v3h0m6fk",
+                    type: "Text",
+                    path: "InventoryPage.body[0].children[0].children[3]",
+                    name: "InventoryEmptyHint",
+                    text: "Nothing here yet. Add food from the Scan tab and it will appear, most urgent first.",
                   ),
                 ],
               ),

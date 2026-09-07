@@ -52,3 +52,11 @@ design/*.webp
 # Keep the render pipeline and the docs that explain it.
 !design/scripts/**
 !design/*.md
+
+# The entrance frames ARE committed, unlike the rest of design/. They are not
+# working files — they are the app's artwork, served straight from this repo
+# through jsDelivr's CDN. FlutterFlow gives uploaded assets random URLs that
+# cannot be derived, and there are 47 of them; committing here means the paths
+# are predictable, the frames are versioned with the code that plays them, and
+# nobody has to paste 47 links.
+!design/entrance/**

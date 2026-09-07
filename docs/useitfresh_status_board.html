@@ -489,6 +489,7 @@
        box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-columns:5px 1fr}
   .job .bar{background:var(--danger)}
   .job.soft .bar{background:var(--warn)}
+  .job.later .bar{background:var(--info)}
   .job .in{padding:16px 20px 18px}
   .job h3{font-family:var(--f-display);font-size:17px;font-weight:700;margin:0 0 3px;
           display:flex;flex-wrap:wrap;align-items:center;gap:10px}
@@ -497,6 +498,7 @@
         text-transform:uppercase;padding:3px 8px;border-radius:4px;
         background:var(--danger-wash);color:var(--danger)}
   .job.soft .mins{background:var(--warn-wash);color:var(--warn)}
+  .job.later .mins{background:var(--info-wash);color:var(--info)}
   ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
   ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 34px;
               border-bottom:1px solid var(--line-soft);font-size:14.5px}
@@ -505,10 +507,9 @@
     border-radius:50%;background:var(--surface-sunk);border:1px solid var(--line);
     font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--ink-mid);
     display:flex;align-items:center;justify-content:center}
-  .done-note{margin-top:11px;padding:10px 13px;background:var(--accent-wash);border-radius:8px;
-             font-size:13.5px;color:var(--ink-mid)}
-  :root[data-theme="dark"] .done-note,
-  :root:not([data-theme="light"]) .done-note{color:var(--ink-soft)}
+  .note{margin-top:11px;padding:10px 13px;background:var(--surface-sunk);border-radius:8px;
+        font-size:13.5px;color:var(--ink-soft)}
+  .note.warn{background:var(--warn-wash);color:var(--ink-mid)}
   .path{font-family:var(--f-mono);font-size:12.5px;background:var(--surface-sunk);
         border:1px solid var(--line-soft);border-radius:5px;padding:2px 6px;
         word-break:break-all;color:var(--ink-mid)}
@@ -518,185 +519,205 @@
           font-family:var(--f-display);font-weight:600;font-size:14px}
   :root[data-theme="dark"] .live a,
   :root:not([data-theme="light"]) .live a{color:var(--accent)}
+  .keys{width:100%;border-collapse:collapse;margin-top:10px}
+  .keys th{font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+           color:var(--ink-faint);text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+  .keys td{padding:9px 12px;border-bottom:1px solid var(--line-soft);font-size:14px;vertical-align:top}
+  .keys tr:last-child td{border-bottom:none}
+  .safe{color:var(--accent)} .unsafe{color:var(--danger);font-weight:600}
 </style>
 
 <div class="wrap">
 
   <header class="masthead">
     <div>
-      <p class="eyebrow">Build status · Supabase + FlutterFlow</p>
+      <p class="eyebrow">Build status · everything in one place</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Everything below the first section is done and needs nothing from you.
-      The first section is the short list of things only you can do.</p>
+      <p class="sub">Section 1 is the only part that needs you. Everything else is done or is
+      mine to do. This page is the single source of updates from here on.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
-      commit <b>10XbVggzpUQKxRr0hsuC</b><br>
-      pages live <b>14</b><br>
+      commit <b>YP3YmJxy2ghpVZh87eEy</b><br>
+      repo <b>ashelashiry/UseItFresh</b><br>
       updated <b>7 Sep 2026</b>
     </div>
   </header>
 
   <div class="tiles">
-    <div class="tile is-block">
-      <span class="k">Needs you</span>
-      <div class="v">4</div>
-      <div class="n">~9 min in total</div>
-    </div>
     <div class="tile is-good">
-      <span class="k">Shipped today</span>
-      <div class="v">9</div>
-      <div class="n">pushes, all validated</div>
+      <span class="k">Needs you</span>
+      <div class="v">0</div>
+      <div class="n">clear — building uninterrupted</div>
+    </div>
+    <div class="tile is-warn">
+      <span class="k">Needs you later</span>
+      <div class="v">1</div>
+      <div class="n">Google web client · in progress</div>
     </div>
     <div class="tile is-good">
       <span class="k">Migrations</span>
       <div class="v">5 / 5</div>
       <div class="n">applied and verified</div>
     </div>
-    <div class="tile">
-      <span class="k">Components</span>
-      <div class="v">5</div>
-      <div class="n">theme + 4 reusable</div>
+    <div class="tile is-good">
+      <span class="k">Backed up</span>
+      <div class="v">Yes</div>
+      <div class="n">GitHub, 116 files</div>
     </div>
   </div>
 
   <!-- ================= YOUR LIST ================= -->
   <section>
-    <h2><span class="idx">01</span> Your list</h2>
-    <p class="lede">Four jobs. Two unblock me, two are housekeeping. Nothing here needs code —
-    they are all clicks in FlutterFlow or Supabase.</p>
-
-    <div class="todo">
-
-      <div class="job">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>The fridge is skipped when signed out <span class="mins">1 min</span></h3>
-          <p class="why">The app's front door still points at the old welcome screen. This is
-          the single click that makes the fridge the first thing a new user sees.</p>
-          <ol class="steps">
-            <li>Open the project in <b>FlutterFlow</b></li>
-            <li>Left sidebar, bottom → <b>Settings</b> (the gear)</li>
-            <li>Under <b>App Settings</b> → <b>Authentication</b></li>
-            <li>Find <b>Entry Page</b> (sometimes labelled <i>Initial Page</i>)</li>
-            <li>Change it from <b>WelcomePage</b> to <b>SignInPage</b></li>
-            <li>Save</li>
-          </ol>
-          <div class="done-note"><b>Why I can't do this one:</b> the setting lives in the auth
-          config, and writing Supabase auth config from code can clobber your OAuth connection —
-          they share a protobuf field. I tried the two safe routes (changing the page's route,
-          then <span class="path">setInitialPage</span>); both pushed cleanly and neither moved
-          it. The UI toggle is zero risk.</div>
-        </div>
-      </div>
-
-      <div class="job">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>Re-sync the database schema <span class="mins">1 min</span></h3>
-          <p class="why">I added three columns to the food view (a friendly status label, a
-          plain-English detail line, an icon name). FlutterFlow's copy of your database is from
-          before that, so the inventory screen won't compile until it catches up.</p>
-          <ol class="steps">
-            <li>In <b>FlutterFlow</b> → <b>Settings</b></li>
-            <li><b>Integrations</b> → <b>Supabase</b></li>
-            <li>Click <b>Get Schema</b></li>
-            <li>Wait for it to say <b>15 tables imported</b> (not 14)</li>
-          </ol>
-          <div class="done-note">The inventory screen is already written and waiting in
-          <span class="path">dsl/_pending_i4_inventory.dart.txt</span> — one push after this.</div>
-        </div>
-      </div>
-
-      <div class="job soft">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>Rotate the database password <span class="mins">2 min</span></h3>
-          <p class="why">It was pasted into a chat transcript once. Treat any credential that
-          lands in a transcript as burned. Nothing in the app uses it, so rotating breaks nothing.</p>
-          <ol class="steps">
-            <li>Open <b>Supabase</b> → your project</li>
-            <li><b>Project Settings</b> → <b>Database</b></li>
-            <li><b>Reset database password</b></li>
-            <li>Save the new one in your password manager. You do not need to tell me.</li>
-          </ol>
-        </div>
-      </div>
-
-      <div class="job soft">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>Point password-reset emails at the right page <span class="mins">2 min</span></h3>
-          <p class="why">Someone who resets their password gets an email, and that link currently
-          lands on the wrong screen. Change-password from inside Profile already works — this is
-          only the email route.</p>
-          <ol class="steps">
-            <li><b>Supabase</b> → <b>Authentication</b></li>
-            <li><b>URL Configuration</b></li>
-            <li>Under <b>Redirect URLs</b>, add your site URL followed by
-              <span class="path">/update-password</span></li>
-            <li>Save</li>
-          </ol>
-        </div>
-      </div>
-
-    </div>
+    <h2><span class="idx">01</span> Nothing waiting on you</h2>
+    <p class="lede">All three are done — entry page, schema re-sync, database password and the
+    reset-email URL. The only thing left needing you is Google sign-in below, and that is not
+    urgent.</p>
   </section>
 
-  <!-- ================= LOOKING AT IT ================= -->
+  <!-- ================= LATER ================= -->
   <section>
-    <h2><span class="idx">02</span> Seeing the app</h2>
-    <p class="lede">The app runs on your own machine now — far quicker than Test Mode, and I can
-    read the console when something breaks.</p>
+    <h2><span class="idx">02</span> Sign in with Google and Apple</h2>
+    <p class="lede">Not urgent — email sign-in works today. But these two go together: if you offer
+    Google on iPhone, Apple's review rules require Apple sign-in too. Treat them as one job.</p>
+
+    <div class="todo">
+      <div class="job later">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>Google <span class="mins">~20 min</span></h3>
+          <p class="lede" style="margin:0 0 10px">Do the <b>Web</b> client only. Android needs a
+          SHA-1 fingerprint from a signing keystore that does not exist yet, and iOS needs the app
+          registered with Apple first — both come later, at release. If you are sitting on the
+          Android form now, press the back arrow.</p>
+          <ol class="steps">
+            <li><b>Google Cloud Console</b> → project <b>UseItFresh</b> → <b>Google Auth Platform</b>
+              → <b>Clients</b> → <b>+ Create client</b></li>
+            <li>If it asks for <b>Audience</b> first, choose <b>External</b>. Internal only works for
+              Google Workspace organisation accounts.</li>
+            <li><b>Application type</b> → <b>Web application</b></li>
+            <li><b>Name</b> → <span class="path">UseItFresh Web</span></li>
+            <li><b>Authorised JavaScript origins</b> → <b>+ ADD URI</b> twice:
+              <div class="path">http://localhost:8080</div>
+              <div class="path">https://ltdvxdizjrkgwldbmbbf.supabase.co</div></li>
+            <li><b>Authorised redirect URIs</b> → <b>+ ADD URI</b> once:
+              <div class="path">https://ltdvxdizjrkgwldbmbbf.supabase.co/auth/v1/callback</div></li>
+            <li><b>Create</b>. A box appears with a <b>Client ID</b> and a <b>Client secret</b> —
+              copy both now.</li>
+            <li><b>Supabase</b> → <b>Authentication</b> → <b>Sign In / Providers</b> → <b>Google</b>
+              → toggle <b>Enable</b> → paste the Client ID and Client secret → <b>Save</b></li>
+          </ol>
+          <div class="note">At release we come back and add an <b>Android</b> client
+          (package <span class="path">com.mycompany.useitfresh</span> plus the keystore SHA-1) and an
+          <b>iOS</b> client (bundle <span class="path">com.mycompany.useitfresh</span>). Neither is
+          needed to test.</div>
+        </div>
+      </div>
+
+      <div class="job later">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>Apple <span class="mins">~30 min</span></h3>
+          <ol class="steps">
+            <li><b>Apple Developer</b> → <b>Certificates, Identifiers &amp; Profiles</b></li>
+            <li>On your <b>App ID</b>, enable the <b>Sign in with Apple</b> capability</li>
+            <li>Create a <b>Services ID</b> — this is what the web and Supabase use</li>
+            <li>Create a <b>Key</b> with Sign in with Apple enabled. It downloads a
+              <span class="path">.p8</span> file <b>once</b> — save it somewhere safe, you cannot download it again</li>
+            <li>Note your <b>Team ID</b> and the <b>Key ID</b></li>
+            <li><b>Supabase</b> → <b>Providers</b> → <b>Apple</b>: paste the Services ID, Team ID,
+              Key ID and the contents of the .p8 file</li>
+          </ol>
+          <div class="note warn"><b>You already have the hard part.</b> Google and Apple sign-in both
+          work on Spot a Paw, on the same Supabase setup — so this is repeating a process you have
+          done, not solving it fresh.</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;margin:24px 0 0">Which of these are secret</h3>
+    <p class="lede" style="margin-top:6px">The left column is safe to paste anywhere, including to me.
+    The right column goes into Supabase and nowhere else — never into the app, a message, or the repo.</p>
+    <div class="t-scroll">
+      <table class="keys">
+        <thead><tr><th>Safe to share</th><th>Keep secret</th></tr></thead>
+        <tbody>
+          <tr><td class="safe">Supabase URL and anon key</td><td class="unsafe">Google client <b>secret</b></td></tr>
+          <tr><td class="safe">Google client <b>IDs</b> (web, iOS, Android)</td><td class="unsafe">The Apple <span class="path">.p8</span> key file</td></tr>
+          <tr><td class="safe">Apple Services ID, Team ID, Key ID</td><td class="unsafe">Supabase service-role key</td></tr>
+          <tr><td class="safe">Anything already in the app bundle</td><td class="unsafe">Database password</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">The repo already blocks <span class="path">.p8</span>, <span class="path">.env</span>
+    and keystore files, so a stray download cannot be committed by accident.</div>
+  </section>
+
+  <!-- ================= SEEING IT ================= -->
+  <section>
+    <h2><span class="idx">03</span> Seeing the app</h2>
     <div class="live">
       <a href="http://localhost:8080" target="_blank" rel="noopener">localhost:8080 — the app</a>
-      <a href="http://localhost:8081/preview.html" target="_blank" rel="noopener">localhost:8081 — the fridge clips</a>
+      <a href="https://github.com/ashelashiry/UseItFresh" target="_blank" rel="noopener">github.com/ashelashiry/UseItFresh</a>
     </div>
-    <div class="done-note" style="margin-top:14px">
-      <b>Open the app in a private window.</b> The intro is designed to play once and the app
-      remembers you have seen it, so a normal tab jumps straight past the fridge and looks broken.
-      <br><br>
-      <b>If a link does nothing:</b> the server is not running. Ask me to start it — I have to stop
+    <div class="note" style="margin-top:14px">
+      <b>Hard-refresh first</b> — Ctrl+Shift+R. The browser caches the old build otherwise.<br><br>
+      The fridge now plays <b>every time the sign-in screen is shown</b>. It used to run once per
+      device, which meant you could never see it again after the first go. A signed-in person never
+      reaches this screen anyway, so nobody sits through it twice.<br><br>
+      <b>If the link does nothing</b>, the server is not running — ask me to start it. I have to stop
       it whenever I push, because it holds the code folder open.
     </div>
   </section>
 
   <!-- ================= DONE ================= -->
   <section>
-    <h2><span class="idx">03</span> Done, nothing needed from you</h2>
-    <p class="lede">Today's work, newest first.</p>
+    <h2><span class="idx">04</span> Done — nothing needed from you</h2>
     <div class="t-scroll">
       <table>
         <thead><tr><th>What</th><th>Detail</th></tr></thead>
         <tbody>
-          <tr><td><b>Design components</b></td><td>FoodCard, StatusBadge, SectionHeading, FeaturePanel — the pieces Home and Inventory are assembled from.</td></tr>
-          <tr><td><b>Theme</b></td><td>Your brand palette and fonts applied project-wide, so screens stop hard-coding colours.</td></tr>
-          <tr><td><b>Create household — fixed</b></td><td>The button had no action behind it at all. One insert now sets up your household, three storage places and a shopping list.</td></tr>
-          <tr><td><b>Urgency engine</b></td><td>The database now works out what to use first, recalculated against today's date, following the food-safety rules. Verified working.</td></tr>
-          <tr><td><b>Fridge entrance</b></td><td>Closed fridge with a glint on the handle → tap → door opens → the form fades in. Once per device.</td></tr>
-          <tr><td><b>Add food, storage places</b></td><td>Both screens built and working.</td></tr>
-          <tr><td><b>Door animation</b></td><td>Rebuilt in 3D from your artwork. Scripts kept, so re-rendering it later is one command.</td></tr>
+          <tr><td><b>Dark mode was broken app-wide</b></td><td>Every colour in the dark palette was set to fully transparent. On a phone in dark mode anything using a theme colour was invisible — text, borders, backgrounds, on every screen. It surfaced as "Create Account" and "Forgot password?" vanishing from the sign-in card. The whole dark palette is now filled in properly: the brand green lifted to hold contrast on a dark ground, and the food-safety colours lightened, since those carry meaning.</td></tr>
+          <tr><td><b>The fridge is back in your room</b></td><td>The 3D rebuild rendered it alone on black, which is what a swinging door needed but it lost the floor and the wall light. Your room has been rebuilt as a clean plate — old fridge and its reflection painted out — and the animation composited onto it, so the floor and lighting are back.</td></tr>
+          <tr><td><b>What to use first, on Home</b></td><td>The three items closest to their date, read live and re-sorted against today. It was a placeholder card. The greeting uses your name now, not your email address.</td></tr>
+          <tr><td><b>Status icon on every row</b></td><td>The spec asks for an icon and words on every item, never colour alone. The icon was owed because FlutterFlow's icon widget cannot be pointed at data. Solved with a small piece of custom code mapping the database's icon name to the real icon.</td></tr>
+          <tr><td><b>Empty states</b></td><td>Both lists showed "nothing here yet" underneath a full list. They appear only when there is genuinely nothing now.</td></tr>
+          <tr><td><b>Sign-in card</b></td><td>Email and Password were washed out to the point of being unreadable. Solid fields, visible labels, rounded, readable in both themes.</td></tr>
+          <tr><td><b>I can see the app now</b></td><td>The biggest change of the day, and the reason the last several fixes stuck. I can drive the running app in a browser, tap it, and measure the pixels. Every fix since has been found by measurement rather than guessed from a screenshot — the 23px jump, the late start, the empty dark theme, the frozen glint.</td></tr>
+          <tr><td><b>GitHub backup</b></td><td>Recipes that build the app, all five migrations, animation scripts and docs. The exported code and design files are deliberately left out — they regenerate, and git would keep every version forever.</td></tr>
+          <tr><td><b>Design components · theme</b></td><td>Food card, status badge, section heading, dark feature panel. Brand colours and fonts applied across the project.</td></tr>
+          <tr><td><b>Create household · add food · storage places</b></td><td>All built and working.</td></tr>
+          <tr><td><b>What to use first (the engine)</b></td><td>The database works this out itself, recalculated against today, following the food-safety rules. Use-by and best-before treated differently, as they must be.</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
-  <!-- ================= NEXT ================= -->
+  <!-- ================= BACKLOG ================= -->
   <section>
-    <h2><span class="idx">04</span> What I do next</h2>
-    <p class="lede">In this order. Only the third waits on you.</p>
-    <ul class="plain">
-      <li><b>Restyle the bottom navigation</b> — it exists and works, but uses default icons.
-      Your design pack has a proper icon set and a raised Scan/Add button.</li>
-      <li><b>Home</b> — greet by name rather than email address, add the dark feature card,
-      and show what to use first.</li>
-      <li><b>Inventory</b> — search, filters, and the food list. <i>Waits on the schema re-sync.</i></li>
-      <li><b>Add-food flow</b> — the review step before anything saves.</li>
-    </ul>
+    <h2><span class="idx">05</span> Backlog — pick what is next</h2>
+    <p class="lede">Ordered by what I would do first, not by size. Tell me the letters and I will work
+    straight through them.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td class="id">A</td><td><b>Bottom navigation</b><span class="why">Five tabs, no labels, FlutterFlow's stock Material icons. Your design pack has the proper set plus a raised Scan button.</span></td><td class="c"><span class="size s-s">S</span></td><td>It is on every screen, so it sets how finished the whole app feels.</td></tr>
+          <tr><td class="id">B</td><td><b>Inventory search and filters</b><span class="why">The list, its ordering and the icons are done. Search box and the filter chips are not.</span></td><td class="c"><span class="size s-m">M</span></td><td>Past a dozen items the list stops being usable without it.</td></tr>
+          <tr><td class="id">C</td><td><b>Adding food — the review step</b><span class="why">A confirm step before anything saves, per the spec's rule that adding must stay short.</span></td><td class="c"><span class="size s-m">M</span></td><td>Wrong dates entered here poison every "use first" answer afterwards.</td></tr>
+          <tr><td class="id">D</td><td><b>Fix the door swing</b><span class="why">It snaps from shut to open instead of swinging. My frame-stepping code reaches the last frame almost immediately.</span></td><td class="c"><span class="size s-s">S</span></td><td>Only worth doing if the outside build does not land — it replaces this code entirely.</td></tr>
+          <tr><td class="id">E</td><td><b>Card tied to the artwork</b><span class="why">The card is positioned by the screen while the fridge is positioned by the picture, so on an unusual screen shape it can drift off the cavity.</span></td><td class="c"><span class="size s-s">S</span></td><td>Waits on the new animation — its framing decides where the cavity sits.</td></tr>
+          <tr><td class="id">F</td><td><b>Google sign-in</b><span class="why">Web client half set up. Section 2 has the exact values.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Needs you, not me.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:14px"><b>My pick:</b> A then B. The navigation is small and visible
+    everywhere; search is what stops the inventory falling over once there is real food in it. D and E both
+    wait on the animation landing.</div>
   </section>
 
   <footer>
-    <span>Everything in "Your list" is a click. Nothing there needs code from you.</span>
+    <span>Everything in section 1 is a click. This page is where updates go from now on.</span>
     <span class="mono">UseItFresh · fridge-wise-gvpy0s · 7 Sep 2026</span>
   </footer>
 

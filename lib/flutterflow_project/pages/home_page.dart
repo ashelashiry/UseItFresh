@@ -19,6 +19,18 @@ final class HomePageParams {
 
 final class HomePageState {
   const HomePageState();
+  ffai.ProjectStateFieldHandle get me =>
+      const ffai.ProjectStateFieldHandle(
+        name: "me",
+        key: "pzg06la1",
+        typeName: "List<PostgresRow>",
+      );
+  ffai.ProjectStateFieldHandle get useFirst =>
+      const ffai.ProjectStateFieldHandle(
+        name: "useFirst",
+        key: "0qf8gp0g",
+        typeName: "List<PostgresRow>",
+      );
 }
 
 abstract final class HomePageWidgets {
@@ -28,6 +40,9 @@ abstract final class HomePageWidgets {
       type: "Scaffold",
       path: "HomePage",
       name: "HomePage",
+      triggers: const <String>[
+        "ON_INIT_STATE",
+      ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
         "appBar": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
@@ -125,11 +140,34 @@ abstract final class HomePageWidgets {
                     text: "Use first",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Container_p36qqddg",
-                    type: "Container",
+                    key: "Column_rgq7we0r",
+                    type: "Column",
                     path: "HomePage.body[0].children[0].children[4]",
-                    name: "EmptyStateCard",
-                    componentName: "EmptyStateCard",
+                    name: "UseFirstSection",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "ListView_5iwxgrya",
+                        type: "ListView",
+                        path: "HomePage.body[0].children[0].children[4].children[0]",
+                        name: "UseFirstList",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Container_ej56ame1",
+                            type: "Container",
+                            path: "HomePage.body[0].children[0].children[4].children[0].children[0]",
+                            name: "UseFirstCard",
+                            componentName: "FoodCard",
+                          ),
+                        ],
+                      ),
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_trjyf20l",
+                        type: "Container",
+                        path: "HomePage.body[0].children[0].children[4].children[1]",
+                        name: "UseFirstEmpty",
+                        componentName: "EmptyStateCard",
+                      ),
+                    ],
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Text_gdmfh6k7",
