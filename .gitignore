@@ -60,3 +60,6 @@ design/*.webp
 # are predictable, the frames are versioned with the code that plays them, and
 # nobody has to paste 47 links.
 !design/entrance/**
+
+# Same reasoning for the brand marks the app displays.
+!design/brand/**
