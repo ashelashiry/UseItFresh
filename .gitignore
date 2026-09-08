@@ -70,3 +70,12 @@ design/*.webp
 # The v2 screen guide is the design source of truth for the current rebuild —
 # small enough to keep, and the reference every screen is being built against.
 !design/Chat GPT/Use-It-Fresh-Screen-Guide-v2/**
+
+# Visual direction v3: the six card photographs (resized for the app) and the
+# approved logo. These are served to the app over jsDelivr, so they have to be
+# committed; the PNG masters stay out.
+!design/v3/**
+!design/Chat GPT/Use-It-Fresh-Visual-v3/*.md
+!design/Chat GPT/Use-It-Fresh-Visual-v3/tokens.json
+!design/Chat GPT/Use-It-Fresh-Visual-v3/icons/**
+!design/Chat GPT/Use-It-Fresh-Visual-v3/logo/**
