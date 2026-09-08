@@ -153,77 +153,23 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Tier 1, job 2 (second pass) — wire the household card.
+/// v3 Inventory — one search control, not two boxes.
 ///
-/// The card's widgets were inserted in the previous run; selectors only see
-/// nodes that existed when the script started, so the bindings have to be a
-/// separate push.
+/// The field carried its own outline while sitting inside the bordered search
+/// container, so the magnifier appeared boxed off from the input. The container
+/// keeps the border; the field inside it goes borderless and unfilled.
 void buildStarterEditFlow(App app) {
-  final firstHouseholdName = app.customFunction(
-    'firstHouseholdName',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returns: string,
-    description: 'Name of the current household, or the oldest one you belong to.',
-    code: '''
-if (rows == null || rows.isEmpty) return '';
-final held = (current ?? '').trim();
-for (final r in rows) {
-  if (r.id == held) return r.name;
-}
-return rows.first.name;
-''',
-  );
-
-  final firstInviteCode = app.customFunction(
-    'firstInviteCode',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returns: string,
-    description: 'Invite code of the current household, for sharing.',
-    code: '''
-if (rows == null || rows.isEmpty) return '';
-final held = (current ?? '').trim();
-for (final r in rows) {
-  if (r.id == held) return r.inviteCode;
-}
-return rows.first.inviteCode;
-''',
-  );
-
-  final belongsToHousehold = app.customFunction(
-    'belongsToHousehold',
-    args: {'rows': listOf(ff.Tables.households)},
-    returns: bool_,
-    description: 'True when the person already belongs to a household.',
-    code: 'return rows != null && rows.isNotEmpty;',
-  );
-
-  app.editPage(ff.Pages.householdSetupPage, (page) {
-    final rows = State(ff.Pages.householdSetupPage.state.households);
-
-    page.bindText(
-      ff.Pages.householdSetupPage.widgets.byKey('Text_8892i0cu').single,
-      CustomFunction(firstHouseholdName, args: {
-        'rows': rows,
-        'current': AppState(ff.AppState.currentHouseholdId),
-      }),
-    );
-    page.bindText(
-      ff.Pages.householdSetupPage.widgets.byKey('Text_q5god8h1').single,
-      CustomFunction(firstInviteCode, args: {
-        'rows': rows,
-        'current': AppState(ff.AppState.currentHouseholdId),
-      }),
-    );
-
-    page.bindVisible(
-      ff.Pages.householdSetupPage.widgets.byKey('Container_rjw3nhre').single,
-      CustomFunction(belongsToHousehold, args: {'rows': rows}),
-    );
-    // The create form is for people who do not have one yet. Joining stays
-    // available either way — belonging to a second household is legitimate.
-    page.bindVisible(
-      ff.Pages.householdSetupPage.widgets.byKey('Container_exwspk68').single,
-      Not(CustomFunction(belongsToHousehold, args: {'rows': rows})),
+  app.editPage(ff.Pages.inventoryPage, (page) {
+    page.mutateNode(
+      ff.Pages.inventoryPage.widgets.byKey('TextField_1xwrix4n').single,
+      (node) {
+        final decoration =
+            node.props.ensureTextField().ensureInputDecoration()
+              ..inputBorderType =
+                  FFInputDecoration_InputBorderType.none;
+        decoration.ensureBorderWidthValue().inputValue = 0;
+        decoration.ensureFilledValue().inputValue = false;
+      },
     );
   });
 }

@@ -56,25 +56,6 @@ abstract final class InventoryPageWidgets {
         "ON_INIT_STATE",
       ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
-        "appBar": <ffai.ProjectWidgetHandle>[
-          ffai.ProjectWidgetHandle(
-            key: "AppBar_hbzt30bs",
-            type: "AppBar",
-            path: "InventoryPage.appBar[0]",
-            name: "AppBar",
-            slots: <String, List<ffai.ProjectWidgetHandle>>{
-              "title": <ffai.ProjectWidgetHandle>[
-                ffai.ProjectWidgetHandle(
-                  key: "Text_35rgok3l",
-                  type: "Text",
-                  path: "InventoryPage.appBar[0].title[0]",
-                  name: "AppBar Title",
-                  text: "Inventory",
-                ),
-              ],
-            },
-          ),
-        ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
             key: "Container_9u8bwt59",
@@ -93,23 +74,22 @@ abstract final class InventoryPageWidgets {
                     type: "Text",
                     path: "InventoryPage.body[0].children[0].children[0]",
                     name: "InventoryHeading",
-                    text: "What to use first",
+                    text: "Your kitchen.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Text_403jzbco",
                     type: "Text",
                     path: "InventoryPage.body[0].children[0].children[1]",
                     name: "InventoryLede",
-                    text: "Ordered by how soon it needs eating. Use-by is a safety date; best-before is about quality.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Row_err34prw",
+                    key: "Row_s57bi5d1",
                     type: "Row",
                     path: "InventoryPage.body[0].children[0].children[2]",
                     name: "InventoryFilterChips",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Container_s8nl0dzq",
+                        key: "Container_n46f3tsc",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[0]",
                         name: "Chip_all_rest",
@@ -118,7 +98,7 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_c1na8n91",
+                            key: "Text_gzj6xpco",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[0].children[0]",
                             name: "ChipLabel_all_rest",
@@ -127,13 +107,16 @@ abstract final class InventoryPageWidgets {
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_83mqjf9z",
+                        key: "Container_8ycngcyi",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[1]",
                         name: "Chip_all_on",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_gyilbpql",
+                            key: "Text_nal9okg1",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[1].children[0]",
                             name: "ChipLabel_all_on",
@@ -142,134 +125,110 @@ abstract final class InventoryPageWidgets {
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_tmnihbde",
+                        key: "Container_eegrtxh1",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[2]",
-                        name: "Chip_use_today_rest",
+                        name: "Chip_fridge_rest",
                         triggers: const <String>[
                           "ON_TAP",
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_apembtr1",
+                            key: "Text_qokercm5",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[2].children[0]",
-                            name: "ChipLabel_use_today_rest",
-                            text: "Use today",
+                            name: "ChipLabel_fridge_rest",
+                            text: "Fridge",
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_t4mfwz1t",
+                        key: "Container_uy4c7vbp",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[3]",
-                        name: "Chip_use_today_on",
+                        name: "Chip_fridge_on",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_1n6sw1qg",
+                            key: "Text_ysgk047z",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[3].children[0]",
-                            name: "ChipLabel_use_today_on",
-                            text: "Use today",
+                            name: "ChipLabel_fridge_on",
+                            text: "Fridge",
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_xopkt5iv",
+                        key: "Container_tmk7tl64",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[4]",
-                        name: "Chip_use_soon_rest",
+                        name: "Chip_freezer_rest",
                         triggers: const <String>[
                           "ON_TAP",
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_zc7czulg",
+                            key: "Text_vuxkupm7",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[4].children[0]",
-                            name: "ChipLabel_use_soon_rest",
-                            text: "Use soon",
+                            name: "ChipLabel_freezer_rest",
+                            text: "Freezer",
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_c7bjfh00",
+                        key: "Container_yltp1lgm",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[5]",
-                        name: "Chip_use_soon_on",
+                        name: "Chip_freezer_on",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_5fvcqais",
+                            key: "Text_goufnb6p",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[5].children[0]",
-                            name: "ChipLabel_use_soon_on",
-                            text: "Use soon",
+                            name: "ChipLabel_freezer_on",
+                            text: "Freezer",
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_a7z7bjdr",
+                        key: "Container_kwne5zo2",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[6]",
-                        name: "Chip_fresh_rest",
+                        name: "Chip_pantry_rest",
                         triggers: const <String>[
                           "ON_TAP",
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_oz27t4ht",
+                            key: "Text_7at15roq",
                             type: "Text",
                             path: "InventoryPage.body[0].children[0].children[2].children[6].children[0]",
-                            name: "ChipLabel_fresh_rest",
-                            text: "Fresh",
+                            name: "ChipLabel_pantry_rest",
+                            text: "Pantry",
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_ladviwlf",
+                        key: "Container_pinyznaj",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[7]",
-                        name: "Chip_fresh_on",
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_nqz9ta64",
-                            type: "Text",
-                            path: "InventoryPage.body[0].children[0].children[2].children[7].children[0]",
-                            name: "ChipLabel_fresh_on",
-                            text: "Fresh",
-                          ),
-                        ],
-                      ),
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_za33613v",
-                        type: "Container",
-                        path: "InventoryPage.body[0].children[0].children[2].children[8]",
-                        name: "Chip_frozen_rest",
+                        name: "Chip_pantry_on",
                         triggers: const <String>[
                           "ON_TAP",
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_mydrc0ra",
+                            key: "Text_oegd9qt6",
                             type: "Text",
-                            path: "InventoryPage.body[0].children[0].children[2].children[8].children[0]",
-                            name: "ChipLabel_frozen_rest",
-                            text: "Frozen",
-                          ),
-                        ],
-                      ),
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_xgbjzaq4",
-                        type: "Container",
-                        path: "InventoryPage.body[0].children[0].children[2].children[9]",
-                        name: "Chip_frozen_on",
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_nb4jv4oe",
-                            type: "Text",
-                            path: "InventoryPage.body[0].children[0].children[2].children[9].children[0]",
-                            name: "ChipLabel_frozen_on",
-                            text: "Frozen",
+                            path: "InventoryPage.body[0].children[0].children[2].children[7].children[0]",
+                            name: "ChipLabel_pantry_on",
+                            text: "Pantry",
                           ),
                         ],
                       ),
@@ -308,64 +267,17 @@ abstract final class InventoryPageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "ListView_be08fv74",
-                    type: "ListView",
+                    key: "GridView_0tntwxzc",
+                    type: "GridView",
                     path: "InventoryPage.body[0].children[0].children[4]",
-                    name: "InventoryList",
+                    name: "InventoryGrid",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Container_0io42tol",
+                        key: "Container_9hdizcv6",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[4].children[0]",
-                        name: "InventoryRow",
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Row_exatiz42",
-                            type: "Row",
-                            path: "InventoryPage.body[0].children[0].children[4].children[0].children[0]",
-                            name: "Row",
-                            children: <ffai.ProjectWidgetHandle>[
-                              ffai.ProjectWidgetHandle(
-                                key: "Container_ez0o16ti",
-                                type: "Container",
-                                path: "InventoryPage.body[0].children[0].children[4].children[0].children[0].children[0]",
-                                name: "RowStatusIcon",
-                              ),
-                              ffai.ProjectWidgetHandle(
-                                key: "Column_0x7ogyts",
-                                type: "Column",
-                                path: "InventoryPage.body[0].children[0].children[4].children[0].children[0].children[1]",
-                                name: "Column",
-                                children: <ffai.ProjectWidgetHandle>[
-                                  ffai.ProjectWidgetHandle(
-                                    key: "Text_qsztn2mw",
-                                    type: "Text",
-                                    path: "InventoryPage.body[0].children[0].children[4].children[0].children[0].children[1].children[0]",
-                                    name: "RowName",
-                                  ),
-                                  ffai.ProjectWidgetHandle(
-                                    key: "Text_q43ygpit",
-                                    type: "Text",
-                                    path: "InventoryPage.body[0].children[0].children[4].children[0].children[0].children[1].children[1]",
-                                    name: "RowDetail",
-                                  ),
-                                  ffai.ProjectWidgetHandle(
-                                    key: "Text_72pvic8w",
-                                    type: "Text",
-                                    path: "InventoryPage.body[0].children[0].children[4].children[0].children[0].children[1].children[2]",
-                                    name: "RowBasis",
-                                  ),
-                                ],
-                              ),
-                              ffai.ProjectWidgetHandle(
-                                key: "Text_e80bkr1v",
-                                type: "Text",
-                                path: "InventoryPage.body[0].children[0].children[4].children[0].children[0].children[2]",
-                                name: "RowStatusLabel",
-                              ),
-                            ],
-                          ),
-                        ],
+                        name: "InventoryCard",
+                        componentName: "FoodCard",
                       ),
                     ],
                   ),

@@ -2930,12 +2930,18 @@ abstract final class CustomCode {
     "firstHouseholdId",
     "firstHouseholdName",
     "firstInviteCode",
+    "foodImage",
     "greetingLine",
     "greetingName",
     "hasHousehold",
     "hasRows",
+    "heroImage",
+    "hiLine",
+    "kitchenCount",
     "profileIsImperial",
     "profileName",
+    "quantityLabel",
+    "urgentCount",
     "useFirstLine",
   ];
   static const actions = <String>[
@@ -2945,6 +2951,7 @@ abstract final class CustomCode {
   ];
   static const widgets = <String>[
     "AnimatedRemoteImage",
+    "FoodStatusBadge",
     "FridgeEntrance",
     "LoopingRemoteImage",
     "StatusIcon",

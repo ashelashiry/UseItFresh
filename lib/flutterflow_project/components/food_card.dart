@@ -13,9 +13,10 @@ final class FoodCardComponentHandle extends ffai.ProjectComponentHandle<FoodCard
         state: const FoodCardState(),
         widgets: FoodCardWidgets.tree,
         paramTypes: <String, ffai.DslType>{
-          "dateLine": ffai.string,
+          "imageUrl": ffai.string,
           "itemName": ffai.string,
           "meta": ffai.string,
+          "status": ffai.string,
           "statusLabel": ffai.string,
         },
       );
@@ -23,18 +24,20 @@ final class FoodCardComponentHandle extends ffai.ProjectComponentHandle<FoodCard
   ffai.ComponentInstance call({
     String? name,
     Object? visible,
-    Object? dateLine = ffai.kUnsetComponentArg,
+    Object? imageUrl = ffai.kUnsetComponentArg,
     Object? itemName = ffai.kUnsetComponentArg,
     Object? meta = ffai.kUnsetComponentArg,
+    Object? status = ffai.kUnsetComponentArg,
     Object? statusLabel = ffai.kUnsetComponentArg,
   }) {
     return buildInstance(
       name: name,
       visible: visible,
       paramArgs: <String, Object?>{
-        if (!ffai.isUnsetComponentArg(dateLine)) "dateLine": dateLine,
+        if (!ffai.isUnsetComponentArg(imageUrl)) "imageUrl": imageUrl,
         if (!ffai.isUnsetComponentArg(itemName)) "itemName": itemName,
         if (!ffai.isUnsetComponentArg(meta)) "meta": meta,
+        if (!ffai.isUnsetComponentArg(status)) "status": status,
         if (!ffai.isUnsetComponentArg(statusLabel)) "statusLabel": statusLabel,
       },
     );
@@ -43,10 +46,10 @@ final class FoodCardComponentHandle extends ffai.ProjectComponentHandle<FoodCard
 
 final class FoodCardParams {
   const FoodCardParams();
-  ffai.ProjectParamHandle get dateLine =>
+  ffai.ProjectParamHandle get imageUrl =>
       const ffai.ProjectParamHandle(
-        name: "dateLine",
-        key: "xuljl8ub",
+        name: "imageUrl",
+        key: "uzkjvfgk",
         typeName: "String",
       );
   ffai.ProjectParamHandle get itemName =>
@@ -59,6 +62,12 @@ final class FoodCardParams {
       const ffai.ProjectParamHandle(
         name: "meta",
         key: "9fzoykyj",
+        typeName: "String",
+      );
+  ffai.ProjectParamHandle get status =>
+      const ffai.ProjectParamHandle(
+        name: "status",
+        key: "so2nmbfc",
         typeName: "String",
       );
   ffai.ProjectParamHandle get statusLabel =>
@@ -88,70 +97,58 @@ abstract final class FoodCardWidgets {
           name: "FoodCardShell",
           children: <ffai.ProjectWidgetHandle>[
             ffai.ProjectWidgetHandle(
-              key: "Row_pay5iz05",
-              type: "Row",
+              key: "Column_m59gw96z",
+              type: "Column",
               path: "FoodCard.children[0].children[0]",
-              name: "Row",
+              name: "FoodCardBody",
               children: <ffai.ProjectWidgetHandle>[
                 ffai.ProjectWidgetHandle(
-                  key: "Container_iq5mkie8",
-                  type: "Container",
+                  key: "Image_n8bgan0c",
+                  type: "Image",
                   path: "FoodCard.children[0].children[0].children[0]",
-                  name: "FoodCardTile",
-                  children: <ffai.ProjectWidgetHandle>[
-                    ffai.ProjectWidgetHandle(
-                      key: "Icon_7loifm3t",
-                      type: "Icon",
-                      path: "FoodCard.children[0].children[0].children[0].children[0]",
-                      name: "FoodCardTileIcon",
-                    ),
-                  ],
+                  name: "FoodCardPhoto",
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Column_twlipksn",
-                  type: "Column",
+                  key: "Container_z68tu08r",
+                  type: "Container",
                   path: "FoodCard.children[0].children[0].children[1]",
-                  name: "Column",
+                  name: "FoodCardCaption",
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Text_4w3pol9v",
-                      type: "Text",
+                      key: "Column_wfafm06b",
+                      type: "Column",
                       path: "FoodCard.children[0].children[0].children[1].children[0]",
-                      name: "FoodCardName",
-                    ),
-                    ffai.ProjectWidgetHandle(
-                      key: "Text_i4a99c68",
-                      type: "Text",
-                      path: "FoodCard.children[0].children[0].children[1].children[1]",
-                      name: "FoodCardMeta",
-                    ),
-                    ffai.ProjectWidgetHandle(
-                      key: "Container_hdadgapt",
-                      type: "Container",
-                      path: "FoodCard.children[0].children[0].children[1].children[2]",
-                      name: "FoodCardStatus",
+                      name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Text_8y9y7rf9",
+                          key: "Text_1z7byqkb",
                           type: "Text",
-                          path: "FoodCard.children[0].children[0].children[1].children[2].children[0]",
-                          name: "FoodCardStatusLabel",
+                          path: "FoodCard.children[0].children[0].children[1].children[0].children[0]",
+                          name: "FoodCardTitle",
+                        ),
+                        ffai.ProjectWidgetHandle(
+                          key: "Row_r8dlnmb3",
+                          type: "Row",
+                          path: "FoodCard.children[0].children[0].children[1].children[0].children[1]",
+                          name: "Row",
+                          children: <ffai.ProjectWidgetHandle>[
+                            ffai.ProjectWidgetHandle(
+                              key: "Container_q262ozqb",
+                              type: "Container",
+                              path: "FoodCard.children[0].children[0].children[1].children[0].children[1].children[0]",
+                              name: "FoodCardBadge",
+                            ),
+                            ffai.ProjectWidgetHandle(
+                              key: "Text_ius096yz",
+                              type: "Text",
+                              path: "FoodCard.children[0].children[0].children[1].children[0].children[1].children[1]",
+                              name: "FoodCardQuantity",
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    ffai.ProjectWidgetHandle(
-                      key: "Text_qq63qpcb",
-                      type: "Text",
-                      path: "FoodCard.children[0].children[0].children[1].children[3]",
-                      name: "FoodCardDateLine",
-                    ),
                   ],
-                ),
-                ffai.ProjectWidgetHandle(
-                  key: "Icon_fzsou170",
-                  type: "Icon",
-                  path: "FoodCard.children[0].children[0].children[2]",
-                  name: "FoodCardChevron",
                 ),
               ],
             ),
