@@ -66,3 +66,7 @@ design/*.webp
 
 # The navigation icons the app displays, same reasoning again.
 !design/nav/**
+
+# The v2 screen guide is the design source of truth for the current rebuild —
+# small enough to keep, and the reference every screen is being built against.
+!design/Chat GPT/Use-It-Fresh-Screen-Guide-v2/**

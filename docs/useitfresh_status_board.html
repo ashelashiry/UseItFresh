@@ -531,194 +531,207 @@
 
   <header class="masthead">
     <div>
-      <p class="eyebrow">Build status · everything in one place</p>
+      <p class="eyebrow">Build status &middot; prioritised for review</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Section 1 is the only part that needs you. Everything else is done or is
-      mine to do. This page is the single source of updates from here on.</p>
+      <p class="sub">Screen Guide v2 is being implemented. Section 2 is the ordered list of work
+      and the reasoning behind the order &mdash; that is the part to review. Only one thing needs
+      you, and it is not blocking.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
-      commit <b>YP3YmJxy2ghpVZh87eEy</b><br>
-      repo <b>ashelashiry/UseItFresh</b><br>
-      updated <b>7 Sep 2026</b>
+      commit <b>NJABtIEdmsRLY0Av0R6E</b><br>
+      guide <b>Screen Guide v2</b><br>
+      updated <b>8 Sep 2026</b>
     </div>
   </header>
 
   <div class="tiles">
     <div class="tile is-good">
-      <span class="k">Needs you</span>
+      <span class="k">Blocking you</span>
       <div class="v">0</div>
-      <div class="n">clear — building uninterrupted</div>
+      <div class="n">building uninterrupted</div>
     </div>
     <div class="tile is-warn">
-      <span class="k">Needs you later</span>
+      <span class="k">Needs you eventually</span>
       <div class="v">1</div>
-      <div class="n">Google web client · in progress</div>
+      <div class="n">Google &amp; Apple credentials</div>
     </div>
     <div class="tile is-good">
-      <span class="k">Migrations</span>
-      <div class="v">5 / 5</div>
-      <div class="n">applied and verified</div>
+      <span class="k">Guide progress</span>
+      <div class="v">2 / 9</div>
+      <div class="n">theme and Home done</div>
     </div>
-    <div class="tile is-good">
-      <span class="k">Backed up</span>
-      <div class="v">Yes</div>
-      <div class="n">GitHub, 116 files</div>
+    <div class="tile is-block">
+      <span class="k">Known broken</span>
+      <div class="v">3</div>
+      <div class="n">all small, all first in the queue</div>
     </div>
   </div>
 
-  <!-- ================= YOUR LIST ================= -->
+  <!-- ================= 01 · NEEDS YOU ================= -->
   <section>
-    <h2><span class="idx">01</span> Nothing waiting on you</h2>
-    <p class="lede">All three are done — entry page, schema re-sync, database password and the
-    reset-email URL. The only thing left needing you is Google sign-in below, and that is not
-    urgent.</p>
-  </section>
-
-  <!-- ================= LATER ================= -->
-  <section>
-    <h2><span class="idx">02</span> Sign in with Google and Apple</h2>
-    <p class="lede">Not urgent — email sign-in works today. But these two go together: if you offer
-    Google on iPhone, Apple's review rules require Apple sign-in too. Treat them as one job.</p>
+    <h2><span class="idx">01</span> The one thing that needs you</h2>
+    <p class="lede">Not urgent and not blocking &mdash; email sign-in works, and everything in
+    section 2 proceeds without it. But it has a long tail (Apple review, real devices), so the
+    earlier it starts the better.</p>
 
     <div class="todo">
       <div class="job later">
         <div class="bar"></div>
         <div class="in">
-          <h3>Google <span class="mins">~20 min</span></h3>
-          <p class="lede" style="margin:0 0 10px">Do the <b>Web</b> client only. Android needs a
-          SHA-1 fingerprint from a signing keystore that does not exist yet, and iOS needs the app
-          registered with Apple first — both come later, at release. If you are sitting on the
-          Android form now, press the back arrow.</p>
-          <ol class="steps">
-            <li><b>Google Cloud Console</b> → project <b>UseItFresh</b> → <b>Google Auth Platform</b>
-              → <b>Clients</b> → <b>+ Create client</b></li>
-            <li>If it asks for <b>Audience</b> first, choose <b>External</b>. Internal only works for
-              Google Workspace organisation accounts.</li>
-            <li><b>Application type</b> → <b>Web application</b></li>
-            <li><b>Name</b> → <span class="path">UseItFresh Web</span></li>
-            <li><b>Authorised JavaScript origins</b> → <b>+ ADD URI</b> twice:
-              <div class="path">http://localhost:8080</div>
-              <div class="path">https://ltdvxdizjrkgwldbmbbf.supabase.co</div></li>
-            <li><b>Authorised redirect URIs</b> → <b>+ ADD URI</b> once:
-              <div class="path">https://ltdvxdizjrkgwldbmbbf.supabase.co/auth/v1/callback</div></li>
-            <li><b>Create</b>. A box appears with a <b>Client ID</b> and a <b>Client secret</b> —
-              copy both now.</li>
-            <li><b>Supabase</b> → <b>Authentication</b> → <b>Sign In / Providers</b> → <b>Google</b>
-              → toggle <b>Enable</b> → paste the Client ID and Client secret → <b>Save</b></li>
-          </ol>
-          <div class="note">At release we come back and add an <b>Android</b> client
-          (package <span class="path">com.mycompany.useitfresh</span> plus the keystore SHA-1) and an
-          <b>iOS</b> client (bundle <span class="path">com.mycompany.useitfresh</span>). Neither is
-          needed to test.</div>
-        </div>
-      </div>
-
-      <div class="job later">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>Apple <span class="mins">~30 min</span></h3>
-          <ol class="steps">
-            <li><b>Apple Developer</b> → <b>Certificates, Identifiers &amp; Profiles</b></li>
-            <li>On your <b>App ID</b>, enable the <b>Sign in with Apple</b> capability</li>
-            <li>Create a <b>Services ID</b> — this is what the web and Supabase use</li>
-            <li>Create a <b>Key</b> with Sign in with Apple enabled. It downloads a
-              <span class="path">.p8</span> file <b>once</b> — save it somewhere safe, you cannot download it again</li>
-            <li>Note your <b>Team ID</b> and the <b>Key ID</b></li>
-            <li><b>Supabase</b> → <b>Providers</b> → <b>Apple</b>: paste the Services ID, Team ID,
-              Key ID and the contents of the .p8 file</li>
-          </ol>
-          <div class="note warn"><b>You already have the hard part.</b> Google and Apple sign-in both
-          work on Spot a Paw, on the same Supabase setup — so this is repeating a process you have
-          done, not solving it fresh.</div>
+          <h3>Google and Apple sign-in credentials <span class="mins">~50 min, once</span></h3>
+          <p class="why">These go together: if you offer Google on iPhone, Apple's review rules
+          require Apple sign-in too. The full step-by-step is unchanged from the last board &mdash;
+          Google Cloud Console &rarr; Web client, then Supabase &rarr; Providers; Apple Developer
+          &rarr; Services ID + Key, then Supabase. You have done both before on Spot a Paw, on this
+          same Supabase setup.</p>
+          <div class="note"><b>Do the Web client only.</b> Android needs a keystore SHA-1 that does
+          not exist yet and iOS needs the app registered with Apple &mdash; both belong at release.</div>
+          <div class="note warn"><b>Secrets rule, unchanged.</b> Client <b>IDs</b>, Services ID,
+          Team ID and Key ID are safe to send me. The Google client <b>secret</b>, the Apple
+          <span class="path">.p8</span> file, the service-role key and the database password go into
+          Supabase and nowhere else &mdash; never into the app, a message, or the repo.</div>
         </div>
       </div>
     </div>
+  </section>
 
-    <h3 style="font-family:var(--f-display);font-size:15px;margin:24px 0 0">Which of these are secret</h3>
-    <p class="lede" style="margin-top:6px">The left column is safe to paste anywhere, including to me.
-    The right column goes into Supabase and nowhere else — never into the app, a message, or the repo.</p>
+  <!-- ================= 02 · THE BACKLOG ================= -->
+  <section>
+    <h2><span class="idx">02</span> The work, in the order I would do it</h2>
+    <p class="lede">Four tiers. The ordering principle is simple: fix what is <b>broken</b> before
+    what is <b>unfinished</b>, do what appears on <b>every screen</b> before what appears on one,
+    and build the <b>shared pieces</b> before the screens that need them. Tell me a different order
+    and I will follow it &mdash; or say "go" and I will work straight down this list.</p>
+
+    <h3 style="font-family:var(--f-display);font-size:16px;margin:26px 0 4px">Tier 1 &mdash; broken things</h3>
+    <p class="lede" style="margin-bottom:14px">Three real faults found by driving the app, not by
+    reading code. All small. Doing them first costs about half a day and stops the app lying to you
+    while you review the redesign.</p>
     <div class="t-scroll">
-      <table class="keys">
-        <thead><tr><th>Safe to share</th><th>Keep secret</th></tr></thead>
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
         <tbody>
-          <tr><td class="safe">Supabase URL and anon key</td><td class="unsafe">Google client <b>secret</b></td></tr>
-          <tr><td class="safe">Google client <b>IDs</b> (web, iOS, Android)</td><td class="unsafe">The Apple <span class="path">.p8</span> key file</td></tr>
-          <tr><td class="safe">Apple Services ID, Team ID, Key ID</td><td class="unsafe">Supabase service-role key</td></tr>
-          <tr><td class="safe">Anything already in the app bundle</td><td class="unsafe">Database password</td></tr>
+          <tr><td class="id">1</td><td><b>Storage locations shows nothing</b><span class="why">Your household has Fridge, Freezer and Pantry in the database &mdash; the trigger created them when the household was created &mdash; but the screen lists none. Either the query is not running or it is not filtered to the right household.</span></td><td class="c"><span class="size s-s">S</span></td><td>The screen is simply broken, and it is the one place storage is managed.</td></tr>
+          <tr><td class="id">2</td><td><b>"Manage household" opens the create form</b><span class="why">A member who already has a household is offered only "Create a household" and "Join with an invite code". It should show the household they are in: name, members, invite code.</span></td><td class="c"><span class="size s-m">M</span></td><td>Sends an existing user down a dead end. The guide calls this out explicitly.</td></tr>
+          <tr><td class="id">3</td><td><b>Profile setup opens empty</b><span class="why">The name field does not load the name already saved, so returning to change units silently costs you your name unless you retype it.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Quiet data loss, and a very cheap fix.</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="note">The repo already blocks <span class="path">.p8</span>, <span class="path">.env</span>
-    and keystore files, so a stray download cannot be committed by accident.</div>
+
+    <h3 style="font-family:var(--f-display);font-size:16px;margin:32px 0 4px">Tier 2 &mdash; everywhere at once</h3>
+    <p class="lede" style="margin-bottom:14px">These two change every screen in the app, including
+    ones not yet rebuilt. Doing them before the screen work means each screen is built once, not
+    restyled twice.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
+        <tbody>
+          <tr><td class="id">4</td><td><b>Bottom navigation to the guide</b><span class="why">White surface with a subtle top border, forest active icon and text on a pale selected background, labels always visible, and the centre Scan/Add as a 56px forest rounded square. Bottom safe-area padding and large tap targets.</span></td><td class="c"><span class="size s-m">M</span></td><td>It is on every main screen and it is currently the most visible deviation from the guide.</td></tr>
+          <tr><td class="id">5</td><td><b>The shared components</b><span class="why">PageHeader, MenuRow, LabelledField, PrimaryButton, SecondaryButton, FoodRow, FoodStatusBadge, SetupPrompt. EmptyKitchenPanel is already done and already shared by Home, Inventory and Recipes.</span></td><td class="c"><span class="size s-m">M</span></td><td>Jobs 6&ndash;10 are each mostly an assembly of these. Building them first is what makes the rest fast and consistent.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:16px;margin:32px 0 4px">Tier 3 &mdash; screen by screen</h3>
+    <p class="lede" style="margin-bottom:14px">The guide's own order, with one change: Household
+    moves up, because tier&nbsp;1 job&nbsp;2 lands in the same screen and doing them together is one
+    piece of work rather than two.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
+        <tbody>
+          <tr><td class="id">6</td><td><b>Inventory</b><span class="why">Title with a real item count, search, then All / Fridge / Freezer / Pantry / Use first chips. Two distinct empty states &mdash; "no matching items" with Clear filters, versus an empty kitchen with Add your first item. A restrained loading state and a real retry state on error.</span></td><td class="c"><span class="size s-m">M</span></td><td>The guide pairs it with Home, and it is the screen people live in once there is food.</td></tr>
+          <tr><td class="id">7</td><td><b>Household</b><span class="why">Segmented Create / Join with only the selected form shown, persistent labels, helper text, one primary button. On success show the real household and its members; on failure keep what was typed and say what went wrong. Existing members see details, not the creation form.</span></td><td class="c"><span class="size s-m">M</span></td><td>Same screen as job 2. Creating a household already works and already reports failures properly.</td></tr>
+          <tr><td class="id">8</td><td><b>Add food</b><span class="why">Five full-width selectable rows &mdash; Item photo, Barcode, Receipt, Fridge photo, Add manually &mdash; each with one icon, a title, a short purpose and a chevron. Today it is five narrow outline buttons, which the guide explicitly rules out.</span></td><td class="c"><span class="size s-s">S</span></td><td>Mostly MenuRow from job 5, so it is quick once that exists.</td></tr>
+          <tr><td class="id">9</td><td><b>Profile setup</b><span class="why">Ordinary back header, clear title, persistent field label, full-width Save profile. Inline errors under the field rather than a toast alone.</span></td><td class="c"><span class="size s-s">S</span></td><td>Finishes the screen job 3 repairs.</td></tr>
+          <tr><td class="id">10</td><td><b>Profile</b><span class="why">Display name and household role at the top instead of the email address. Generous single-action rows, grouped: profile, household, shopping, reminders, privacy. Sign out at the bottom. Remove the duplicated pattern where a heading row is followed by a second small button doing the same thing.</span></td><td class="c"><span class="size s-m">M</span></td><td>The densest screen and the one furthest from the guide, but nothing else depends on it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:16px;margin:32px 0 4px">Tier 4 &mdash; after the redesign lands</h3>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
+        <tbody>
+          <tr><td class="id">11</td><td><b>Review step before food saves</b><span class="why">A confirm step between entering an item and writing it, per the spec's rule that adding stays short but never silent.</span></td><td class="c"><span class="size s-m">M</span></td><td>Correctness of the core loop &mdash; a wrong date here skews every "use first" answer afterwards. Held until the screens it sits between are settled.</td></tr>
+          <tr><td class="id">12</td><td><b>Clear the console 404s</b><span class="why">A missing <span class="path">manifest.json</span> and a missing <span class="path">app-icon-512.png</span>. Harmless in themselves.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>They are the only red in the console, so they bury anything real that appears next to them.</td></tr>
+          <tr><td class="id">13</td><td><b>Real Google and Apple buttons</b><span class="why">Swap the stand-in marks for the official assets and wire both providers.</span></td><td class="c"><span class="size s-s">S</span></td><td>Waits on section 1.</td></tr>
+          <tr><td class="id">14</td><td><b>Width checks at 390px and 360px</b><span class="why">Screenshots of the same empty account at both widths, plus large-text and keyboard layouts, before calling the redesign done.</span></td><td class="c"><span class="size s-s">S</span></td><td>The guide asks for this as the acceptance gate. Only meaningful once tiers 2 and 3 are in.</td></tr>
+          <tr><td class="id">15</td><td><b>Base of the fridge</b><span class="why">A hard black band where the render's own shadow meets your floor.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic, on a screen people see once.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top:18px"><b>My recommendation: do 1&ndash;5 as one block.</b>
+    That is the three broken things, the navigation and the shared components &mdash; roughly a day
+    and a half. It leaves the app with nothing visibly faulty and every screen sitting on the guide's
+    own building blocks, which makes tier 3 mostly assembly. If you would rather see the redesign
+    move faster and accept the three faults staying a while longer, say so and I will lead with
+    4&nbsp;and&nbsp;5.</div>
   </section>
 
-  <!-- ================= SEEING IT ================= -->
+  <!-- ================= 03 · DONE ================= -->
   <section>
-    <h2><span class="idx">03</span> Seeing the app</h2>
-    <div class="live">
-      <a href="http://localhost:8080" target="_blank" rel="noopener">localhost:8080 — the app</a>
-      <a href="https://github.com/ashelashiry/UseItFresh" target="_blank" rel="noopener">github.com/ashelashiry/UseItFresh</a>
-    </div>
-    <div class="note" style="margin-top:14px">
-      <b>Hard-refresh first</b> — Ctrl+Shift+R. The browser caches the old build otherwise.<br><br>
-      The fridge now plays <b>every time the sign-in screen is shown</b>. It used to run once per
-      device, which meant you could never see it again after the first go. A signed-in person never
-      reaches this screen anyway, so nobody sits through it twice.<br><br>
-      <b>If the link does nothing</b>, the server is not running — ask me to start it. I have to stop
-      it whenever I push, because it holds the code folder open.
-    </div>
-  </section>
-
-  <!-- ================= DONE ================= -->
-  <section>
-    <h2><span class="idx">04</span> Done — nothing needed from you</h2>
+    <h2><span class="idx">03</span> Done since the last board</h2>
     <div class="t-scroll">
       <table>
         <thead><tr><th>What</th><th>Detail</th></tr></thead>
         <tbody>
-          <tr><td><b>Dark mode was broken app-wide</b></td><td>Every colour in the dark palette was set to fully transparent. On a phone in dark mode anything using a theme colour was invisible — text, borders, backgrounds, on every screen. It surfaced as "Create Account" and "Forgot password?" vanishing from the sign-in card. The whole dark palette is now filled in properly: the brand green lifted to hold contrast on a dark ground, and the food-safety colours lightened, since those carry meaning.</td></tr>
-          <tr><td><b>The fridge is back in your room</b></td><td>The 3D rebuild rendered it alone on black, which is what a swinging door needed but it lost the floor and the wall light. Your room has been rebuilt as a clean plate — old fridge and its reflection painted out — and the animation composited onto it, so the floor and lighting are back.</td></tr>
-          <tr><td><b>What to use first, on Home</b></td><td>The three items closest to their date, read live and re-sorted against today. It was a placeholder card. The greeting uses your name now, not your email address.</td></tr>
-          <tr><td><b>Status icon on every row</b></td><td>The spec asks for an icon and words on every item, never colour alone. The icon was owed because FlutterFlow's icon widget cannot be pointed at data. Solved with a small piece of custom code mapping the database's icon name to the real icon.</td></tr>
-          <tr><td><b>Empty states</b></td><td>Both lists showed "nothing here yet" underneath a full list. They appear only when there is genuinely nothing now.</td></tr>
-          <tr><td><b>Sign-in card</b></td><td>Email and Password were washed out to the point of being unreadable. Solid fields, visible labels, rounded, readable in both themes.</td></tr>
-          <tr><td><b>I can see the app now</b></td><td>The biggest change of the day, and the reason the last several fixes stuck. I can drive the running app in a browser, tap it, and measure the pixels. Every fix since has been found by measurement rather than guessed from a screenshot — the 23px jump, the late start, the empty dark theme, the frozen glint.</td></tr>
-          <tr><td><b>GitHub backup</b></td><td>Recipes that build the app, all five migrations, animation scripts and docs. The exported code and design files are deliberately left out — they regenerate, and git would keep every version forever.</td></tr>
-          <tr><td><b>Design components · theme</b></td><td>Food card, status badge, section heading, dark feature panel. Brand colours and fonts applied across the project.</td></tr>
-          <tr><td><b>Create household · add food · storage places</b></td><td>All built and working.</td></tr>
-          <tr><td><b>What to use first (the engine)</b></td><td>The database works this out itself, recalculated against today, following the food-safety rules. Use-by and best-before treated differently, as they must be.</td></tr>
+          <tr><td><b>Screen Guide v2 &mdash; the theme</b></td><td>Your light palette already carried the guide's exact values; the app was rendering its dark palette instead. Dark mode is now off entirely, so cream is the only theme &mdash; which is what "no dark page backgrounds remain" requires. The entrance stays dark on its own terms, being a photograph rather than a theme. Figtree headings and Nunito body wired, with the guide's scale: 28/32 page title, 18/24 section, 16/24 body, 14/20 supporting.</td></tr>
+          <tr><td><b>Screen Guide v2 &mdash; Home</b></td><td>App bar removed, since the guide asks that ordinary pages say what they are for rather than repeat "Use It Fresh". Now an eyebrow, a time-aware greeting in sentence case, a line of kitchen context, "Use first" as the main section with the sage empty panel, then two generous quick-add choices &mdash; one forest primary, one quiet bordered. The promotional panel is gone: the guide shows none on an account with nothing in it.</td></tr>
+          <tr><td><b>The shared empty panel</b></td><td>EmptyStateCard is now the guide's EmptyKitchenPanel &mdash; sage, generously rounded, roomy, centred. Home, Inventory and Recipes all use it, so all three moved at once.</td></tr>
+          <tr><td><b>Every form dropped the last thing you typed</b></td><td>A two-second delay sat on every text field before it saved its value. Type and tap immediately &mdash; which is what everyone does &mdash; and the app submitted a blank. It broke sign-in and made "Create household" do nothing, silently, with no error either time. Cleared on all 14 fields. This had been mistaken for two unrelated bugs.</td></tr>
+          <tr><td><b>Creating a household works</b></td><td>Confirmed end to end against the database: the household exists and the trigger seeded it correctly &mdash; one member, three storage locations, one shopping list. Failures now report why instead of throwing uncaught and doing nothing.</td></tr>
+          <tr><td><b>Signed in and walked the whole app</b></td><td>Everything behind sign-in had only ever been checked by reading generated code. With the test login I drove the real app in a browser: entrance, sign-in, all five tabs, household setup. Recording in <span class="path">design/Screen Recordings</span>.</td></tr>
+          <tr><td><b>Button contrast, resolved by the theme</b></td><td>White on the dark theme's green measured about 2.4:1, under the 4.5:1 floor. White on the cream theme's forest #07533A is roughly 9.5:1. The theme change fixed it rather than a separate patch.</td></tr>
+          <tr><td><b>The screen kit</b></td><td>Every screen rebuilt as editable HTML and CSS, from the app's own tokens and copy, for redesign work. <a href="https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1">Open the screen kit</a>.</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
-  <!-- ================= BACKLOG ================= -->
+  <!-- ================= 04 · NOTES ================= -->
   <section>
-    <h2><span class="idx">05</span> Backlog — pick what is next</h2>
-    <p class="lede">Ordered by what I would do first, not by size. Tell me the letters and I will work
-    straight through them.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why it matters</th></tr></thead>
-        <tbody>
-          <tr><td class="id">A</td><td><b>Bottom navigation</b><span class="why">Five tabs, no labels, FlutterFlow's stock Material icons. Your design pack has the proper set plus a raised Scan button.</span></td><td class="c"><span class="size s-s">S</span></td><td>It is on every screen, so it sets how finished the whole app feels.</td></tr>
-          <tr><td class="id">B</td><td><b>Inventory search and filters</b><span class="why">The list, its ordering and the icons are done. Search box and the filter chips are not.</span></td><td class="c"><span class="size s-m">M</span></td><td>Past a dozen items the list stops being usable without it.</td></tr>
-          <tr><td class="id">C</td><td><b>Adding food — the review step</b><span class="why">A confirm step before anything saves, per the spec's rule that adding must stay short.</span></td><td class="c"><span class="size s-m">M</span></td><td>Wrong dates entered here poison every "use first" answer afterwards.</td></tr>
-          <tr><td class="id">D</td><td><b>Fix the door swing</b><span class="why">It snaps from shut to open instead of swinging. My frame-stepping code reaches the last frame almost immediately.</span></td><td class="c"><span class="size s-s">S</span></td><td>Only worth doing if the outside build does not land — it replaces this code entirely.</td></tr>
-          <tr><td class="id">E</td><td><b>Card tied to the artwork</b><span class="why">The card is positioned by the screen while the fridge is positioned by the picture, so on an unusual screen shape it can drift off the cavity.</span></td><td class="c"><span class="size s-s">S</span></td><td>Waits on the new animation — its framing decides where the cavity sits.</td></tr>
-          <tr><td class="id">F</td><td><b>Google sign-in</b><span class="why">Web client half set up. Section 2 has the exact values.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Needs you, not me.</td></tr>
-        </tbody>
-      </table>
+    <h2><span class="idx">04</span> Worth knowing</h2>
+    <div class="live">
+      <a href="http://localhost:8080" target="_blank" rel="noopener">localhost:8080 &mdash; the app</a>
+      <a href="https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1" target="_blank" rel="noopener">The screen kit</a>
+      <a href="https://github.com/ashelashiry/UseItFresh" target="_blank" rel="noopener">github.com/ashelashiry/UseItFresh</a>
     </div>
-    <div class="note" style="margin-top:14px"><b>My pick:</b> A then B. The navigation is small and visible
-    everywhere; search is what stops the inventory falling over once there is real food in it. D and E both
-    wait on the animation landing.</div>
+    <div class="note" style="margin-top:14px">
+      <b>Hard-refresh first</b> &mdash; Ctrl+Shift+R. The browser caches the old build otherwise, and
+      after a theme change that means you see the old dark one.<br><br>
+      The server now runs from a copy of the build, so it no longer holds the code folder open and no
+      longer has to be stopped every time I push.<br><br>
+      <b>Screen recordings work well as bug reports.</b> Drop them in
+      <span class="path">design/Screen Recordings</span> and I will find the problems myself &mdash; I read
+      the DevTools console in the frames too, which is where most of the signal was last time.
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;margin:26px 0 0">Three DSL traps, recorded so they do not recur</h3>
+    <p class="lede" style="margin-top:6px">Each of these produced wrong output silently &mdash; no
+    error, a successful push, and a broken screen. They cost most of the time in the last stage.</p>
+    <ul class="plain">
+      <li><b>maxLines sets max characters.</b> The patch named <code>maxLines(2)</code> writes
+        FlutterFlow's overridden max <i>characters</i>, so the greeting rendered as "Go" and the
+        empty state as "Not". Real line limits live in a different field.</li>
+      <li><b>Container styling silently no-ops.</b> <code>color</code>, <code>borderRadius</code> and
+        <code>visible</code> apply to Buttons but do nothing on a Container, which made two earlier
+        passes look successful when nothing had changed. Containers have to be set on the node.</li>
+      <li><b>Full width is Infinity, not a percentage.</b> This project expresses a full-width button
+        as pixels&nbsp;=&nbsp;Infinity; a percent-of-parent width is ignored by codegen. Setting a
+        height also clears the width, which is why both quick-add buttons collapsed to hug their
+        labels.</li>
+    </ul>
   </section>
 
   <footer>
-    <span>Everything in section 1 is a click. This page is where updates go from now on.</span>
-    <span class="mono">UseItFresh · fridge-wise-gvpy0s · 7 Sep 2026</span>
+    <span>Section 2 is the part to review. Reply with an order, or "go" for the one above.</span>
+    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 8 Sep 2026</span>
   </footer>
 
 </div>
+
+</body></html>

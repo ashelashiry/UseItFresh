@@ -1,0 +1,716 @@
+<title>Use It Fresh Screen Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ===========================================================================
+   1. THE TOKENS
+   Every colour, size and radius the app uses. These are read straight from
+   the built app's theme, so what you change here is what needs changing in
+   FlutterFlow. Edit these and every screen below moves together.
+   =========================================================================== */
+:root {
+  /* --- app palette: dark (what ships today) --- */
+  --app-primary:        #5FB07E;
+  --app-secondary:      #9BD05F;
+  --app-tertiary:       #D6DED8;
+  --app-alternate:      #33402F;
+  --app-text:           #E8EFE6;
+  --app-text-2:         #A3B0A0;
+  --app-bg:             #141A16;
+  --app-surface:        #1D2620;
+  --app-accent1:        #232E26;
+  --app-accent2:        #1A231D;
+  --app-accent3:        #20302A;
+  --app-accent4:        #33231F;
+  --app-success:        #6FBF83;
+  --app-warning:        #D8A44A;
+  --app-error:          #E58275;
+  --app-info:           #7FB2D8;
+
+  /* --- app palette: light (defined in the theme, not yet exercised) --- */
+  --lt-primary:    #07533A;
+  --lt-secondary:  #83BD43;
+  --lt-tertiary:   #202826;
+  --lt-text:       #202C24;
+  --lt-text-2:     #59665D;
+  --lt-bg:         #F7F7F0;
+  --lt-surface:    #FFFFFF;
+  --lt-accent1:    #EDF2E8;
+
+  /* --- shape --- */
+  --r-card:    12px;
+  --r-panel:   20px;
+  --r-button:  12px;
+  --r-field:   10px;
+  --r-chip:    999px;
+  --pad-screen: 20px;
+  --pad-card:   20px;
+  --gap:        12px;
+
+  /* --- type --- */
+  --f-app: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --t-appbar:   19px;
+  --t-title:    17px;
+  --t-headline: 21px;
+  --t-body:     14px;
+  --t-label:    12px;
+  --t-eyebrow:  10.5px;
+
+  /* --- the page around the phones (not part of the app) --- */
+  --page-bg:      #EFEDE6;
+  --page-surface: #FFFFFF;
+  --page-line:    #DAD6C9;
+  --page-ink:     #23291F;
+  --page-ink-2:   #5D6754;
+  --page-ink-3:   #8B9480;
+  --page-mark:    #2F6B47;
+  --page-flag:    #B4472F;
+  --page-flag-bg: #F7E7E2;
+  --shadow: 0 1px 2px rgba(30,40,25,.06), 0 10px 30px rgba(30,40,25,.09);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg:      #161A14;
+    --page-surface: #1E241B;
+    --page-line:    #333B2D;
+    --page-ink:     #E7EDE2;
+    --page-ink-2:   #B2BCAB;
+    --page-ink-3:   #838E7C;
+    --page-mark:    #7FC094;
+    --page-flag:    #E5917C;
+    --page-flag-bg: #33221E;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  --page-bg:      #161A14;
+  --page-surface: #1E241B;
+  --page-line:    #333B2D;
+  --page-ink:     #E7EDE2;
+  --page-ink-2:   #B2BCAB;
+  --page-ink-3:   #838E7C;
+  --page-mark:    #7FC094;
+  --page-flag:    #E5917C;
+  --page-flag-bg: #33221E;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.4);
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--page-bg);
+  color: var(--page-ink);
+  font-family: var(--f-app);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 40px 24px 100px; }
+
+/* ---------- page furniture ---------- */
+.masthead { border-bottom: 2px solid var(--page-ink); padding-bottom: 20px; }
+.eyebrow {
+  font-family: var(--f-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--page-mark); margin: 0 0 8px;
+}
+h1 {
+  font-size: clamp(30px, 5vw, 42px); font-weight: 800; letter-spacing: -.025em;
+  line-height: 1.04; margin: 0; text-wrap: balance;
+}
+.sub { color: var(--page-ink-2); max-width: 66ch; margin: 12px 0 0; }
+
+h2 {
+  font-size: 21px; font-weight: 700; letter-spacing: -.015em;
+  margin: 0 0 6px; display: flex; align-items: baseline; gap: 10px;
+}
+h2 .n {
+  font-family: var(--f-mono); font-size: 12px; font-weight: 500;
+  color: var(--page-mark); letter-spacing: .04em;
+}
+section { margin-top: 56px; }
+.lede { color: var(--page-ink-2); max-width: 74ch; margin: 0 0 22px; font-size: 14.5px; }
+
+code {
+  font-family: var(--f-mono); font-size: .86em;
+  background: var(--page-surface); border: 1px solid var(--page-line);
+  border-radius: 4px; padding: 1px 5px; color: var(--page-ink-2);
+}
+
+/* ---------- token swatches ---------- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.sw {
+  background: var(--page-surface); border: 1px solid var(--page-line);
+  border-radius: 9px; overflow: hidden; box-shadow: var(--shadow);
+}
+.sw .chip { height: 46px; }
+.sw .meta { padding: 8px 10px 9px; }
+.sw .nm { font-size: 12.5px; font-weight: 600; display: block; }
+.sw .hx {
+  font-family: var(--f-mono); font-size: 11px; color: var(--page-ink-3);
+  text-transform: uppercase;
+}
+
+/* ---------- the phone ---------- */
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px 24px; align-items: start;
+}
+.slot { display: flex; flex-direction: column; gap: 10px; }
+.slot > .cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.cap .nm { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+.cap .rt { font-family: var(--f-mono); font-size: 11px; color: var(--page-ink-3); }
+.cap .flag {
+  font-family: var(--f-mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: .07em; text-transform: uppercase;
+  background: var(--page-flag-bg); color: var(--page-flag);
+  border-radius: 4px; padding: 2px 6px;
+}
+.note { font-size: 13px; color: var(--page-ink-2); margin: 0; max-width: 44ch; }
+
+.phone {
+  width: 100%; max-width: 300px; aspect-ratio: 300 / 620;
+  background: var(--app-bg); border-radius: 26px; overflow: hidden;
+  border: 1px solid var(--page-line); box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+  font-family: var(--f-app); color: var(--app-text); font-size: var(--t-body);
+  line-height: 1.45;
+}
+.phone * { box-sizing: border-box; }
+.scr { flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column; }
+.body {
+  flex: 1 1 auto; padding: 0 var(--pad-screen) 14px;
+  display: flex; flex-direction: column; gap: var(--gap); overflow: hidden;
+}
+
+/* app bar */
+.bar {
+  flex: 0 0 auto; height: 52px; display: grid;
+  grid-template-columns: 34px 1fr 34px; align-items: center; padding: 0 8px;
+}
+.bar .ttl {
+  grid-column: 2; text-align: center;
+  font-size: var(--t-appbar); font-weight: 700; letter-spacing: -.015em;
+}
+.bar .back { font-size: 19px; color: var(--app-text); text-align: center; }
+
+/* text roles */
+.h-sec { font-size: var(--t-title); font-weight: 700; margin: 4px 0 0; }
+.h-page { font-size: var(--t-headline); font-weight: 700; letter-spacing: -.02em; }
+.muted { color: var(--app-text-2); font-size: 12.5px; }
+.tiny { color: var(--app-text-2); font-size: 11px; }
+
+/* card */
+.card {
+  background: var(--app-surface); border-radius: var(--r-card);
+  padding: var(--pad-card); display: flex; flex-direction: column; gap: 10px;
+}
+
+/* controls */
+.btn {
+  border-radius: var(--r-button); height: 40px; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  font-size: 13.5px; font-weight: 600; text-align: center;
+}
+.btn.fill  { background: var(--app-primary); color: #FFF; }
+.btn.out   { border: 1px solid var(--app-primary); color: var(--app-primary); }
+.btn.ghost { color: var(--app-primary); }
+.field {
+  height: 44px; border-radius: var(--r-field); background: var(--app-accent1);
+  display: flex; align-items: center; padding: 0 14px;
+  color: var(--app-text-2); font-size: 13.5px;
+}
+.field.filled { color: var(--app-text); }
+.chips { display: flex; gap: 7px; flex-wrap: wrap; }
+.chip2 {
+  border-radius: var(--r-chip); padding: 5px 12px; font-size: 12px;
+  border: 1px solid var(--app-alternate); color: var(--app-text-2);
+}
+.chip2.on { background: var(--lt-primary); border-color: var(--lt-primary); color: #FFF; }
+
+/* rows */
+.row { display: flex; align-items: center; gap: 12px; }
+.row .ic { width: 22px; text-align: center; color: var(--app-text-2); font-size: 16px; }
+.row .tx { flex: 1 1 auto; min-width: 0; }
+.row .tx b { display: block; font-size: 14.5px; font-weight: 600; }
+.row .tx span { display: block; font-size: 11.5px; color: var(--app-text-2); }
+.row .ch { color: var(--app-text-2); }
+
+/* empty state */
+.empty {
+  background: var(--app-surface); border-radius: var(--r-card);
+  padding: 26px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+}
+.empty .leaf { font-size: 26px; line-height: 1; color: var(--app-success); }
+.empty b { font-size: 14.5px; }
+.empty p { margin: 0; font-size: 12px; color: var(--app-text-2); }
+
+/* feature panel */
+.panel {
+  background: var(--app-tertiary); border-radius: var(--r-panel);
+  padding: 18px; color: var(--lt-text);
+  display: flex; flex-direction: column; gap: 7px; align-items: flex-start;
+}
+.panel .eb {
+  font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: #4B7A2E;
+}
+.panel .hd { font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+.panel .sp { font-size: 12.5px; color: #4A5747; }
+.panel .cta {
+  margin-top: 5px; background: var(--app-accent3); color: var(--app-primary);
+  border-radius: var(--r-button); padding: 10px 20px;
+  font-size: 13px; font-weight: 600;
+}
+
+/* bottom nav */
+.nav {
+  flex: 0 0 auto; height: 58px; background: #FFF;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 10px;
+}
+.nav .it {
+  display: flex; align-items: center; gap: 5px; padding: 8px 10px;
+  border-radius: 14px; color: #59665D; font-size: 12px; font-weight: 600;
+}
+.nav .it .g { font-size: 17px; line-height: 1; }
+.nav .it.on { background: var(--lt-accent1); color: var(--lt-primary); }
+
+/* sign-in only */
+.fridge {
+  flex: 1 1 auto; position: relative;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 22%, rgba(226,232,224,.16), transparent 70%),
+    linear-gradient(#0C110D, #0E140F 55%, #141A16);
+  display: flex; align-items: center; justify-content: center; padding: 18px;
+}
+.fridge::before {
+  content: ""; position: absolute; inset: 9% 16% 12%;
+  border-radius: 8px; background: linear-gradient(105deg, #2A2E2B, #3A403A 40%, #23272400);
+  box-shadow: inset 0 0 40px rgba(0,0,0,.6);
+}
+.signin {
+  position: relative; width: 100%; background: rgba(250,251,248,.9);
+  border-radius: 18px; padding: 16px; color: var(--lt-text);
+  display: flex; flex-direction: column; gap: 9px;
+}
+.signin .lock { display: flex; align-items: center; justify-content: center; gap: 7px; }
+.signin .lock .lf { color: var(--lt-secondary); font-size: 19px; }
+.signin .lock .wd { font-size: 18px; font-weight: 800; letter-spacing: -.02em; color: var(--lt-primary); }
+.signin .lock .wd em { font-style: normal; color: var(--lt-secondary); }
+.signin .tag { text-align: center; font-size: 11.5px; color: var(--lt-text-2); }
+.signin .f {
+  height: 40px; border-radius: var(--r-field); background: #FFF;
+  border: 1px solid #D8DED6; display: flex; align-items: center;
+  padding: 0 12px; font-size: 13px; color: #7C8878;
+}
+.signin .b { height: 40px; border-radius: var(--r-field); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; }
+.signin .b.p { background: var(--lt-primary); color: #FFF; }
+.signin .b.o { border: 1px solid var(--lt-primary); color: var(--lt-primary); }
+.signin .lnk { text-align: center; font-size: 12px; color: var(--lt-primary); font-weight: 600; }
+.signin .socials { display: flex; justify-content: center; gap: 14px; padding-top: 2px; }
+.signin .socials i {
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid #C9D0C6;
+  display: flex; align-items: center; justify-content: center;
+  font-style: normal; font-size: 16px; background: #FFF;
+}
+.signin .socials i.dark { background: #111; color: #FFF; border-color: #111; }
+
+/* findings list */
+.finds { display: grid; gap: 10px; }
+.find {
+  display: grid; grid-template-columns: 4px 1fr; border-radius: 10px;
+  background: var(--page-surface); border: 1px solid var(--page-line);
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.find .st { background: var(--page-flag); }
+.find .in { padding: 13px 16px 14px; }
+.find h3 { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+.find p { margin: 0; font-size: 14px; color: var(--page-ink-2); max-width: 80ch; }
+
+footer {
+  margin-top: 66px; padding-top: 18px; border-top: 1px solid var(--page-line);
+  font-size: 13px; color: var(--page-ink-3);
+  display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
+}
+footer .m { font-family: var(--f-mono); font-size: 11.5px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Design handoff &middot; every screen, as editable HTML</p>
+    <h1>Use It Fresh Screen Kit</h1>
+    <p class="sub">Each screen below is real HTML and CSS, not a screenshot &mdash; built from the
+    app's own theme values and its actual copy. Change a token in the block at the top of this
+    file and every screen moves with it. Hand this to a designer, or open it and edit directly.</p>
+  </header>
+
+  <!-- ============================ TOKENS ============================ -->
+  <section>
+    <h2><span class="n">01</span> The tokens</h2>
+    <p class="lede">These are the values the built app is using right now. Everything on this page
+    is drawn from them, so a change you make here is a change with a known home in FlutterFlow.
+    The dark set is what ships; the light set is defined in the theme but nothing exercises it yet.</p>
+
+    <h3 style="font-size:14px;margin:0 0 10px">Dark &mdash; what ships today</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:var(--app-primary)"></div><div class="meta"><span class="nm">primary</span><span class="hx">#5FB07E</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-secondary)"></div><div class="meta"><span class="nm">secondary</span><span class="hx">#9BD05F</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-tertiary)"></div><div class="meta"><span class="nm">tertiary</span><span class="hx">#D6DED8</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-bg)"></div><div class="meta"><span class="nm">background</span><span class="hx">#141A16</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-surface)"></div><div class="meta"><span class="nm">surface</span><span class="hx">#1D2620</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-accent1)"></div><div class="meta"><span class="nm">accent1</span><span class="hx">#232E26</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-accent3)"></div><div class="meta"><span class="nm">accent3</span><span class="hx">#20302A</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-alternate)"></div><div class="meta"><span class="nm">alternate</span><span class="hx">#33402F</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-text)"></div><div class="meta"><span class="nm">text</span><span class="hx">#E8EFE6</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-text-2)"></div><div class="meta"><span class="nm">text muted</span><span class="hx">#A3B0A0</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-success)"></div><div class="meta"><span class="nm">success</span><span class="hx">#6FBF83</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-warning)"></div><div class="meta"><span class="nm">warning</span><span class="hx">#D8A44A</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-error)"></div><div class="meta"><span class="nm">error</span><span class="hx">#E58275</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--app-info)"></div><div class="meta"><span class="nm">info</span><span class="hx">#7FB2D8</span></div></div>
+    </div>
+
+    <h3 style="font-size:14px;margin:26px 0 10px">Light &mdash; defined, not yet used</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:var(--lt-primary)"></div><div class="meta"><span class="nm">primary</span><span class="hx">#07533A</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lt-secondary)"></div><div class="meta"><span class="nm">secondary</span><span class="hx">#83BD43</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lt-bg)"></div><div class="meta"><span class="nm">background</span><span class="hx">#F7F7F0</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lt-accent1)"></div><div class="meta"><span class="nm">accent1</span><span class="hx">#EDF2E8</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lt-text)"></div><div class="meta"><span class="nm">text</span><span class="hx">#202C24</span></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lt-text-2)"></div><div class="meta"><span class="nm">text muted</span><span class="hx">#59665D</span></div></div>
+    </div>
+
+    <p class="lede" style="margin-top:22px">Shape and type are tokens too: cards
+    <code>12px</code>, the feature panel <code>20px</code>, buttons <code>12px</code>, fields
+    <code>10px</code>, chips fully round. Screen padding <code>20px</code>. Type is Figtree
+    throughout &mdash; app bar <code>19px/700</code>, section heading <code>17px/700</code>,
+    body <code>14px</code>, muted detail <code>12.5px</code>.</p>
+  </section>
+
+  <!-- ============================ SCREENS ============================ -->
+  <section>
+    <h2><span class="n">02</span> The screens</h2>
+    <p class="lede">Every screen in the app as it stands, with its real copy. Flags mark things
+    worth fixing while you are redesigning &mdash; the reasoning for each is in section 3.</p>
+
+    <div class="grid">
+
+      <!-- SIGN IN -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Sign in</span><span class="rt">/signin</span></div>
+        <div class="phone"><div class="scr">
+          <div class="fridge">
+            <div class="signin">
+              <div class="lock"><span class="lf">&#127807;</span><span class="wd">Use It <em>Fresh</em></span></div>
+              <div class="tag">Use what you have. Waste less.</div>
+              <div class="f">Email</div>
+              <div class="f">Password</div>
+              <div class="b p">Sign In</div>
+              <div class="b o">Create Account</div>
+              <div class="lnk">Forgot password?</div>
+              <div class="socials"><i>G</i><i class="dark">&#63743;</i></div>
+            </div>
+          </div>
+        </div></div>
+        <p class="note">The card sits at 85% over a photographic fridge that opens on tap. The two
+        round marks are stand-ins until the real Google and Apple assets are wired.</p>
+      </div>
+
+      <!-- ONBOARDING -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Set up your profile</span><span class="rt">/onboarding</span><span class="flag">name not pre-filled</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="back">&#8592;</span><span class="ttl">Set up your profile</span></div>
+          <div class="body">
+            <div class="muted">What should we call you?</div>
+            <div class="field">Your name</div>
+            <div class="row" style="gap:9px">
+              <span style="width:15px;height:15px;border:1px solid var(--app-text-2);border-radius:3px"></span>
+              <span style="font-size:13px">Use imperial units (lb, oz, &deg;F)</span>
+            </div>
+            <p class="tiny" style="margin:2px 0 0">Dietary preferences and allergies arrive with
+            recipe features. Allergy filtering will never be a medical guarantee.</p>
+            <div class="btn fill" style="margin-top:4px">Save and continue</div>
+          </div>
+        </div></div>
+        <p class="note">Opens empty every time, even when a name is already saved &mdash; so
+        returning here silently clears it unless you retype.</p>
+      </div>
+
+      <!-- HOUSEHOLD -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Your household</span><span class="rt">/household-setup</span><span class="flag">shown even when one exists</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="back">&#8592;</span><span class="ttl">Your household</span></div>
+          <div class="body">
+            <p class="muted" style="margin:0">A household is the shared space where your fridge,
+            freezer, and pantry live. Create one, or join your family's.</p>
+            <div class="card">
+              <div class="h-sec" style="margin:0">Create a household</div>
+              <div class="field">Household name</div>
+              <div class="btn fill">Create household</div>
+            </div>
+            <div class="card">
+              <div class="h-sec" style="margin:0">Join with an invite code</div>
+              <div class="field">Invite code</div>
+              <div class="btn out">Join household</div>
+            </div>
+          </div>
+        </div></div>
+        <p class="note">Profile &rarr; "Manage household" lands here too, so a member who already
+        has a household is offered only the option to create another.</p>
+      </div>
+
+      <!-- HOME -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Home</span><span class="rt">/home</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="ttl">Use It Fresh</span></div>
+          <div class="body">
+            <div>
+              <div class="h-page">Welcome back &#128075;</div>
+              <div class="muted">Ash</div>
+            </div>
+            <div class="panel">
+              <div class="eb">Small habits, fresh starts</div>
+              <div class="hd">Make room for something delicious.</div>
+              <div class="sp">Nothing needs using up today.</div>
+              <div class="cta">See what to use first</div>
+            </div>
+            <div class="h-sec">Use first</div>
+            <div class="empty">
+              <div class="leaf">&#127807;</div>
+              <b>Nothing to use up yet</b>
+              <p>Add what is in your fridge and whatever is closest to its date will show up here.</p>
+            </div>
+            <div class="h-sec">Quick add</div>
+            <div class="btn fill">+&nbsp; Add food manually</div>
+          </div>
+          <div class="nav">
+            <span class="it on"><span class="g">&#127968;</span>Home</span>
+            <span class="it"><span class="g">&#129380;</span></span>
+            <span class="it"><span class="g">&#9635;</span></span>
+            <span class="it"><span class="g">&#128214;</span></span>
+            <span class="it"><span class="g">&#128100;</span></span>
+          </div>
+        </div></div>
+        <p class="note">Shown here after setup. The "Finish setting up" card that used to sit above
+        the panel now hides once a household exists.</p>
+      </div>
+
+      <!-- INVENTORY -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Inventory</span><span class="rt">/inventory</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="ttl">Inventory</span></div>
+          <div class="body">
+            <div class="h-sec" style="margin:0">What to use first</div>
+            <p class="muted" style="margin:0">Ordered by how soon it needs eating. Use-by is a
+            safety date; best-before is about quality.</p>
+            <div class="chips">
+              <span class="chip2 on">All</span>
+              <span class="chip2">Use today</span>
+              <span class="chip2">Use soon</span>
+              <span class="chip2">Fresh</span>
+              <span class="chip2">Frozen</span>
+            </div>
+            <div class="field">&#128269;&nbsp;&nbsp;Search</div>
+            <div class="empty">
+              <div class="leaf">&#127807;</div>
+              <b>Nothing in here yet</b>
+              <p>Add what is in your fridge and it will appear in this list.</p>
+            </div>
+          </div>
+          <div class="nav">
+            <span class="it"><span class="g">&#127968;</span></span>
+            <span class="it on"><span class="g">&#129380;</span>Inventory</span>
+            <span class="it"><span class="g">&#9635;</span></span>
+            <span class="it"><span class="g">&#128214;</span></span>
+            <span class="it"><span class="g">&#128100;</span></span>
+          </div>
+        </div></div>
+        <p class="note">Search and chips both filter the loaded list in memory, so typing stays
+        instant. Ordering comes from the database, recomputed against today.</p>
+      </div>
+
+      <!-- SCAN -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Add food</span><span class="rt">/scan-add</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="ttl">Add food</span></div>
+          <div class="body">
+            <p class="muted" style="margin:0">Five ways to add food. AI capture lands in Phase 3
+            &mdash; manual entry in Phase 2.</p>
+            <div class="btn out">&#128247;&nbsp; Photograph one item</div>
+            <div class="btn out">&#9635;&nbsp; Scan a barcode</div>
+            <div class="btn out">&#129534;&nbsp; Scan a receipt</div>
+            <div class="btn out">&#129380;&nbsp; Scan your fridge</div>
+            <div class="btn fill">+&nbsp; Add manually</div>
+          </div>
+          <div class="nav">
+            <span class="it"><span class="g">&#127968;</span></span>
+            <span class="it"><span class="g">&#129380;</span></span>
+            <span class="it on"><span class="g">&#9635;</span>Scan</span>
+            <span class="it"><span class="g">&#128214;</span></span>
+            <span class="it"><span class="g">&#128100;</span></span>
+          </div>
+        </div></div>
+        <p class="note">Four of the five are placeholders that explain when they arrive. The design
+        pack wants this tab as a permanently filled green square in the bar.</p>
+      </div>
+
+      <!-- ADD FOOD ITEM -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Add food item</span><span class="rt">/add-food-item</span><span class="flag">no review step</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="back">&#8592;</span><span class="ttl">Add food</span></div>
+          <div class="body">
+            <div class="h-sec" style="margin:0">What is it?</div>
+            <div class="field">Cheddar, leftovers, spinach&hellip;</div>
+            <div class="h-sec">Category</div>
+            <div class="chips">
+              <span class="chip2 on">Dairy</span>
+              <span class="chip2">Produce</span>
+              <span class="chip2">Meat</span>
+              <span class="chip2">Leftovers</span>
+            </div>
+            <div class="h-sec">Which kind of date?</div>
+            <div class="chips">
+              <span class="chip2 on">Use by</span>
+              <span class="chip2">Best before</span>
+            </div>
+            <div class="field">Pick the date on the pack</div>
+            <div class="h-sec">Where is it kept?</div>
+            <div class="muted" style="margin-top:-4px">Choose where it is kept.</div>
+            <div class="btn fill" style="margin-top:auto">Add to inventory</div>
+          </div>
+        </div></div>
+        <p class="note">Saves straight from this screen. The spec asks for a confirm step first,
+        because a wrong date here skews every "use first" answer afterwards.</p>
+      </div>
+
+      <!-- RECIPES -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Recipes</span><span class="rt">/recipes</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="ttl">Recipes</span></div>
+          <div class="body">
+            <div class="empty">
+              <div class="leaf">&#127807;</div>
+              <b>What can I make?</b>
+              <p>Recipes that use up your most urgent ingredients arrive once your inventory is live.</p>
+            </div>
+          </div>
+          <div class="nav">
+            <span class="it"><span class="g">&#127968;</span></span>
+            <span class="it"><span class="g">&#129380;</span></span>
+            <span class="it"><span class="g">&#9635;</span></span>
+            <span class="it on"><span class="g">&#128214;</span>Recipes</span>
+            <span class="it"><span class="g">&#128100;</span></span>
+          </div>
+        </div></div>
+        <p class="note">A single empty state and nothing else &mdash; the most obviously unbuilt
+        tab, and the one with the most room for a designed answer.</p>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Profile</span><span class="rt">/profile</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="ttl">Profile</span></div>
+          <div class="body">
+            <div style="font-weight:700;font-size:14px">ashraf.elashiry@gmail.com</div>
+            <div class="row"><span class="ic">&#128100;</span><span class="tx"><b>Profile &amp; units</b><span>Name, metric or imperial</span></span><span class="ch">&#8250;</span></div>
+            <div class="btn out">Edit profile</div>
+            <div class="row"><span class="ic">&#128101;</span><span class="tx"><b>Household</b><span>Members, invites, shared inventory</span></span><span class="ch">&#8250;</span></div>
+            <div class="btn out">Manage household</div>
+            <div class="btn out">Storage locations</div>
+            <div class="row"><span class="ic">&#128274;</span><span class="tx"><b>Security</b><span>Change your password</span></span><span class="ch">&#8250;</span></div>
+            <div class="btn out">Change password</div>
+            <p class="tiny" style="margin:2px 0 0">Use It Fresh provides general food-management
+            guidance, not a guarantee of safety. When in doubt &mdash; especially with high-risk
+            food &mdash; throw it out and follow local food-safety advice.</p>
+            <div class="btn ghost">Sign out</div>
+          </div>
+          <div class="nav">
+            <span class="it"><span class="g">&#127968;</span></span>
+            <span class="it"><span class="g">&#129380;</span></span>
+            <span class="it"><span class="g">&#9635;</span></span>
+            <span class="it"><span class="g">&#128214;</span></span>
+            <span class="it on"><span class="g">&#128100;</span>Profile</span>
+          </div>
+        </div></div>
+        <p class="note">Three headings each followed by their own outlined button, which reads as
+        six separate controls. The densest screen in the app and the strongest candidate for a
+        rethink.</p>
+      </div>
+
+      <!-- STORAGE LOCATIONS -->
+      <div class="slot">
+        <div class="cap"><span class="nm">Storage locations</span><span class="rt">/storage-locations</span><span class="flag">list appears empty</span></div>
+        <div class="phone"><div class="scr">
+          <div class="bar"><span class="back">&#8592;</span><span class="ttl">Storage locations</span></div>
+          <div class="body">
+            <p class="muted" style="margin:0">Where you keep things. Every household starts with
+            a fridge, a freezer and a pantry.</p>
+            <div class="card" style="gap:14px">
+              <div class="row"><span class="ic">&#129380;</span><span class="tx"><b>Fridge</b><span>Default</span></span></div>
+              <div class="row"><span class="ic">&#10052;</span><span class="tx"><b>Freezer</b><span></span></span></div>
+              <div class="row"><span class="ic">&#127859;</span><span class="tx"><b>Pantry</b><span></span></span></div>
+            </div>
+            <div class="h-sec">Add a location</div>
+            <div class="field">Garage freezer</div>
+            <div class="btn fill">Add location</div>
+          </div>
+        </div></div>
+        <p class="note">Drawn here as it should look. In the running app the three seeded locations
+        do not appear, so the screen shows only the heading and the add form.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================ FINDINGS ============================ -->
+  <section>
+    <h2><span class="n">03</span> What the flags mean</h2>
+    <p class="lede">Four things worth deciding on while the screens are open. Each is a real
+    behaviour in the running app, found by driving it rather than reading the code.</p>
+
+    <div class="finds">
+      <div class="find"><div class="st"></div><div class="in">
+        <h3>Storage locations shows nothing</h3>
+        <p>The household has three locations in the database &mdash; Fridge, Freezer and Pantry,
+        created automatically when the household was &mdash; but the screen lists none of them. Either
+        the query is not running or it is not filtered to the right household.</p>
+      </div></div>
+      <div class="find"><div class="st"></div><div class="in">
+        <h3>"Manage household" offers to create one</h3>
+        <p>It opens the same setup screen a new person sees, so someone who already has a household
+        is shown only "Create a household" and "Join with an invite code". It should show the
+        household they are in: its name, who is in it, and the invite code to share.</p>
+      </div></div>
+      <div class="find"><div class="st"></div><div class="in">
+        <h3>"Set up your profile" opens empty</h3>
+        <p>The name field does not load the name already saved. Anyone returning to change their
+        units has to retype their name or lose it.</p>
+      </div></div>
+      <div class="find"><div class="st"></div><div class="in">
+        <h3>Filled buttons are hard to read</h3>
+        <p>White text on the dark theme's primary green is about 2.4:1 &mdash; under the 4.5:1 that
+        accessibility guidance asks of body text, and visibly soft on a phone outdoors. Dark text on
+        that same green, or a deeper green behind the white, both clear it.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Built from the app's own theme and copy. Edit the token block at the top of the file.</span>
+    <span class="m">UseItFresh &middot; fridge-wise-gvpy0s &middot; 8 Sep 2026</span>
+  </footer>
+
+</div>

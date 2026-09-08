@@ -141,89 +141,115 @@ Options:
 }
 
 // ---------------------------------------------------------------------------
-// Home: the feature panel from the design pack.
+// The tap, properly this time.
 //
-// The panel component was built days ago and never placed. The pack puts it
-// directly under the greeting, above "Use first" — a graphite block that gives
-// the screen a centre of gravity instead of a list starting at the top.
+// The earlier attempts set `pointer-events: none` on the <video> and on
+// <flt-platform-view>. Both are in the page's normal DOM, and both were being
+// set — but the element that actually absorbs the tap is one Flutter keeps
+// INSIDE a shadow root: <flt-platform-view-slot>, carrying
+// `pointer-events: auto`. Nothing written at document level can reach into a
+// shadow root, which is why the only clickable strip left was the sliver the
+// letterboxed clip did not cover.
 //
-// Its supporting line counts the real items rather than repeating the pack's
-// example copy. A hero that says "3 items to check first today" when there are
-// none is worse than no hero: it is the first thing anyone reads, and being
-// wrong there costs more trust than the panel buys in polish.
+// So the fix now reaches inside every shadow root on the page and neutralises
+// the slot itself, and keeps doing it as Flutter creates new ones.
 // ---------------------------------------------------------------------------
 
-/// Tier 1, job 2 (second pass) — wire the household card.
+const _kVideoCss =
+    'flt-platform-view, flt-platform-view * { pointer-events: none !important; }';
+
+const _kPointerFix = '''
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:universal_html/html.dart' as html;
+
+/// Stops Flutter's video platform views from swallowing taps on the web.
 ///
-/// The card's widgets were inserted in the previous run; selectors only see
-/// nodes that existed when the script started, so the bindings have to be a
-/// separate push.
+/// A Flutter video on the web is a real <video> element the browser stacks on
+/// top of the whole app, and the app's own layer is `pointer-events: none`.
+/// Three elements have to be neutralised, and the third is the one that
+/// matters: the <flt-platform-view-slot> Flutter hides inside a shadow root.
+///
+/// Web only — on iOS and Android the video is a texture inside the widget tree
+/// and taps already work. Safe to call repeatedly.
+Future<void> letTapsThroughVideos() async {
+  if (!kIsWeb) return;
+
+  void kill(html.Element el) =>
+      el.style.setProperty('pointer-events', 'none', 'important');
+
+  void harden() {
+    for (final el in html.document
+        .querySelectorAll('flt-platform-view, flt-platform-view *')) {
+      kill(el);
+    }
+    // The slot lives in a shadow root, out of reach of any stylesheet.
+    for (final host in html.document.querySelectorAll('*')) {
+      final root = host.shadowRoot;
+      if (root == null) continue;
+      for (final el in root.querySelectorAll('flt-platform-view-slot')) {
+        kill(el);
+      }
+    }
+  }
+
+  if (html.document.getElementById('ff-video-pointer-fix') == null) {
+    final style = html.StyleElement()
+      ..id = 'ff-video-pointer-fix'
+      ..text = '$_kVideoCss';
+    html.document.head?.append(style);
+
+    html.MutationObserver((_, __) => harden()).observe(
+          html.document.body!,
+          childList: true,
+          subtree: true,
+        );
+  }
+
+  harden();
+  // A platform view appears a frame or two after its widget mounts, and the
+  // opening clip creates a second one when it plays, so re-apply for a while.
+  for (final ms in const [50, 200, 600, 1200, 2400, 3600]) {
+    Timer(Duration(milliseconds: ms), harden);
+  }
+}
+''';
+
 void buildStarterEditFlow(App app) {
-  final firstHouseholdName = app.customFunction(
-    'firstHouseholdName',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returns: string,
-    description: 'Name of the current household, or the oldest one you belong to.',
-    code: '''
-if (rows == null || rows.isEmpty) return '';
-final held = (current ?? '').trim();
-for (final r in rows) {
-  if (r.id == held) return r.name;
-}
-return rows.first.name;
-''',
-  );
-
-  final firstInviteCode = app.customFunction(
-    'firstInviteCode',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returns: string,
-    description: 'Invite code of the current household, for sharing.',
-    code: '''
-if (rows == null || rows.isEmpty) return '';
-final held = (current ?? '').trim();
-for (final r in rows) {
-  if (r.id == held) return r.inviteCode;
-}
-return rows.first.inviteCode;
-''',
-  );
-
-  final belongsToHousehold = app.customFunction(
-    'belongsToHousehold',
-    args: {'rows': listOf(ff.Tables.households)},
-    returns: bool_,
-    description: 'True when the person already belongs to a household.',
-    code: 'return rows != null && rows.isNotEmpty;',
-  );
-
-  app.editPage(ff.Pages.householdSetupPage, (page) {
-    final rows = State(ff.Pages.householdSetupPage.state.households);
-
-    page.bindText(
-      ff.Pages.householdSetupPage.widgets.byKey('Text_8892i0cu').single,
-      CustomFunction(firstHouseholdName, args: {
-        'rows': rows,
-        'current': AppState(ff.AppState.currentHouseholdId),
-      }),
+  app.raw((project) {
+    updateCustomAction(
+      project,
+      name: 'LetTapsThroughVideos',
+      code: _kPointerFix,
+      description: 'Web only: stops video platform views from swallowing taps.',
     );
-    page.bindText(
-      ff.Pages.householdSetupPage.widgets.byKey('Text_q5god8h1').single,
-      CustomFunction(firstInviteCode, args: {
-        'rows': rows,
-        'current': AppState(ff.AppState.currentHouseholdId),
-      }),
-    );
+  });
 
+  app.editPage(ff.Pages.signInPage, (page) {
+    // The open fridge is the LAST thing to appear, not the first.
+    //
+    // It was bound to "not introPending", so the instant you tapped, the
+    // still of the open fridge was revealed — and the opening clip takes a
+    // moment to render its first frame, so what you saw was: closed, open,
+    // then the door swinging. Binding it to formShown instead means it only
+    // takes over once the clip has finished.
     page.bindVisible(
-      ff.Pages.householdSetupPage.widgets.byKey('Container_rjw3nhre').single,
-      CustomFunction(belongsToHousehold, args: {'rows': rows}),
+      ff.Pages.signInPage.widgets.byKey('Image_sdgiq17v').single,
+      State(ff.Pages.signInPage.state.formShown),
     );
-    // The create form is for people who do not have one yet. Joining stays
-    // available either way — belonging to a second household is legitimate.
-    page.bindVisible(
-      ff.Pages.householdSetupPage.widgets.byKey('Container_exwspk68').single,
-      Not(CustomFunction(belongsToHousehold, args: {'rows': rows})),
+
+    // The sign-in card sat across the whole screen and spilled well past the
+    // fridge. Narrowed so it sits inside the cavity, and made nearly opaque —
+    // at 92% the shelves showed through the input fields and the labels were
+    // barely readable.
+    page.update(
+      ff.Pages.signInPage.widgets.byKey('Container_yyjai4fl').single,
+      (patch) {
+        patch.size(width: 288);
+        patch.color(Colors.hex(0xFAF7F9F5));
+        patch.padding(EdgeInsets.symmetric(horizontal: 18, vertical: 20));
+      },
     );
   });
 }

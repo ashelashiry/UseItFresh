@@ -2925,15 +2925,27 @@ final class StorageLocationsFields extends MapBase<String, ffai.PostgresTableFie
 
 abstract final class CustomCode {
   static const functions = <String>[
+    "belongsToHousehold",
+    "filterInventory",
+    "firstHouseholdId",
+    "firstHouseholdName",
+    "firstInviteCode",
+    "greetingLine",
     "greetingName",
+    "hasHousehold",
     "hasRows",
+    "profileIsImperial",
+    "profileName",
+    "useFirstLine",
   ];
   static const actions = <String>[
+    "CreateHousehold",
     "LetTapsThroughVideos",
     "WarmImageCache",
   ];
   static const widgets = <String>[
     "AnimatedRemoteImage",
+    "FridgeEntrance",
     "LoopingRemoteImage",
     "StatusIcon",
   ];

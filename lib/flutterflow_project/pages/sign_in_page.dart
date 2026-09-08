@@ -70,64 +70,50 @@ abstract final class SignInPageWidgets {
             name: "SignInStack",
             children: <ffai.ProjectWidgetHandle>[
               ffai.ProjectWidgetHandle(
-                key: "Container_r0sonqt7",
+                key: "Container_pvp0drm4",
                 type: "Container",
                 path: "SignInPage.body[0].children[0]",
-                name: "FridgeOpeningClip",
-              ),
-              ffai.ProjectWidgetHandle(
-                key: "Container_o5pu6w5t",
-                type: "Container",
-                path: "SignInPage.body[0].children[1]",
-                name: "ClosedFridgeTapTarget",
+                name: "FridgeEntrance",
                 triggers: const <String>[
-                  "ON_TAP",
-                ],
-                children: <ffai.ProjectWidgetHandle>[
-                  ffai.ProjectWidgetHandle(
-                    key: "Container_3jdghset",
-                    type: "Container",
-                    path: "SignInPage.body[0].children[1].children[0]",
-                    name: "ClosedFridgeGlint",
-                  ),
+                  "CALLBACK",
+                  "CALLBACK",
                 ],
               ),
               ffai.ProjectWidgetHandle(
                 key: "Container_wxfl51lx",
                 type: "Container",
-                path: "SignInPage.body[0].children[2]",
+                path: "SignInPage.body[0].children[1]",
                 name: "SignInFormPanel Margin",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
                     key: "Container_yyjai4fl",
                     type: "Container",
-                    path: "SignInPage.body[0].children[2].children[0]",
+                    path: "SignInPage.body[0].children[1].children[0]",
                     name: "SignInFormPanel",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_0rhs6apx",
                         type: "Column",
-                        path: "SignInPage.body[0].children[2].children[0].children[0]",
+                        path: "SignInPage.body[0].children[1].children[0].children[0]",
                         name: "SignInForm",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_b2xtyddb",
-                            type: "Text",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[0]",
+                            key: "Image_oif30m8g",
+                            type: "Image",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[0]",
                             name: "SignInBrand",
-                            text: "Use It Fresh",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_udt733oh",
                             type: "Text",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[1]",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[1]",
                             name: "SignInSlogan",
                             text: "Use what you have. Waste less.",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "TextField_o2faty06",
                             type: "TextField",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[2]",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[2]",
                             name: "SignInEmailField",
                             text: "Email",
                             triggers: const <String>[
@@ -137,7 +123,7 @@ abstract final class SignInPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "TextField_kadw7ppq",
                             type: "TextField",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[3]",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[3]",
                             name: "SignInPasswordField",
                             text: "Password",
                             triggers: const <String>[
@@ -147,7 +133,7 @@ abstract final class SignInPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_tkcn9h16",
                             type: "Button",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[4]",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[4]",
                             name: "SignInButton",
                             text: "Sign In",
                             triggers: const <String>[
@@ -157,7 +143,7 @@ abstract final class SignInPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_8ubf8p2a",
                             type: "Button",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[5]",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[5]",
                             name: "CreateAccountButton",
                             text: "Create Account",
                             triggers: const <String>[
@@ -167,11 +153,47 @@ abstract final class SignInPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_8kjdoo65",
                             type: "Button",
-                            path: "SignInPage.body[0].children[2].children[0].children[0].children[6]",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[6]",
                             name: "ForgotPasswordButton",
                             text: "Forgot password?",
                             triggers: const <String>[
                               "ON_TAP",
+                            ],
+                          ),
+                          ffai.ProjectWidgetHandle(
+                            key: "Row_iw2p924v",
+                            type: "Row",
+                            path: "SignInPage.body[0].children[1].children[0].children[0].children[7]",
+                            name: "SocialSignInRow",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_p60t3zm5",
+                                type: "Container",
+                                path: "SignInPage.body[0].children[1].children[0].children[0].children[7].children[0]",
+                                name: "GoogleSignInButton",
+                                children: <ffai.ProjectWidgetHandle>[
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Image_5603m39g",
+                                    type: "Image",
+                                    path: "SignInPage.body[0].children[1].children[0].children[0].children[7].children[0].children[0]",
+                                    name: "GoogleMark",
+                                  ),
+                                ],
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_1rpopo88",
+                                type: "Container",
+                                path: "SignInPage.body[0].children[1].children[0].children[0].children[7].children[1]",
+                                name: "AppleSignInButton",
+                                children: <ffai.ProjectWidgetHandle>[
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Icon_wgejiyp3",
+                                    type: "Icon",
+                                    path: "SignInPage.body[0].children[1].children[0].children[0].children[7].children[1].children[0]",
+                                    name: "AppleMark",
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ],

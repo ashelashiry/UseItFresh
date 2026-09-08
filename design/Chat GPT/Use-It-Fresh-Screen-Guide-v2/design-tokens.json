@@ -1,0 +1,83 @@
+{
+  "brand": {
+    "forest": "#07533A",
+    "leaf": "#83BD43",
+    "cream": "#FAF9F3",
+    "graphite": "#202826"
+  },
+  "surface": {
+    "page": "#F7F7F0",
+    "card": "#FFFFFF",
+    "subtle": "#EDF2E8",
+    "border": "#DCE3D7"
+  },
+  "text": {
+    "primary": "#202C24",
+    "secondary": "#59665D"
+  },
+  "status": {
+    "Fresh": [
+      "#285B34",
+      "#EAF3E5"
+    ],
+    "Use Soon": [
+      "#79500F",
+      "#FFF1D4"
+    ],
+    "Use Today": [
+      "#934017",
+      "#FFEADD"
+    ],
+    "Past Best Before": [
+      "#69516E",
+      "#F1EAF4"
+    ],
+    "Past Use By": [
+      "#A02929",
+      "#FCE8E6"
+    ],
+    "Frozen": [
+      "#275E85",
+      "#E7F2FA"
+    ],
+    "Consumed": [
+      "#47594A",
+      "#EEF2EC"
+    ],
+    "Discarded": [
+      "#A02929",
+      "#FCE8E6"
+    ],
+    "Unknown": [
+      "#59615D",
+      "#EDF0ED"
+    ]
+  },
+  "type": {
+    "heading": "Figtree",
+    "body": "Nunito Sans",
+    "sizes": [
+      12,
+      14,
+      16,
+      20,
+      24,
+      32
+    ]
+  },
+  "spacing": [
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    32
+  ],
+  "radius": {
+    "control": 12,
+    "card": 20,
+    "hero": 24
+  },
+  "touchTarget": 48
+}

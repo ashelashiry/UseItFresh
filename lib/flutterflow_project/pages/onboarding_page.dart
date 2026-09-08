@@ -40,6 +40,9 @@ abstract final class OnboardingPageWidgets {
       type: "Scaffold",
       path: "OnboardingPage",
       name: "OnboardingPage",
+      triggers: const <String>[
+        "ON_INIT_STATE",
+      ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
         "appBar": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(

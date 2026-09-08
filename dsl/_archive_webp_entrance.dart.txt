@@ -1,0 +1,285 @@
+library;
+
+import 'dart:io';
+
+import 'package:flutterflow_ai/flutterflow_ai.dart';
+// setPageRoute is the documented way to change a page's route, but it is not
+// re-exported from the barrel (only findPage/findComponent are). Reaching into
+// src/ is the workaround; the alternative -- poking routePath on
+// ensurePageRouteSettings() -- skips route normalisation and is explicitly
+// warned against.
+// ignore: implementation_imports
+import 'package:flutterflow_ai/src/helpers/routing_helpers.dart';
+// ignore: implementation_imports
+import 'package:flutterflow_ai/src/helpers/project_helpers.dart' show setInitialPage;
+
+import 'package:ff_agent_useitfresh_fridge_wise_gvpy0s/flutterflow_project.dart'
+    as ff;
+
+
+Future<void> main(List<String> args) async {
+  final options = _parseCliOptions(args);
+  try {
+    await flutterFlowAI(
+      buildStarterEditFlow,
+      apiKey: options.apiKey,
+      baseUrl: options.baseUrl,
+      projectName: options.projectName,
+      projectId: options.projectId,
+      findOrCreate: options.findOrCreate,
+      allowNewProject: options.allowNewProject,
+      dryRun: options.dryRun,
+      commitMessage: options.commitMessage,
+    );
+  } catch (error) {
+    stderr.writeln('Error: ${formatFlutterFlowAIError(error)}');
+    exit(1);
+  }
+}
+
+final class _CliOptions {
+  const _CliOptions({
+    this.apiKey,
+    this.baseUrl,
+    this.projectName,
+    this.projectId,
+    this.findOrCreate = false,
+    this.allowNewProject = false,
+    this.dryRun = false,
+    this.commitMessage,
+  });
+
+  final String? apiKey;
+  final String? baseUrl;
+  final String? projectName;
+  final String? projectId;
+  final bool findOrCreate;
+  final bool allowNewProject;
+  final bool dryRun;
+  final String? commitMessage;
+}
+
+_CliOptions _parseCliOptions(List<String> args) {
+  String? apiKey;
+  String? baseUrl;
+  String? projectName;
+  String? projectId;
+  String? commitMessage;
+  var findOrCreate = false;
+  var allowNewProject = false;
+  var dryRun = false;
+
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    switch (arg) {
+      case '--help':
+      case '-h':
+        _printUsage();
+        exit(0);
+      case '--api-key':
+        apiKey = _requireValue(args, ++i, '--api-key');
+      case '--base-url':
+        baseUrl = _requireValue(args, ++i, '--base-url');
+      case '--project-name':
+        projectName = _requireValue(args, ++i, '--project-name');
+      case '--project-id':
+        projectId = _requireValue(args, ++i, '--project-id');
+      case '--commit-message':
+        commitMessage = _requireValue(args, ++i, '--commit-message');
+      case '--find-or-create':
+        findOrCreate = true;
+      case '--allow-new-project':
+        allowNewProject = true;
+      case '--dry-run':
+        dryRun = true;
+      default:
+        stderr.writeln('Unknown option: $arg');
+        _printUsage();
+        exit(64);
+    }
+  }
+
+  return _CliOptions(
+    apiKey: apiKey,
+    baseUrl: baseUrl,
+    projectName: projectName,
+    projectId: projectId,
+    findOrCreate: findOrCreate,
+    allowNewProject: allowNewProject,
+    dryRun: dryRun,
+    commitMessage: commitMessage,
+  );
+}
+
+String _requireValue(List<String> args, int index, String flag) {
+  if (index >= args.length) {
+    stderr.writeln('Missing value for $flag.');
+    _printUsage();
+    exit(64);
+  }
+  return args[index];
+}
+
+void _printUsage() {
+  stdout.writeln('''
+Run the starter FlutterFlow AI edit flow.
+
+Usage:
+  dart run dsl/edit.dart [options]
+
+Options:
+  --api-key <key>           FlutterFlow API key. Defaults to FF_API_KEY.
+  --base-url <url>          Override the FlutterFlow API base URL.
+  --project-name <name>     Create a new project with this name.
+  --project-id <id>         Push into an existing project by ID.
+  --find-or-create          Retry by reusing a same-name project before creating.
+  --allow-new-project       Bypass the workspace binding guard and create a different project.
+  --commit-message <text>   Commit message for the push.
+  --dry-run                 Compile and validate without pushing.
+  --help, -h                Show this help.
+''');
+}
+// ---------------------------------------------------------------------------
+// No more video on the sign-in screen.
+//
+// Everything that went wrong here came from one fact: on the web a Flutter
+// video is not part of the app. The browser lifts it out and paints it as its
+// own <video> element ON TOP of the whole Flutter scene, and the scene is set
+// to ignore pointer input so that element can work. Two consequences, and they
+// are the whole of it:
+//
+//   * It takes every tap. Not a setting that was missed — the app cannot
+//     receive a tap where the clip is. The element that actually absorbs it
+//     sits inside a shadow root, out of reach of any stylesheet.
+//   * The app cannot tell it what size to be. Flutter gives the browser a box
+//     derived from the CLIP's shape; the stills are sized by the app's own
+//     rules. Matching them means guessing what the browser did, and guessing
+//     wrong shows up as the fridge changing size mid-animation.
+//
+// So the clips are now animated WebP, which Flutter decodes and draws itself,
+// in-app, like any other Image. Both problems stop existing rather than being
+// worked around: every layer is the same kind of widget obeying the same fit
+// rule, so they cannot disagree, and nothing sits above the app to eat taps.
+//
+// It is also smaller — 628KB against 663KB for the opening, and 24KB against
+// 170KB for the glint loop — and it behaves identically on iOS and Android,
+// where the video path was a different code path again.
+// ---------------------------------------------------------------------------
+
+const _kAssets = 'https://storage.googleapis.com/flutterflow-io-6f20.appspot.com'
+    '/projects/fridge-wise-gvpy0s/assets';
+
+/// The closed fridge with the handle glint, looping. The resting state.
+const _kGlintLoop = '$_kAssets/z2z6y5k5r5ks/fridge-closed-glint-v9-912.webp';
+
+/// The door opening. 52 frames at 25fps — 2.08s.
+const _kOpeningClip = '$_kAssets/ph7q6xni5t6z/fridge-opening-v9-912.webp';
+
+/// The clip's final frame as a still. What it hands over to.
+const _kOpenBackdrop = '$_kAssets/suj3m3x906nx/signin-bg-fridge-v9.jpg';
+
+/// Clip length plus slack, so the form never lands over a door still moving.
+const _kClipMs = 2300;
+
+/// One rule for all three layers. `contain` fits the whole frame inside the
+/// screen without cropping, which is what keeps the fridge the same size and
+/// in the same place from the closed shot to the open one. The letterbox it
+/// leaves is painted #07100F — the artwork's own background, sampled from the
+/// corner of the render — so it does not read as bars.
+const _kFit = ImageFit.contain;
+
+void buildStarterEditFlow(App app) {
+  app.editPage(ff.Pages.signInPage, (page) {
+    // The opening clip: a VideoPlayer becomes an Image.
+    page.ensureReplaced(
+      ff.Pages.signInPage.widgets.byKey('VideoPlayer_ajavvhaa').single,
+      Image(
+        _kOpeningClip,
+        name: 'FridgeOpeningClip',
+        fit: _kFit,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+    );
+
+    // The resting state. The wrapping Stack existed only to hold a still
+    // underneath the video while it loaded; an Image needs no understudy.
+    page.ensureReplaced(
+      ff.Pages.signInPage.widgets.byKey('Stack_ontktgim').single,
+      Image(
+        _kGlintLoop,
+        name: 'ClosedFridgeGlint',
+        fit: _kFit,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+    );
+
+    page.mutateNode(
+      ff.Pages.signInPage.widgets.byKey('Image_sdgiq17v').single,
+      (node) {
+        node.props.image.pathValue = FFStringValue(inputValue: _kOpenBackdrop);
+        node.props.image.fit = FFBoxFit.FF_BOX_FIT_CONTAIN;
+      },
+    );
+
+    // Tap anywhere -> the door opens -> the form fades in.
+    page.ensureActions(
+      ff.Pages.signInPage.widgets.byKey('Container_o5pu6w5t').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        SetState(ff.Pages.signInPage.state.introPending, false),
+        SetState(ff.Pages.signInPage.state.introPlaying, true),
+        const Wait(_kClipMs),
+        SetState(ff.Pages.signInPage.state.introPlaying, false),
+        SetState(ff.Pages.signInPage.state.formShown, true),
+        // The panel's animation controller only gets a duration once the panel
+        // has been BUILT, and revealing it only causes a build on the next
+        // frame. Starting the fade on the same line threw "forward() called
+        // with no default duration" and the form never appeared.
+        const Wait(80),
+        const StartAnimation('SignInFormPanel'),
+      ],
+    );
+  });
+
+  // The pointer-events hack is dead weight now: it existed to stop a <video>
+  // platform view swallowing taps, and there is no platform view left. Left
+  // declared but no longer called, so nothing on this page depends on it.
+  app.editPageOnLoad(ff.Pages.signInPage, [
+    SetState(ff.Pages.signInPage.state.introPending, true),
+    SetState(ff.Pages.signInPage.state.introPlaying, false),
+    SetState(ff.Pages.signInPage.state.formShown, false),
+  ]);
+
+  // StartAnimation resolves its target in a deferred pass that only runs on a
+  // greenfield compile, never on an edit, so the action ships pointing at
+  // nothing. Raw mutations run after the editPage above, so the key is filled
+  // in here.
+  app.raw((project) {
+    final page = findPage(project, name: 'SignInPage');
+    if (page == null) return;
+    final panel = findByKey(page.node, 'Container_yyjai4fl');
+    final tapTarget = findByKey(page.node, 'Container_o5pu6w5t');
+    if (panel == null || tapTarget == null) return;
+    for (final trigger in tapTarget.triggerActions) {
+      _fillAnimationTarget(trigger.rootAction, panel.key);
+    }
+  });
+}
+
+/// Gives every widget-animation action in a chain a target, if it has none.
+void _fillAnimationTarget(FFActionNode node, String targetKey) {
+  if (node.hasAction() && node.action.hasAnimation()) {
+    final anim = node.action.animation;
+    if (anim.hasWidgetAnimation() &&
+        anim.widgetAnimation.animationNodeKeyRef.key.isEmpty) {
+      anim.widgetAnimation.animationNodeKeyRef = FFNodeKeyReference(
+        key: targetKey,
+      );
+    }
+  }
+  if (node.hasFollowUpAction()) {
+    _fillAnimationTarget(node.followUpAction, targetKey);
+  }
+}

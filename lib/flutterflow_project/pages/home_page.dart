@@ -19,6 +19,12 @@ final class HomePageParams {
 
 final class HomePageState {
   const HomePageState();
+  ffai.ProjectStateFieldHandle get households =>
+      const ffai.ProjectStateFieldHandle(
+        name: "households",
+        key: "s1y2brwm",
+        typeName: "List<PostgresRow>",
+      );
   ffai.ProjectStateFieldHandle get me =>
       const ffai.ProjectStateFieldHandle(
         name: "me",
@@ -44,25 +50,6 @@ abstract final class HomePageWidgets {
         "ON_INIT_STATE",
       ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
-        "appBar": <ffai.ProjectWidgetHandle>[
-          ffai.ProjectWidgetHandle(
-            key: "AppBar_5vzhxem6",
-            type: "AppBar",
-            path: "HomePage.appBar[0]",
-            name: "AppBar",
-            slots: <String, List<ffai.ProjectWidgetHandle>>{
-              "title": <ffai.ProjectWidgetHandle>[
-                ffai.ProjectWidgetHandle(
-                  key: "Text_lfyal9pa",
-                  type: "Text",
-                  path: "HomePage.appBar[0].title[0]",
-                  name: "AppBar Title",
-                  text: "Use It Fresh",
-                ),
-              ],
-            },
-          ),
-        ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
             key: "Container_t21ep1yw",
@@ -77,41 +64,48 @@ abstract final class HomePageWidgets {
                 name: "Column",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
-                    key: "Text_rlrqu2rp",
+                    key: "Text_xyvkhbda",
                     type: "Text",
                     path: "HomePage.body[0].children[0].children[0]",
-                    name: "Text",
-                    text: "Welcome back 👋",
+                    name: "HomeEyebrow",
+                    text: "OUR HOUSEHOLD",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Text_00bqjarl",
+                    key: "Text_rlrqu2rp",
                     type: "Text",
                     path: "HomePage.body[0].children[0].children[1]",
                     name: "Text",
                   ),
                   ffai.ProjectWidgetHandle(
+                    key: "Text_00bqjarl",
+                    type: "Text",
+                    path: "HomePage.body[0].children[0].children[2]",
+                    name: "Text",
+                    text: "Let's make the most of what's in your kitchen.",
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "Container_t5almqv2",
                     type: "Container",
-                    path: "HomePage.body[0].children[0].children[2]",
+                    path: "HomePage.body[0].children[0].children[3]",
                     name: "Container",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_nofrif9v",
                         type: "Column",
-                        path: "HomePage.body[0].children[0].children[2].children[0]",
+                        path: "HomePage.body[0].children[0].children[3].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_n2b0dcap",
                             type: "Text",
-                            path: "HomePage.body[0].children[0].children[2].children[0].children[0]",
+                            path: "HomePage.body[0].children[0].children[3].children[0].children[0]",
                             name: "Text",
                             text: "Finish setting up",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Button_gw34xuv1",
                             type: "Button",
-                            path: "HomePage.body[0].children[0].children[2].children[0].children[1]",
+                            path: "HomePage.body[0].children[0].children[3].children[0].children[1]",
                             name: "GoToOnboardingButton",
                             text: "Complete your profile",
                             triggers: const <String>[
@@ -121,7 +115,7 @@ abstract final class HomePageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_lff9ip91",
                             type: "Button",
-                            path: "HomePage.body[0].children[0].children[2].children[0].children[2]",
+                            path: "HomePage.body[0].children[0].children[3].children[0].children[2]",
                             name: "GoToHouseholdButton",
                             text: "Create or join a household",
                             triggers: const <String>[
@@ -135,26 +129,26 @@ abstract final class HomePageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Text_jxfk0s3t",
                     type: "Text",
-                    path: "HomePage.body[0].children[0].children[3]",
+                    path: "HomePage.body[0].children[0].children[4]",
                     name: "Text",
                     text: "Use first",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Column_rgq7we0r",
                     type: "Column",
-                    path: "HomePage.body[0].children[0].children[4]",
+                    path: "HomePage.body[0].children[0].children[5]",
                     name: "UseFirstSection",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "ListView_5iwxgrya",
                         type: "ListView",
-                        path: "HomePage.body[0].children[0].children[4].children[0]",
+                        path: "HomePage.body[0].children[0].children[5].children[0]",
                         name: "UseFirstList",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Container_ej56ame1",
                             type: "Container",
-                            path: "HomePage.body[0].children[0].children[4].children[0].children[0]",
+                            path: "HomePage.body[0].children[0].children[5].children[0].children[0]",
                             name: "UseFirstCard",
                             componentName: "FoodCard",
                           ),
@@ -163,7 +157,7 @@ abstract final class HomePageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_trjyf20l",
                         type: "Container",
-                        path: "HomePage.body[0].children[0].children[4].children[1]",
+                        path: "HomePage.body[0].children[0].children[5].children[1]",
                         name: "UseFirstEmpty",
                         componentName: "EmptyStateCard",
                       ),
@@ -172,16 +166,16 @@ abstract final class HomePageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Text_gdmfh6k7",
                     type: "Text",
-                    path: "HomePage.body[0].children[0].children[5]",
+                    path: "HomePage.body[0].children[0].children[6]",
                     name: "Text",
                     text: "Quick add",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Button_gpb5q4p0",
                     type: "Button",
-                    path: "HomePage.body[0].children[0].children[6]",
+                    path: "HomePage.body[0].children[0].children[7]",
                     name: "QuickAddManualButton",
-                    text: "Add food manually",
+                    text: "Add your first item",
                     triggers: const <String>[
                       "ON_TAP",
                     ],
@@ -189,9 +183,9 @@ abstract final class HomePageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Button_rnehja5c",
                     type: "Button",
-                    path: "HomePage.body[0].children[0].children[7]",
+                    path: "HomePage.body[0].children[0].children[8]",
                     name: "QuickAddScanButton",
-                    text: "Scan an item with AI",
+                    text: "Scan an item instead",
                     triggers: const <String>[
                       "ON_TAP",
                     ],
