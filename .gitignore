@@ -63,3 +63,6 @@ design/*.webp
 
 # Same reasoning for the brand marks the app displays.
 !design/brand/**
+
+# The navigation icons the app displays, same reasoning again.
+!design/nav/**
