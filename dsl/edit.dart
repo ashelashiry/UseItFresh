@@ -153,60 +153,47 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The empty state shows the place you are looking at.
+/// The permission strings iOS demands before it will hand over a camera.
 ///
-/// The handoff is specific about this: the empty icon must match the selected
-/// filter — Fridge shows a fridge, Freezer a snowflake, Pantry a cupboard, and
-/// All the empty-kitchen glyph. It calls out the supplied screenshot for
-/// showing a fridge while Pantry was selected.
+/// None were declared. Without them iOS does not show a prompt — it terminates
+/// the app the moment the camera or photo library is touched, and App Review
+/// rejects the build. So this has to land before any capture work, whichever
+/// way we end up testing on a device.
 ///
-/// The tile goes to the 80px the notes ask for, with the icon at 38px inside
-/// it.
+/// The wording says what the app does with the thing it is asking for, which
+/// is what review looks for and what a person deserves to be told.
 void buildStarterEditFlow(App app) {
-  final emptyIconFor = app.customFunction(
-    'emptyIconFor',
-    args: {'filter': string},
-    returns: string,
-    description:
-        'Which supplied icon the empty state should show, given the storage '
-        'filter in force.',
-    code: r"""
-switch ((filter ?? 'all').trim().toLowerCase()) {
-  case 'fridge':
-    return 'fridge';
-  case 'freezer':
-    return 'freezer';
-  case 'pantry':
-    return 'pantry';
-  default:
-    return 'empty-kitchen';
-}
-""",
-  );
+  app.raw((project) {
+    const reasons = <FFPermissionType, String>{
+      FFPermissionType.CAMERA:
+          'Use It Fresh uses the camera to photograph food and scan barcodes, '
+              'so you can add what you have without typing it.',
+      FFPermissionType.PHOTO_LIBRARY:
+          'Use It Fresh reads photos you choose, so you can add food from a '
+              'picture you already took.',
+      FFPermissionType.NOTIFICATIONS:
+          'Use It Fresh sends reminders before food needs using, so less of it '
+              'gets thrown away.',
+    };
 
-  app.editPage(ff.Pages.inventoryPage, (page) {
-    page.ensureReplaced(
-      ff.Pages.inventoryPage.widgets.byKey('Icon_xrtogq74').single,
-      CustomWidget(
-        widgetName: 'KitchenIcon',
-        name: 'InventoryEmptyIcon',
-        arguments: {
-          'iconName': CustomFunction(emptyIconFor, args: {
-            'filter': State(ff.Pages.inventoryPage.state.filter),
-          }),
-          'tone': 'forest',
-          'size': 38.0,
-        },
-      ),
-    );
+    final settings = project.appSettings.ensurePermissionsSettings();
 
-    page.mutateNode(
-      ff.Pages.inventoryPage.widgets.byKey('Container_4fme33x8').single,
-      (node) {
-        final dimensions = node.props.ensureContainer().ensureDimensions();
-        dimensions.ensureWidth().ensurePixelsValue().inputValue = 80;
-        dimensions.ensureHeight().ensurePixelsValue().inputValue = 80;
-      },
-    );
+    reasons.forEach((type, reason) {
+      // Replace rather than append, so re-running does not stack duplicates.
+      settings.permissionMessages
+          .removeWhere((m) => m.permissionType == type);
+      settings.permissionMessages.add(
+        FFPermissionsSettings_PermissionMessage(
+          permissionType: type,
+          message: FFText(
+            textValue: FFStringValue(inputValue: reason),
+          ),
+        ),
+      );
+    });
+
+    for (final m in settings.permissionMessages) {
+      print('${m.permissionType.name}: ${m.message.textValue.inputValue}');
+    }
   });
 }
