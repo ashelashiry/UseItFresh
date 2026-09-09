@@ -201,7 +201,7 @@ abstract final class AddFoodItemPageWidgets {
                     type: "Button",
                     path: "AddFoodItemPage.body[0].children[0].children[9]",
                     name: "SaveFoodItemButton",
-                    text: "Add to inventory",
+                    text: "Review and add",
                     triggers: const <String>[
                       "ON_TAP",
                     ],

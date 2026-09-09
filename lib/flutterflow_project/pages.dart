@@ -4,6 +4,7 @@ library;
 
 import 'package:flutterflow_ai/flutterflow_ai.dart' as ffai;
 import 'pages/add_food_item_page.dart' show addFoodItemPageHandle;
+import 'pages/add_food_review_page.dart' show addFoodReviewPageHandle;
 import 'pages/food_item_page.dart' show foodItemPageHandle;
 import 'pages/home_page.dart' show homePageHandle;
 import 'pages/household_setup_page.dart' show householdSetupPageHandle;
@@ -21,6 +22,7 @@ import 'pages/welcome_page.dart' show welcomePageHandle;
 
 abstract final class Pages {
   static final addFoodItemPage = addFoodItemPageHandle;
+  static final addFoodReviewPage = addFoodReviewPageHandle;
   static final foodItemPage = foodItemPageHandle;
   static final homePage = homePageHandle;
   static final householdSetupPage = householdSetupPageHandle;
@@ -37,6 +39,7 @@ abstract final class Pages {
   static final welcomePage = welcomePageHandle;
   static final all = <ffai.ProjectPageHandle>[
     addFoodItemPage,
+    addFoodReviewPage,
     foodItemPage,
     homePage,
     householdSetupPage,

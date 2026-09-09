@@ -2946,6 +2946,7 @@ abstract final class CustomCode {
     "profileIsImperial",
     "profileName",
     "quantityLabel",
+    "reviewLine",
     "urgentCount",
     "useFirstLine",
   ];
