@@ -153,59 +153,60 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Fields look like the rest of the app.
+/// The empty state shows the place you are looking at.
 ///
-/// Every text field was filled with no fill colour set, so it fell back to a
-/// grey wash while every other surface in v3 is white on a gentle border. The
-/// forms read as a different app from the screens around them.
+/// The handoff is specific about this: the empty icon must match the selected
+/// filter — Fridge shows a fridge, Freezer a snowflake, Pantry a cupboard, and
+/// All the empty-kitchen glyph. It calls out the supplied screenshot for
+/// showing a fridge while Pantry was selected.
 ///
-/// White fill, 1px alternate border, 14px radius — the same treatment as the
-/// cards and rows. The inventory search is left alone: it deliberately has no
-/// border of its own because it sits inside one.
+/// The tile goes to the 80px the notes ask for, with the icon at 38px inside
+/// it.
 void buildStarterEditFlow(App app) {
-  const fields = <String, List<String>>{
-    'resetPassword': ['TextField_sybqsats'],
-    'signIn': ['TextField_o2faty06', 'TextField_kadw7ppq'],
-    'signUp': ['TextField_5z7qq1pu', 'TextField_bve20b4b', 'TextField_fys6541l'],
-    'household': ['TextField_cg0goaa0', 'TextField_pmsdcf3h'],
-    'onboarding': ['TextField_w2d30f74'],
-    'updatePassword': ['TextField_julyevbl', 'TextField_6ekzr6it'],
-    'storage': ['TextField_utlynq7w'],
-    'addFood': ['TextField_k6exjii3'],
-  };
-  final pages = <String, dynamic>{
-    'resetPassword': ff.Pages.resetPasswordPage,
-    'signIn': ff.Pages.signInPage,
-    'signUp': ff.Pages.signUpPage,
-    'household': ff.Pages.householdSetupPage,
-    'onboarding': ff.Pages.onboardingPage,
-    'updatePassword': ff.Pages.updatePasswordPage,
-    'storage': ff.Pages.storageLocationsPage,
-    'addFood': ff.Pages.addFoodItemPage,
-  };
+  final emptyIconFor = app.customFunction(
+    'emptyIconFor',
+    args: {'filter': string},
+    returns: string,
+    description:
+        'Which supplied icon the empty state should show, given the storage '
+        'filter in force.',
+    code: r"""
+switch ((filter ?? 'all').trim().toLowerCase()) {
+  case 'fridge':
+    return 'fridge';
+  case 'freezer':
+    return 'freezer';
+  case 'pantry':
+    return 'pantry';
+  default:
+    return 'empty-kitchen';
+}
+""",
+  );
 
-  fields.forEach((which, keys) {
-    final handle = pages[which];
-    app.editPage(handle, (page) {
-      for (final key in keys) {
-        page.mutateNode(handle.widgets.byKey(key).single, (node) {
-          final decoration =
-              node.props.ensureTextField().ensureInputDecoration();
-          decoration.ensureFilledValue().inputValue = true;
-          decoration.ensureFillColorValue().ensureInputValue().themeColor =
-              FFColor_ThemeColor.SECONDARY_BACKGROUND;
-          decoration.inputBorderType =
-              FFInputDecoration_InputBorderType.outline;
-          decoration.ensureBorderWidthValue().inputValue = 1;
-          decoration.ensureBorderColorValue().ensureInputValue().themeColor =
-              FFColor_ThemeColor.ALTERNATE;
-          decoration.ensureFocusBorderColorValue().ensureInputValue()
-              .themeColor = FFColor_ThemeColor.PRIMARY;
-          final radius = decoration.ensureBorderRadius()
-            ..type = FFBorderRadius_BorderRadiusType.FF_BORDER_RADIUS_ALL;
-          radius.ensureAllValue().inputValue = 14;
-        });
-      }
-    });
+  app.editPage(ff.Pages.inventoryPage, (page) {
+    page.ensureReplaced(
+      ff.Pages.inventoryPage.widgets.byKey('Icon_xrtogq74').single,
+      CustomWidget(
+        widgetName: 'KitchenIcon',
+        name: 'InventoryEmptyIcon',
+        arguments: {
+          'iconName': CustomFunction(emptyIconFor, args: {
+            'filter': State(ff.Pages.inventoryPage.state.filter),
+          }),
+          'tone': 'forest',
+          'size': 38.0,
+        },
+      ),
+    );
+
+    page.mutateNode(
+      ff.Pages.inventoryPage.widgets.byKey('Container_4fme33x8').single,
+      (node) {
+        final dimensions = node.props.ensureContainer().ensureDimensions();
+        dimensions.ensureWidth().ensurePixelsValue().inputValue = 80;
+        dimensions.ensureHeight().ensurePixelsValue().inputValue = 80;
+      },
+    );
   });
 }

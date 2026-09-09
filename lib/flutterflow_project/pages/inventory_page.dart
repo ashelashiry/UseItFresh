@@ -83,13 +83,13 @@ abstract final class InventoryPageWidgets {
                     name: "InventoryLede",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Row_s57bi5d1",
+                    key: "Row_4o91f3id",
                     type: "Row",
                     path: "InventoryPage.body[0].children[0].children[2]",
                     name: "InventoryFilterChips",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Container_n46f3tsc",
+                        key: "Container_o0f2kwf5",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[0]",
                         name: "Chip_all_rest",
@@ -98,16 +98,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_gzj6xpco",
-                            type: "Text",
+                            key: "Row_bfd7c8uc",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[0].children[0]",
-                            name: "ChipLabel_all_rest",
-                            text: "All",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_jxdezv8h",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[0]",
+                                name: "ChipIcon_all_rest",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_8bppzasa",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[0].children[0].children[1]",
+                                name: "ChipLabel_all_rest",
+                                text: "All",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_8ycngcyi",
+                        key: "Container_726hfj4s",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[1]",
                         name: "Chip_all_on",
@@ -116,16 +130,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_nal9okg1",
-                            type: "Text",
+                            key: "Row_4w4dxict",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[1].children[0]",
-                            name: "ChipLabel_all_on",
-                            text: "All",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_88vu18od",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[1].children[0].children[0]",
+                                name: "ChipIcon_all_on",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_7awgn5wq",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[1].children[0].children[1]",
+                                name: "ChipLabel_all_on",
+                                text: "All",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_eegrtxh1",
+                        key: "Container_cf48xcnh",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[2]",
                         name: "Chip_fridge_rest",
@@ -134,16 +162,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_qokercm5",
-                            type: "Text",
+                            key: "Row_2hxajinz",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[2].children[0]",
-                            name: "ChipLabel_fridge_rest",
-                            text: "Fridge",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_pl5zxwr6",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[2].children[0].children[0]",
+                                name: "ChipIcon_fridge_rest",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_p37z7a30",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[2].children[0].children[1]",
+                                name: "ChipLabel_fridge_rest",
+                                text: "Fridge",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_uy4c7vbp",
+                        key: "Container_q2ue06qm",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[3]",
                         name: "Chip_fridge_on",
@@ -152,16 +194,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_ysgk047z",
-                            type: "Text",
+                            key: "Row_e5qoome3",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[3].children[0]",
-                            name: "ChipLabel_fridge_on",
-                            text: "Fridge",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_v21g862s",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[3].children[0].children[0]",
+                                name: "ChipIcon_fridge_on",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_zxpz0wru",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[3].children[0].children[1]",
+                                name: "ChipLabel_fridge_on",
+                                text: "Fridge",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_tmk7tl64",
+                        key: "Container_co7mms6l",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[4]",
                         name: "Chip_freezer_rest",
@@ -170,16 +226,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_vuxkupm7",
-                            type: "Text",
+                            key: "Row_gzdvtlpy",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[4].children[0]",
-                            name: "ChipLabel_freezer_rest",
-                            text: "Freezer",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_h6m1q7r0",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[4].children[0].children[0]",
+                                name: "ChipIcon_freezer_rest",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_ny9jxe9m",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[4].children[0].children[1]",
+                                name: "ChipLabel_freezer_rest",
+                                text: "Freezer",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_yltp1lgm",
+                        key: "Container_9j1jtsme",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[5]",
                         name: "Chip_freezer_on",
@@ -188,16 +258,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_goufnb6p",
-                            type: "Text",
+                            key: "Row_tw9g5j9f",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[5].children[0]",
-                            name: "ChipLabel_freezer_on",
-                            text: "Freezer",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_mbsr54n9",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[5].children[0].children[0]",
+                                name: "ChipIcon_freezer_on",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_arhn79ad",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[5].children[0].children[1]",
+                                name: "ChipLabel_freezer_on",
+                                text: "Freezer",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_kwne5zo2",
+                        key: "Container_hth5c484",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[6]",
                         name: "Chip_pantry_rest",
@@ -206,16 +290,30 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_7at15roq",
-                            type: "Text",
+                            key: "Row_k5jtry6d",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[6].children[0]",
-                            name: "ChipLabel_pantry_rest",
-                            text: "Pantry",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_irtbaffp",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[6].children[0].children[0]",
+                                name: "ChipIcon_pantry_rest",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_5m5ey9qw",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[6].children[0].children[1]",
+                                name: "ChipLabel_pantry_rest",
+                                text: "Pantry",
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Container_pinyznaj",
+                        key: "Container_8okmv3pe",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[2].children[7]",
                         name: "Chip_pantry_on",
@@ -224,11 +322,25 @@ abstract final class InventoryPageWidgets {
                         ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Text_oegd9qt6",
-                            type: "Text",
+                            key: "Row_b4cmh1hh",
+                            type: "Row",
                             path: "InventoryPage.body[0].children[0].children[2].children[7].children[0]",
-                            name: "ChipLabel_pantry_on",
-                            text: "Pantry",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_5timodsx",
+                                type: "Container",
+                                path: "InventoryPage.body[0].children[0].children[2].children[7].children[0].children[0]",
+                                name: "ChipIcon_pantry_on",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_8q5ucvs6",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[2].children[7].children[0].children[1]",
+                                name: "ChipLabel_pantry_on",
+                                text: "Pantry",
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -247,8 +359,8 @@ abstract final class InventoryPageWidgets {
                         name: "Row",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "Icon_md74t2io",
-                            type: "Icon",
+                            key: "Container_tdh6uucj",
+                            type: "Container",
                             path: "InventoryPage.body[0].children[0].children[3].children[0].children[0]",
                             name: "SearchIcon",
                           ),
@@ -320,10 +432,10 @@ abstract final class InventoryPageWidgets {
                                 name: "InventoryEmptyTile",
                                 children: <ffai.ProjectWidgetHandle>[
                                   ffai.ProjectWidgetHandle(
-                                    key: "Icon_xrtogq74",
-                                    type: "Icon",
+                                    key: "Container_8fdbv52b",
+                                    type: "Container",
                                     path: "InventoryPage.body[0].children[0].children[5].children[1].children[0].children[0].children[0]",
-                                    name: "Icon",
+                                    name: "InventoryEmptyIcon",
                                   ),
                                 ],
                               ),

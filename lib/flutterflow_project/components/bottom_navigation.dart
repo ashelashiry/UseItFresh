@@ -70,13 +70,13 @@ abstract final class BottomNavigationWidgets {
           name: "NavSurface",
           children: <ffai.ProjectWidgetHandle>[
             ffai.ProjectWidgetHandle(
-              key: "Row_rik5xlzm",
+              key: "Row_sydsdhur",
               type: "Row",
               path: "BottomNavigation.children[0].children[0]",
-              name: "Row",
+              name: "NavRow",
               children: <ffai.ProjectWidgetHandle>[
                 ffai.ProjectWidgetHandle(
-                  key: "Container_fq09ja0v",
+                  key: "Container_hiyxty50",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[0]",
                   name: "NavHomeOff",
@@ -85,19 +85,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_9ek8wp69",
+                      key: "Column_wk2eo17j",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[0].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_m0lwb7v7",
-                          type: "Icon",
+                          key: "Container_nex6txmi",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[0].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_home_muted",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_e346dmb2",
+                          key: "Text_tk9w5sz7",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[0].children[0].children[1]",
                           name: "NavHomeOffLabel",
@@ -108,7 +108,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_inqgng6u",
+                  key: "Container_lrwf24qv",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[1]",
                   name: "NavHomeOn",
@@ -117,19 +117,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_8cago9r5",
+                      key: "Column_zdf6ku3s",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[1].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_h09kzoyz",
-                          type: "Icon",
+                          key: "Container_ags2tu3m",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[1].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_home_forest",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_8h1rvf4u",
+                          key: "Text_w9ibett2",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[1].children[0].children[1]",
                           name: "NavHomeOnLabel",
@@ -140,7 +140,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_0vqspwpl",
+                  key: "Container_5655yc9k",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[2]",
                   name: "NavInventoryOff",
@@ -149,19 +149,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_55qruq6p",
+                      key: "Column_pzaa9dwh",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[2].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_c7i5k812",
-                          type: "Icon",
+                          key: "Container_pala6lni",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[2].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_inventory_muted",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_uci281y6",
+                          key: "Text_gl848fnc",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[2].children[0].children[1]",
                           name: "NavInventoryOffLabel",
@@ -172,7 +172,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_iiaffhm4",
+                  key: "Container_hly39zp0",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[3]",
                   name: "NavInventoryOn",
@@ -181,19 +181,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_yz026p8d",
+                      key: "Column_8f85vyvq",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[3].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_4adnq8c0",
-                          type: "Icon",
+                          key: "Container_nhan0sxx",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[3].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_inventory_forest",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_wjbs6bcy",
+                          key: "Text_givlcfr0",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[3].children[0].children[1]",
                           name: "NavInventoryOnLabel",
@@ -204,7 +204,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_538qmqo5",
+                  key: "Container_la20rste",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[4]",
                   name: "NavScan",
@@ -213,19 +213,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_b9ydtxes",
+                      key: "Column_3aes6r96",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[4].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_exa9nuap",
-                          type: "Icon",
+                          key: "Container_g6x780zz",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[4].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_scan_white",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_3ymdi124",
+                          key: "Text_novzu6xc",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[4].children[0].children[1]",
                           name: "NavScanLabel",
@@ -236,7 +236,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_kk86ksap",
+                  key: "Container_g22rgmnj",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[5]",
                   name: "NavRecipesOff",
@@ -245,19 +245,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_daw6bcpp",
+                      key: "Column_ehoxc7n8",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[5].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_pamx9lj3",
-                          type: "Icon",
+                          key: "Container_kr0go8r7",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[5].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_recipes_muted",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_xibwuukc",
+                          key: "Text_mgx036uo",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[5].children[0].children[1]",
                           name: "NavRecipesOffLabel",
@@ -268,7 +268,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_8mqgteu0",
+                  key: "Container_nw7ya156",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[6]",
                   name: "NavRecipesOn",
@@ -277,19 +277,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_lotcvwxo",
+                      key: "Column_6m2mcs6d",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[6].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_7k2efc6b",
-                          type: "Icon",
+                          key: "Container_5ynve8ge",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[6].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_recipes_forest",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_gxvztcvf",
+                          key: "Text_56qab6x5",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[6].children[0].children[1]",
                           name: "NavRecipesOnLabel",
@@ -300,7 +300,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_8uhryom9",
+                  key: "Container_4gob7dc0",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[7]",
                   name: "NavProfileOff",
@@ -309,19 +309,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_rc55ndxv",
+                      key: "Column_k9k37wyj",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[7].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_ptf8k6ot",
-                          type: "Icon",
+                          key: "Container_ukalh4q4",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[7].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_profile_muted",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_cun70vx1",
+                          key: "Text_teq9j1ef",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[7].children[0].children[1]",
                           name: "NavProfileOffLabel",
@@ -332,7 +332,7 @@ abstract final class BottomNavigationWidgets {
                   ],
                 ),
                 ffai.ProjectWidgetHandle(
-                  key: "Container_839ykx25",
+                  key: "Container_se4ybds2",
                   type: "Container",
                   path: "BottomNavigation.children[0].children[0].children[8]",
                   name: "NavProfileOn",
@@ -341,19 +341,19 @@ abstract final class BottomNavigationWidgets {
                   ],
                   children: <ffai.ProjectWidgetHandle>[
                     ffai.ProjectWidgetHandle(
-                      key: "Column_5tmmyubu",
+                      key: "Column_imhymzn0",
                       type: "Column",
                       path: "BottomNavigation.children[0].children[0].children[8].children[0]",
                       name: "Column",
                       children: <ffai.ProjectWidgetHandle>[
                         ffai.ProjectWidgetHandle(
-                          key: "Icon_w09qsies",
-                          type: "Icon",
+                          key: "Container_026hayu7",
+                          type: "Container",
                           path: "BottomNavigation.children[0].children[0].children[8].children[0].children[0]",
-                          name: "Icon",
+                          name: "Icon_profile_forest",
                         ),
                         ffai.ProjectWidgetHandle(
-                          key: "Text_ux08mpq9",
+                          key: "Text_lhmv76xv",
                           type: "Text",
                           path: "BottomNavigation.children[0].children[0].children[8].children[0].children[1]",
                           name: "NavProfileOnLabel",
