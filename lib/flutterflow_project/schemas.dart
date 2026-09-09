@@ -2950,6 +2950,7 @@ abstract final class CustomCode {
     "useFirstLine",
   ];
   static const actions = <String>[
+    "CreateFoodItem",
     "CreateHousehold",
     "LetTapsThroughVideos",
     "WarmImageCache",

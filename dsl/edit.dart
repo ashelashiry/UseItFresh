@@ -153,22 +153,154 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// v3 — give "Clear filters" room.
+/// Add food, made to actually work.
 ///
-/// A Button's own padding lives on FFButton.innerPadding, which the patch API
-/// does not reach, so the label sat hard against both edges.
+/// Three faults, all silent:
+///
+/// 1. The location list had no shrink-wrap inside a Column, so the layout
+///    failed and took the category, the dates and "Add to inventory" with it.
+///    Fixed in the previous push; nothing could be added by hand until then.
+/// 2. The location query was not scoped to a household, so it offered all nine
+///    locations across the three households on this account - three identical
+///    "Fridge" rows with no way to tell them apart.
+/// 3. The insert omitted household_id, which is `not null` with no default. So
+///    even with the button reachable, saving would have thrown, uncaught, and
+///    looked like nothing happening - the same shape as the household bug.
+///
+/// The insert moves into a custom action so a failure can be reported instead
+/// of vanishing, and so the household and the author are set where they cannot
+/// be forgotten.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.inventoryPage, (page) {
-    page.mutateNode(
-      ff.Pages.inventoryPage.widgets.byKey('Button_3nuogwb1').single,
-      (node) {
-        final padding = node.props.ensureButton().ensureInnerPadding()
-          ..type = FFPadding_PaddingType.FF_PADDING_ONLY;
-        padding.ensureLeftValue().inputValue = 22;
-        padding.ensureRightValue().inputValue = 22;
-        padding.ensureTopValue().inputValue = 0;
-        padding.ensureBottomValue().inputValue = 0;
-      },
+  app.customAction(
+    'CreateFoodItem',
+    args: {
+      'name': string,
+      'category': string,
+      'locationId': string,
+      'printedDate': dateTime,
+      'printedDateType': string,
+    },
+    returns: string,
+    description:
+        'Adds one food item to the current household. Returns an empty string '
+        'on success, or a message explaining why it failed.',
+    code: r'''
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Adds a food item, and says why if it could not.
+///
+/// household_id is not null in the schema and has no default, so it has to be
+/// supplied here; created_by records who added it. Both come from the session
+/// rather than the form, so neither can be left out by a screen that forgets.
+Future<String> createFoodItem(
+  String? name,
+  String? category,
+  String? locationId,
+  DateTime? printedDate,
+  String? printedDateType,
+) async {
+  final trimmed = (name ?? '').trim();
+  if (trimmed.isEmpty) return 'Give it a name first.';
+  if ((locationId ?? '').isEmpty) return 'Choose where it is kept.';
+
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one before adding food.';
+  }
+
+  try {
+    await SupaFlow.client.from('food_items').insert({
+      'household_id': household,
+      'storage_location_id': locationId,
+      'created_by': SupaFlow.client.auth.currentUser?.id,
+      'name': trimmed,
+      if ((category ?? '').isNotEmpty) 'category': category,
+      if (printedDate != null)
+        'printed_date':
+            printedDate.toIso8601String().substring(0, 10),
+      if ((printedDateType ?? '').isNotEmpty)
+        'printed_date_type': printedDateType,
+      'source_type': 'manual',
+    });
+    return '';
+  } on PostgrestException catch (error) {
+    if (error.code == '42501') {
+      return 'Your account is not allowed to add to this household.';
+    }
+    return error.message;
+  } catch (error) {
+    return 'Could not add it. $error';
+  }
+}
+''',
+  );
+
+  // Only this household's locations, ordered as before.
+  //
+  // Two things to know here. The app-state value is referenced by name rather
+  // than through the typed handle, which compiled to an empty `where` clause.
+  // And the output variable is renamed: ensureActions compares the chain it is
+  // given against the one already there and skips work it considers equal, and
+  // it does not appear to weigh the query's filters in that comparison - so a
+  // chain that differed only by a filter was silently left alone.
+  app.editPageOnLoad(ff.Pages.addFoodItemPage, [
+    PostgresQuery(
+      ff.Tables.storageLocations,
+      outputAs: 'householdLocations',
+      query: PostgresQuerySpec(
+        filters: [
+          PostgresFilter(
+            'household_id',
+            relation: PostgresFilterRelation.equalTo,
+            value: AppState('currentHouseholdId'),
+          ),
+        ],
+        orderBys: const [
+          PostgresOrderBy('location_type'),
+          PostgresOrderBy('name'),
+        ],
+      ),
+    ),
+    SetState(
+      ff.Pages.addFoodItemPage.state.locations,
+      const ActionOutput('householdLocations'),
+    ),
+  ]);
+
+  app.editPage(ff.Pages.addFoodItemPage, (page) {
+    page.ensureActions(
+      ff.Pages.addFoodItemPage.widgets.byKey('Button_xp09idpd').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        CallCustomAction.named(
+          'CreateFoodItem',
+          args: {
+            'name': string,
+            'category': string,
+            'locationId': string,
+            'printedDate': dateTime,
+            'printedDateType': string,
+          },
+          returnType: string,
+          arguments: {
+            'name': State(ff.Pages.addFoodItemPage.state.itemName),
+            'category': State(ff.Pages.addFoodItemPage.state.category),
+            'locationId': State(ff.Pages.addFoodItemPage.state.locationId),
+            'printedDate': State(ff.Pages.addFoodItemPage.state.printedDate),
+            'printedDateType':
+                State(ff.Pages.addFoodItemPage.state.printedDateType),
+          },
+          outputAs: 'addOutcome',
+        ),
+        If(
+          Equals(const ActionOutput('addOutcome'), ''),
+          then: [
+            Snackbar('Added to your kitchen.'),
+            NavigateBack(),
+          ],
+          orElse: [Snackbar(const ActionOutput('addOutcome'))],
+        ),
+      ],
     );
   });
 }
