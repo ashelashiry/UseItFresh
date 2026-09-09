@@ -19,6 +19,18 @@ final class ProfilePageParams {
 
 final class ProfilePageState {
   const ProfilePageState();
+  ffai.ProjectStateFieldHandle get households =>
+      const ffai.ProjectStateFieldHandle(
+        name: "households",
+        key: "cqyzxb2m",
+        typeName: "List<PostgresRow>",
+      );
+  ffai.ProjectStateFieldHandle get me =>
+      const ffai.ProjectStateFieldHandle(
+        name: "me",
+        key: "28v6rr7u",
+        typeName: "List<PostgresRow>",
+      );
 }
 
 abstract final class ProfilePageWidgets {
@@ -28,26 +40,10 @@ abstract final class ProfilePageWidgets {
       type: "Scaffold",
       path: "ProfilePage",
       name: "ProfilePage",
+      triggers: const <String>[
+        "ON_INIT_STATE",
+      ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
-        "appBar": <ffai.ProjectWidgetHandle>[
-          ffai.ProjectWidgetHandle(
-            key: "AppBar_6ajwsbt7",
-            type: "AppBar",
-            path: "ProfilePage.appBar[0]",
-            name: "AppBar",
-            slots: <String, List<ffai.ProjectWidgetHandle>>{
-              "title": <ffai.ProjectWidgetHandle>[
-                ffai.ProjectWidgetHandle(
-                  key: "Text_ukkrmjj5",
-                  type: "Text",
-                  path: "ProfilePage.appBar[0].title[0]",
-                  name: "AppBar Title",
-                  text: "Profile",
-                ),
-              ],
-            },
-          ),
-        ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
             key: "Container_mquvfrfw",
@@ -56,98 +52,155 @@ abstract final class ProfilePageWidgets {
             name: "Container",
             children: <ffai.ProjectWidgetHandle>[
               ffai.ProjectWidgetHandle(
-                key: "Column_3lm82oxv",
+                key: "Column_k59nd9hp",
                 type: "Column",
                 path: "ProfilePage.body[0].children[0]",
-                name: "Column",
+                name: "ProfileColumn",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
-                    key: "Text_2stenup7",
+                    key: "Text_1127ahyn",
                     type: "Text",
                     path: "ProfilePage.body[0].children[0].children[0]",
-                    name: "Text",
+                    name: "ProfileHeadline",
+                    text: "Your space.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "ListTile_3jywg52v",
-                    type: "ListTile",
+                    key: "Row_b5rptfl4",
+                    type: "Row",
                     path: "ProfilePage.body[0].children[0].children[1]",
-                    name: "ListTile",
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Button_67ydb1yy",
-                    type: "Button",
-                    path: "ProfilePage.body[0].children[0].children[2]",
-                    name: "EditProfileButton",
-                    text: "Edit profile",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "ListTile_8wgorwfq",
-                    type: "ListTile",
-                    path: "ProfilePage.body[0].children[0].children[3]",
-                    name: "ListTile",
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Button_s1lf9l7y",
-                    type: "Button",
-                    path: "ProfilePage.body[0].children[0].children[4]",
-                    name: "ManageHouseholdButton",
-                    text: "Manage household",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Button_gnxmz0hq",
-                    type: "Button",
-                    path: "ProfilePage.body[0].children[0].children[5]",
-                    name: "ManageStorageLocationsButton",
-                    text: "Storage locations",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Column_6g2xznfv",
-                    type: "Column",
-                    path: "ProfilePage.body[0].children[0].children[6]",
-                    name: "SecuritySection",
+                    name: "ProfileIdentity",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "ListTile_ppddgkki",
-                        type: "ListTile",
-                        path: "ProfilePage.body[0].children[0].children[6].children[0]",
-                        name: "ListTile",
+                        key: "Container_lrqeercs",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[1].children[0]",
+                        name: "ProfileAvatar",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Text_xsk3jrii",
+                            type: "Text",
+                            path: "ProfilePage.body[0].children[0].children[1].children[0].children[0]",
+                            name: "ProfileAvatarLetter",
+                          ),
+                        ],
                       ),
                       ffai.ProjectWidgetHandle(
-                        key: "Button_mrruokm1",
-                        type: "Button",
-                        path: "ProfilePage.body[0].children[0].children[6].children[1]",
-                        name: "ChangePasswordButton",
-                        text: "Change password",
-                        triggers: const <String>[
-                          "ON_TAP",
+                        key: "Column_g3h34dxz",
+                        type: "Column",
+                        path: "ProfilePage.body[0].children[0].children[1].children[1]",
+                        name: "Column",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Text_dpg55zl2",
+                            type: "Text",
+                            path: "ProfilePage.body[0].children[0].children[1].children[1].children[0]",
+                            name: "ProfileName",
+                          ),
+                          ffai.ProjectWidgetHandle(
+                            key: "Text_qg7xk5rt",
+                            type: "Text",
+                            path: "ProfilePage.body[0].children[0].children[1].children[1].children[1]",
+                            name: "ProfileRole",
+                          ),
                         ],
                       ),
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Text_fw04h3g5",
+                    key: "Container_p89i895i",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[2]",
+                    name: "ProfileEdit",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_h53xw5ar",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[2].children[0]",
+                        name: "ProfileEditRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_895szec5",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[3]",
+                    name: "ProfileHousehold",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_zpa30x0u",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[3].children[0]",
+                        name: "ProfileHouseholdRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_2sbghpgj",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[4]",
+                    name: "ProfileStorage",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_e5hs2wlq",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[4].children[0]",
+                        name: "ProfileStorageRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_nm6yylvz",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[5]",
+                    name: "ProfileSecurity",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_a8playwh",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[5].children[0]",
+                        name: "ProfileSecurityRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Text_47tb7tt1",
                     type: "Text",
-                    path: "ProfilePage.body[0].children[0].children[7]",
-                    name: "Text",
+                    path: "ProfilePage.body[0].children[0].children[6]",
+                    name: "ProfileSafetyNote",
                     text: "Use It Fresh provides general food-management guidance, not a guarantee of safety. When in doubt — especially with high-risk food — throw it out and follow local food-safety advice.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Button_s3mj4n1s",
-                    type: "Button",
-                    path: "ProfilePage.body[0].children[0].children[8]",
-                    name: "SignOutButton",
-                    text: "Sign out",
+                    key: "Container_pv4flta3",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[7]",
+                    name: "ProfileSignOut",
                     triggers: const <String>[
                       "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Text_vvxnrys1",
+                        type: "Text",
+                        path: "ProfilePage.body[0].children[0].children[7].children[0]",
+                        name: "ProfileSignOutLabel",
+                        text: "Sign out",
+                      ),
                     ],
                   ),
                 ],

@@ -153,92 +153,22 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// v3 — the badge aligns itself.
+/// v3 — give "Clear filters" room.
 ///
-/// Setting the wrapping container's child alignment never reached the generated
-/// code, so the pill kept filling the stretch column and reading as a banner.
-/// Aligning inside the widget is under our own control and is harmless on the
-/// cards, where the row already sizes it.
-///
-/// `parameters:` is omitted deliberately: passing it drops the dimensions
-/// parameter FlutterFlow injects into every custom widget.
+/// A Button's own padding lives on FFButton.innerPadding, which the patch API
+/// does not reach, so the label sat hard against both edges.
 void buildStarterEditFlow(App app) {
-  app.raw((project) {
-    updateCustomWidget(
-      project,
-      name: 'FoodStatusBadge',
-      code: r'''
-import 'package:flutter/material.dart';
-
-class FoodStatusBadge extends StatelessWidget {
-  const FoodStatusBadge({
-    super.key,
-    this.width,
-    this.height,
-    required this.status,
-    required this.label,
-  });
-
-  final double? width;
-  final double? height;
-  final String? status;
-  final String? label;
-
-  // (foreground, background, icon) per computed status.
-  static const _looks = <String, (Color, Color, IconData)>{
-    'fresh': (Color(0xFF285B34), Color(0xFFEAF3E5), Icons.check_circle_outline),
-    'use_soon': (Color(0xFF79500F), Color(0xFFFFF1D4), Icons.schedule),
-    'use_today': (Color(0xFF934017), Color(0xFFFFEADD), Icons.priority_high),
-    'past_best_before':
-        (Color(0xFF69516E), Color(0xFFF1EAF4), Icons.help_outline),
-    'past_use_by': (Color(0xFFA02929), Color(0xFFFCE8E6), Icons.dangerous_outlined),
-    'frozen': (Color(0xFF275E85), Color(0xFFE7F2FA), Icons.ac_unit),
-    'consumed': (Color(0xFF47594A), Color(0xFFEEF2EC), Icons.done_all),
-    'discarded': (Color(0xFFA02929), Color(0xFFFCE8E6), Icons.delete_outline),
-  };
-
-  static const _unknown =
-      (Color(0xFF59615D), Color(0xFFEDF0ED), Icons.help_outline);
-
-  @override
-  Widget build(BuildContext context) {
-    final look = _looks[status ?? ''] ?? _unknown;
-    final words = (label ?? '').trim();
-    if (words.isEmpty) return const SizedBox.shrink();
-
-    // Align, so a stretched parent does not turn the pill into a banner.
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-        decoration: BoxDecoration(
-          color: look.$2,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(look.$3, size: 13, color: look.$1),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                words,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: look.$1,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-''',
+  app.editPage(ff.Pages.inventoryPage, (page) {
+    page.mutateNode(
+      ff.Pages.inventoryPage.widgets.byKey('Button_3nuogwb1').single,
+      (node) {
+        final padding = node.props.ensureButton().ensureInnerPadding()
+          ..type = FFPadding_PaddingType.FF_PADDING_ONLY;
+        padding.ensureLeftValue().inputValue = 22;
+        padding.ensureRightValue().inputValue = 22;
+        padding.ensureTopValue().inputValue = 0;
+        padding.ensureBottomValue().inputValue = 0;
+      },
     );
   });
 }

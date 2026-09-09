@@ -2937,9 +2937,12 @@ abstract final class CustomCode {
     "hasRows",
     "heroImage",
     "hiLine",
+    "householdRole",
     "itemField",
     "itemPhoto",
     "kitchenCount",
+    "listState",
+    "profileInitial",
     "profileIsImperial",
     "profileName",
     "quantityLabel",
@@ -2953,6 +2956,7 @@ abstract final class CustomCode {
   ];
   static const widgets = <String>[
     "AnimatedRemoteImage",
+    "AppIcon",
     "FoodStatusBadge",
     "FridgeEntrance",
     "LoopingRemoteImage",

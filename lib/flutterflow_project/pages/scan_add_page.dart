@@ -29,25 +29,6 @@ abstract final class ScanAddPageWidgets {
       path: "ScanAddPage",
       name: "ScanAddPage",
       slots: <String, List<ffai.ProjectWidgetHandle>>{
-        "appBar": <ffai.ProjectWidgetHandle>[
-          ffai.ProjectWidgetHandle(
-            key: "AppBar_fuxewsji",
-            type: "AppBar",
-            path: "ScanAddPage.appBar[0]",
-            name: "AppBar",
-            slots: <String, List<ffai.ProjectWidgetHandle>>{
-              "title": <ffai.ProjectWidgetHandle>[
-                ffai.ProjectWidgetHandle(
-                  key: "Text_rgv9lvci",
-                  type: "Text",
-                  path: "ScanAddPage.appBar[0].title[0]",
-                  name: "AppBar Title",
-                  text: "Add food",
-                ),
-              ],
-            },
-          ),
-        ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
             key: "Container_7xfvm3wq",
@@ -56,67 +37,136 @@ abstract final class ScanAddPageWidgets {
             name: "Container",
             children: <ffai.ProjectWidgetHandle>[
               ffai.ProjectWidgetHandle(
-                key: "Column_5mfz9q3e",
+                key: "Column_uwpmhn9p",
                 type: "Column",
                 path: "ScanAddPage.body[0].children[0]",
-                name: "Column",
+                name: "ScanAddColumn",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
-                    key: "Text_onudj8en",
+                    key: "Text_93bjh6n7",
                     type: "Text",
                     path: "ScanAddPage.body[0].children[0].children[0]",
-                    name: "Text",
-                    text: "Five ways to add food. AI capture lands in Phase 3 — manual entry in Phase 2.",
+                    name: "ScanHeadline",
+                    text: "What are we adding?",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Button_qs53ip2g",
-                    type: "Button",
+                    key: "Text_pyqu6bbj",
+                    type: "Text",
                     path: "ScanAddPage.body[0].children[0].children[1]",
-                    name: "ScanItemButton",
-                    text: "Photograph one item",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
+                    name: "ScanLede",
+                    text: "A quick photo, a barcode, or a few words.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Button_es0elad8",
-                    type: "Button",
+                    key: "Container_221th4ru",
+                    type: "Container",
                     path: "ScanAddPage.body[0].children[0].children[2]",
-                    name: "ScanBarcodeButton",
-                    text: "Scan a barcode",
+                    name: "Mode_camera",
                     triggers: const <String>[
                       "ON_TAP",
                     ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_epdnamtk",
+                        type: "Container",
+                        path: "ScanAddPage.body[0].children[0].children[2].children[0]",
+                        name: "Mode_cameraRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Button_9woc6w2b",
-                    type: "Button",
+                    key: "Container_hqur4q94",
+                    type: "Container",
                     path: "ScanAddPage.body[0].children[0].children[3]",
-                    name: "ScanReceiptButton",
-                    text: "Scan a receipt",
+                    name: "Mode_barcode",
                     triggers: const <String>[
                       "ON_TAP",
                     ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_rcqm7fx4",
+                        type: "Container",
+                        path: "ScanAddPage.body[0].children[0].children[3].children[0]",
+                        name: "Mode_barcodeRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Button_yzxqbens",
-                    type: "Button",
+                    key: "Container_g7jwjr0v",
+                    type: "Container",
                     path: "ScanAddPage.body[0].children[0].children[4]",
-                    name: "ScanFridgeButton",
-                    text: "Scan your fridge",
+                    name: "Mode_receipt",
                     triggers: const <String>[
                       "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_t984ljsh",
+                        type: "Container",
+                        path: "ScanAddPage.body[0].children[0].children[4].children[0]",
+                        name: "Mode_receiptRow",
+                        componentName: "MenuRow",
+                      ),
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Button_t3tag9d4",
-                    type: "Button",
+                    key: "Container_u78daphn",
+                    type: "Container",
                     path: "ScanAddPage.body[0].children[0].children[5]",
-                    name: "AddManualButton",
-                    text: "Add manually",
+                    name: "Mode_fridge",
                     triggers: const <String>[
                       "ON_TAP",
                     ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_1eajl0m0",
+                        type: "Container",
+                        path: "ScanAddPage.body[0].children[0].children[5].children[0]",
+                        name: "Mode_fridgeRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_qrmzs15z",
+                    type: "Container",
+                    path: "ScanAddPage.body[0].children[0].children[6]",
+                    name: "Mode_manual",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_ogceshjv",
+                        type: "Container",
+                        path: "ScanAddPage.body[0].children[0].children[6].children[0]",
+                        name: "Mode_manualRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_2in9cemq",
+                    type: "Container",
+                    path: "ScanAddPage.body[0].children[0].children[7]",
+                    name: "ScanReassurance",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Text_obbncl68",
+                        type: "Text",
+                        path: "ScanAddPage.body[0].children[0].children[7].children[0]",
+                        name: "ScanReassuranceText",
+                        text: "You'll review every suggestion before anything is added.",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Text_lddb5xy5",
+                    type: "Text",
+                    path: "ScanAddPage.body[0].children[0].children[8]",
+                    name: "ScanSmallPrint",
+                    text: "Only scan food and packaging you want to add.",
                   ),
                 ],
               ),
