@@ -64,48 +64,73 @@ abstract final class HouseholdSetupPageWidgets {
                 name: "Column",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
+                    key: "Row_5mqcka6r",
+                    type: "Row",
+                    path: "HouseholdSetupPage.body[0].children[0].children[0]",
+                    name: "HouseholdBackRow",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_7lq8by7w",
+                        type: "Container",
+                        path: "HouseholdSetupPage.body[0].children[0].children[0].children[0]",
+                        name: "HouseholdBack",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Icon_tm47vopa",
+                            type: "Icon",
+                            path: "HouseholdSetupPage.body[0].children[0].children[0].children[0].children[0]",
+                            name: "Icon",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "Text_evhk120h",
                     type: "Text",
-                    path: "HouseholdSetupPage.body[0].children[0].children[0]",
+                    path: "HouseholdSetupPage.body[0].children[0].children[1]",
                     name: "Text",
                     text: "Your household.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_rjw3nhre",
                     type: "Container",
-                    path: "HouseholdSetupPage.body[0].children[0].children[1]",
+                    path: "HouseholdSetupPage.body[0].children[0].children[2]",
                     name: "CurrentHouseholdCard",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_daw44ybq",
                         type: "Column",
-                        path: "HouseholdSetupPage.body[0].children[0].children[1].children[0]",
+                        path: "HouseholdSetupPage.body[0].children[0].children[2].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_qo9kzsbp",
                             type: "Text",
-                            path: "HouseholdSetupPage.body[0].children[0].children[1].children[0].children[0]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[0]",
                             name: "CurrentHouseholdEyebrow",
                             text: "YOUR HOUSEHOLD",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_8892i0cu",
                             type: "Text",
-                            path: "HouseholdSetupPage.body[0].children[0].children[1].children[0].children[1]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[1]",
                             name: "CurrentHouseholdName",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_p60364nb",
                             type: "Text",
-                            path: "HouseholdSetupPage.body[0].children[0].children[1].children[0].children[2]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[2]",
                             name: "CurrentHouseholdHint",
                             text: "Share this code so someone can join you.",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_q5god8h1",
                             type: "Text",
-                            path: "HouseholdSetupPage.body[0].children[0].children[1].children[0].children[3]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[3]",
                             name: "CurrentHouseholdCode",
                           ),
                         ],
@@ -115,26 +140,26 @@ abstract final class HouseholdSetupPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_exwspk68",
                     type: "Container",
-                    path: "HouseholdSetupPage.body[0].children[0].children[2]",
+                    path: "HouseholdSetupPage.body[0].children[0].children[3]",
                     name: "Container",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_pb7l6jb8",
                         type: "Column",
-                        path: "HouseholdSetupPage.body[0].children[0].children[2].children[0]",
+                        path: "HouseholdSetupPage.body[0].children[0].children[3].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_ric2g3cm",
                             type: "Text",
-                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[0]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[3].children[0].children[0]",
                             name: "Text",
                             text: "Create a household",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "TextField_cg0goaa0",
                             type: "TextField",
-                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[1]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[3].children[0].children[1]",
                             name: "HouseholdNameField",
                             text: "Household name",
                             triggers: const <String>[
@@ -144,7 +169,7 @@ abstract final class HouseholdSetupPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_2y0hi6fk",
                             type: "Button",
-                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[2]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[3].children[0].children[2]",
                             name: "CreateHouseholdButton",
                             text: "Create household",
                             triggers: const <String>[
@@ -158,26 +183,26 @@ abstract final class HouseholdSetupPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_ueg1a899",
                     type: "Container",
-                    path: "HouseholdSetupPage.body[0].children[0].children[3]",
+                    path: "HouseholdSetupPage.body[0].children[0].children[4]",
                     name: "Container",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_727faqnq",
                         type: "Column",
-                        path: "HouseholdSetupPage.body[0].children[0].children[3].children[0]",
+                        path: "HouseholdSetupPage.body[0].children[0].children[4].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_7r01imgg",
                             type: "Text",
-                            path: "HouseholdSetupPage.body[0].children[0].children[3].children[0].children[0]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[4].children[0].children[0]",
                             name: "Text",
                             text: "Join with an invite code",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "TextField_pmsdcf3h",
                             type: "TextField",
-                            path: "HouseholdSetupPage.body[0].children[0].children[3].children[0].children[1]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[4].children[0].children[1]",
                             name: "InviteCodeField",
                             text: "Invite code",
                             triggers: const <String>[
@@ -187,7 +212,7 @@ abstract final class HouseholdSetupPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_wnnhah32",
                             type: "Button",
-                            path: "HouseholdSetupPage.body[0].children[0].children[3].children[0].children[2]",
+                            path: "HouseholdSetupPage.body[0].children[0].children[4].children[0].children[2]",
                             name: "JoinHouseholdButton",
                             text: "Join household",
                             triggers: const <String>[

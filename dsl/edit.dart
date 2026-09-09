@@ -153,134 +153,59 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Every household-scoped screen resolves the household itself.
+/// Fields look like the rest of the app.
 ///
-/// The add screen offered no locations at all on a fresh install: its query
-/// filters on `currentHouseholdId`, and that is only set by whichever screen
-/// happens to run first. Open the app and go straight to Scan → Add manually
-/// and there was nothing to choose from — the filter matched an empty string.
+/// Every text field was filled with no fill colour set, so it fell back to a
+/// grey wash while every other surface in v3 is white on a gentle border. The
+/// forms read as a different app from the screens around them.
 ///
-/// Depending on visit order is the bug. Each screen that needs the household
-/// now asks for it first, and `firstHouseholdId` keeps whatever is already held
-/// if it is still valid, so this costs one cheap query and never flips the
-/// household underneath someone.
-///
-/// Home and Inventory get the same treatment. Their queries were not scoped at
-/// all — row security returns every household you belong to, so with more than
-/// one they would mix items from all of them into one kitchen.
-///
-/// The app-state field is referenced through its typed handle. An earlier pass
-/// concluded the handle compiled to an empty `where` clause; that was wrong -
-/// the chain had been skipped wholesale by ensureActions, so the old unfiltered
-/// query was simply still there.
+/// White fill, 1px alternate border, 14px radius — the same treatment as the
+/// cards and rows. The inventory search is left alone: it deliberately has no
+/// border of its own because it sits inside one.
 void buildStarterEditFlow(App app) {
-  final firstHouseholdId = app.customFunction(
-    'firstHouseholdId',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returns: string,
-    description:
-        'Keeps the current household if it is still one you belong to, '
-        'otherwise falls back to the oldest one.',
-    code: r"""
-if (rows == null || rows.isEmpty) return '';
-final ids = rows.map((r) => r.id).toList();
-final held = (current ?? '').trim();
-if (held.isNotEmpty && ids.contains(held)) return held;
-return ids.first;
-""",
-  );
+  const fields = <String, List<String>>{
+    'resetPassword': ['TextField_sybqsats'],
+    'signIn': ['TextField_o2faty06', 'TextField_kadw7ppq'],
+    'signUp': ['TextField_5z7qq1pu', 'TextField_bve20b4b', 'TextField_fys6541l'],
+    'household': ['TextField_cg0goaa0', 'TextField_pmsdcf3h'],
+    'onboarding': ['TextField_w2d30f74'],
+    'updatePassword': ['TextField_julyevbl', 'TextField_6ekzr6it'],
+    'storage': ['TextField_utlynq7w'],
+    'addFood': ['TextField_k6exjii3'],
+  };
+  final pages = <String, dynamic>{
+    'resetPassword': ff.Pages.resetPasswordPage,
+    'signIn': ff.Pages.signInPage,
+    'signUp': ff.Pages.signUpPage,
+    'household': ff.Pages.householdSetupPage,
+    'onboarding': ff.Pages.onboardingPage,
+    'updatePassword': ff.Pages.updatePasswordPage,
+    'storage': ff.Pages.storageLocationsPage,
+    'addFood': ff.Pages.addFoodItemPage,
+  };
 
-  /// The two actions that settle which household a screen is looking at.
-  List<DslAction> resolveHousehold() => [
-        PostgresQuery(
-          ff.Tables.households,
-          outputAs: 'householdsForScope',
-          query: PostgresQuerySpec(
-            orderBys: const [PostgresOrderBy('created_at')],
-          ),
-        ),
-        UpdateAppState.set(
-          ff.AppState.currentHouseholdId,
-          CustomFunction(firstHouseholdId, args: {
-            'rows': const ActionOutput('householdsForScope'),
-            'current': AppState(ff.AppState.currentHouseholdId),
-          }),
-        ),
-      ];
-
-  PostgresFilter thisHousehold(String column) => PostgresFilter(
-        column,
-        relation: PostgresFilterRelation.equalTo,
-        value: AppState(ff.AppState.currentHouseholdId),
-      );
-
-  // ---- Add food: locations for this household only ------------------------
-  app.editPageOnLoad(ff.Pages.addFoodItemPage, [
-    ...resolveHousehold(),
-    PostgresQuery(
-      ff.Tables.storageLocations,
-      outputAs: 'locationsForHousehold',
-      query: PostgresQuerySpec(
-        filters: [thisHousehold('household_id')],
-        orderBys: const [
-          PostgresOrderBy('location_type'),
-          PostgresOrderBy('name'),
-        ],
-      ),
-    ),
-    SetState(
-      ff.Pages.addFoodItemPage.state.locations,
-      const ActionOutput('locationsForHousehold'),
-    ),
-  ]);
-
-  // ---- Inventory: this household's food ----------------------------------
-  app.editPageOnLoad(ff.Pages.inventoryPage, [
-    ...resolveHousehold(),
-    PostgresQuery(
-      ff.Tables.foodItemsStatus,
-      outputAs: 'kitchenForHousehold',
-      query: PostgresQuerySpec(
-        filters: [thisHousehold('household_id')],
-        orderBys: const [
-          PostgresOrderBy('urgency_rank'),
-          PostgresOrderBy('days_left'),
-        ],
-      ),
-    ),
-    SetState(ff.Pages.inventoryPage.state.allItems,
-        const ActionOutput('kitchenForHousehold')),
-    SetState(ff.Pages.inventoryPage.state.items,
-        const ActionOutput('kitchenForHousehold')),
-  ]);
-
-  // ---- Home: the greeting, and what to use first --------------------------
-  app.editPageOnLoad(ff.Pages.homePage, [
-    ...resolveHousehold(),
-    PostgresQuery(
-      ff.Tables.profiles,
-      outputAs: 'profileForHome',
-      query: PostgresQuerySpec(
-        filters: [
-          PostgresFilter('id',
-              relation: PostgresFilterRelation.equalTo,
-              value: const AuthUser(AuthUserField.userId)),
-        ],
-      ),
-    ),
-    SetState(ff.Pages.homePage.state.me, const ActionOutput('profileForHome')),
-    PostgresQuery(
-      ff.Tables.foodItemsStatus,
-      outputAs: 'urgentForHousehold',
-      query: PostgresQuerySpec(
-        filters: [thisHousehold('household_id')],
-        orderBys: const [
-          PostgresOrderBy('urgency_rank'),
-          PostgresOrderBy('days_left'),
-        ],
-      ),
-    ),
-    SetState(ff.Pages.homePage.state.useFirst,
-        const ActionOutput('urgentForHousehold')),
-  ]);
+  fields.forEach((which, keys) {
+    final handle = pages[which];
+    app.editPage(handle, (page) {
+      for (final key in keys) {
+        page.mutateNode(handle.widgets.byKey(key).single, (node) {
+          final decoration =
+              node.props.ensureTextField().ensureInputDecoration();
+          decoration.ensureFilledValue().inputValue = true;
+          decoration.ensureFillColorValue().ensureInputValue().themeColor =
+              FFColor_ThemeColor.SECONDARY_BACKGROUND;
+          decoration.inputBorderType =
+              FFInputDecoration_InputBorderType.outline;
+          decoration.ensureBorderWidthValue().inputValue = 1;
+          decoration.ensureBorderColorValue().ensureInputValue().themeColor =
+              FFColor_ThemeColor.ALTERNATE;
+          decoration.ensureFocusBorderColorValue().ensureInputValue()
+              .themeColor = FFColor_ThemeColor.PRIMARY;
+          final radius = decoration.ensureBorderRadius()
+            ..type = FFBorderRadius_BorderRadiusType.FF_BORDER_RADIUS_ALL;
+          radius.ensureAllValue().inputValue = 14;
+        });
+      }
+    });
+  });
 }

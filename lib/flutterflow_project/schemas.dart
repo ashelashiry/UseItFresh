@@ -2954,6 +2954,7 @@ abstract final class CustomCode {
     "CreateFoodItem",
     "CreateHousehold",
     "LetTapsThroughVideos",
+    "SettleFoodItem",
     "WarmImageCache",
   ];
   static const widgets = <String>[

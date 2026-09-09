@@ -79,3 +79,8 @@ design/*.webp
 !design/Chat GPT/Use-It-Fresh-Visual-v3/tokens.json
 !design/Chat GPT/Use-It-Fresh-Visual-v3/icons/**
 !design/Chat GPT/Use-It-Fresh-Visual-v3/logo/**
+
+# The kitchen icon set, served to the app over jsDelivr alongside the food
+# photography. PNG at 256 so one file covers every size the guide asks for.
+!design/v3/icons/**
+!design/Chat GPT/Use-It-Fresh-Kitchen-Icons/**
