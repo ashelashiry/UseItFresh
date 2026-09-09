@@ -1,61 +1,49 @@
 # Use It Fresh — handover
 
-**Written 9 Sep 2026. Read this before touching anything.**
+**Written 9 Sep 2026, updated 10 Sep. Read this before touching anything.**
 
-Project `fridge-wise-gvpy0s` · branch `main` · git HEAD `4c18ba6` ·
-FlutterFlow at commit `OnSTcWUJlQAw7SSrCFSw`
+Project `fridge-wise-gvpy0s` · branch `main` ·
+FlutterFlow at commit `OKF0DbqxAuEcCjn3ZREM`
 
 ---
 
-## 1. THE BUILD IS BROKEN. Fix this first.
+## 1. The build was broken. It is fixed.
 
-`flutter build web` fails with:
+Fixed 10 Sep, FlutterFlow commit `OKF0DbqxAuEcCjn3ZREM`.
+`flutter build web --release` is green.
+
+**What it was.** The custom action `CreateFoodItem` had an `imageUrl`
+parameter added to its **Dart body** (six parameters) but not to its
+**declared argument list** (five). FlutterFlow generates call sites from the
+declaration, so it emitted a five-argument call against a six-argument
+function: `Too few positional arguments: 6 required, 5 given.`
+
+**The part that made it look harder than it was.** Declaring the argument on
+its own does not validate — the validator refuses a declared custom action
+argument that any call site does not supply:
 
 ```
-Error: Too few positional arguments: 6 required, 5 given.
+Button 'ReviewConfirm' [key: Button_sm2avojh] - Custom action argument "imageUrl" is not specified.
 ```
 
-**Cause.** The custom action `CreateFoodItem` had an `imageUrl` parameter added
-to its **Dart body** (now six parameters) but not to its **declared argument
-list** (still five). FlutterFlow generates call sites from the declaration, so
-it emits a five-argument call against a six-argument function.
+So the declaration and the call-site wiring **must land in the same push**.
+The earlier repair read this as a key problem and replaced all six argument
+keys with fresh ones, which produced the same message six times over and
+looked like orphaned values. It was really the same single rule each time.
 
-**Where:** `generated_code/lib/add_food_review_page/add_food_review_page_widget.dart`,
-the `actions.createFoodItem(...)` call inside the `ReviewConfirm` button.
+Two things worth keeping from the fix:
 
-**The fix, in two steps.**
+- The five live argument keys (`dbf2hnn6`, `r4ku934l`, `rkfhygcw`, `2mwin5p4`,
+  `wgdq4egt`) were preserved untouched. Call-site values are filed under them.
+- The sixth argument was made by `deepCopy()`ing an existing String argument
+  and renaming it, so its data type matches the project's own by construction
+  rather than by a hand-rebuilt `FFDataTypeV2`.
+- `ensureActions` was given a renamed output variable (`savedOutcome`) to
+  force it to replace the chain; an added argument alone is not a difference
+  it acts on.
 
-Step 1 — append the argument to the declaration, *keeping the existing five
-keys exactly as they are*. Their keys are referenced by every existing call
-site's argument values; replacing them orphans those values, which is the trap
-I fell into. The live keys are:
-
-| name | key | type |
-|---|---|---|
-| `name` | `dbf2hnn6` | String |
-| `category` | `r4ku934l` | String |
-| `locationId` | `rkfhygcw` | String |
-| `printedDate` | `2mwin5p4` | DateTime |
-| `printedDateType` | `wgdq4egt` | String |
-
-So: read `findCustomAction(project, name: 'CreateFoodItem').arguments`, keep
-those five untouched, append a sixth `imageUrl` (String, any fresh key), and
-pass the whole list to `updateCustomAction(project, name: 'CreateFoodItem',
-arguments: [...])`.
-
-Step 2 — rewire the review screen's confirm button to pass it. Button key
-`Button_sm2avojh` on `AddFoodReviewPage`; the page already has an `imageUrl`
-param. Use `CallCustomAction.named('CreateFoodItem', args: {...six...},
-arguments: {...'imageUrl': Param('imageUrl')}, outputAs: 'saveOutcome')`,
-followed by the existing `If(Equals(ActionOutput('saveOutcome'), ''), ...)`.
-
-Then `flutter build web` in `generated_code/` and confirm green before anything
-else.
-
-**If you would rather back out than finish:** revert `CreateFoodItem`'s body to
-five parameters (drop `imageUrl` and the `image_url` insert line and set
-`source_type` back to `'manual'`). The photo capture UI on the add form will
-then still work and store nothing, which is a coherent state.
+The DSL that did it is in git at the commit below; `dsl/edit.dart` is
+overwritten every push, so read it from history, not the working copy.
 
 ---
 
@@ -116,27 +104,26 @@ second-guess it in the UI; read `computed_status`, `status_label`,
 
 ## 4. Outstanding, in the order I would take it
 
-1. **Fix the build** (§1).
-2. **Photo capture is built but unverified.** `CaptureFoodPhoto` uploads to
+1. **Photo capture is built but unverified.** `CaptureFoodPhoto` uploads to
    `food-images/<household_id>/<uuid>.jpg` and returns a **one-year signed
    URL**. The bucket is private on purpose. The year is a compromise that needs
    revisiting — storing the path and signing on read is the stricter answer.
    Nobody has yet taken a photo through this flow.
-3. **Barcode → product lookup.** Open Food Facts is free and needs no key.
+2. **Barcode → product lookup.** Open Food Facts is free and needs no key.
    `BarcodeScanner` exists in the DSL but is **native-only**, so scanning needs
    a device build; the lookup itself can be built and tested with typed-in
    barcodes.
-4. **Expiry reminders.** `notification_preferences` exists in the schema and
+3. **Expiry reminders.** `notification_preferences` exists in the schema and
    nothing uses it. Needs push, so needs a device build.
-5. **AI recognition.** Gemini has a first-class FlutterFlow integration. Needs
+4. **AI recognition.** Gemini has a first-class FlutterFlow integration. Needs
    an API key from the owner. Phase 3 in the spec.
-6. **Shopping list.** Table exists, no UI. Cheap, self-contained.
-7. **Recipes.** Still the old empty state, **deliberately** — the guide forbids
+5. **Shopping list.** Table exists, no UI. Cheap, self-contained.
+6. **Recipes.** Still the old empty state, **deliberately** — the guide forbids
    claiming a recipe's ingredients or nutrition from an illustrative photo, so
    it waits on real recipe data.
-8. **Two validator warnings.** The review screen's back button is under the
+7. **Two validator warnings.** The review screen's back button is under the
    recommended tap size; the project's loading indicator is too small.
-9. **Large-text accessibility is unverified.** Flutter's text scaling comes from
+8. **Large-text accessibility is unverified.** Flutter's text scaling comes from
    the platform, not CSS, so it cannot be emulated against a CanvasKit build in
    headless Chrome. Needs a real device.
 

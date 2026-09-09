@@ -153,47 +153,85 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The permission strings iOS demands before it will hand over a camera.
+/// Declare the photo argument the action body already takes, and pass it.
 ///
-/// None were declared. Without them iOS does not show a prompt — it terminates
-/// the app the moment the camera or photo library is touched, and App Review
-/// rejects the build. So this has to land before any capture work, whichever
-/// way we end up testing on a device.
+/// The body grew a sixth parameter, `imageUrl`, but the declared argument list
+/// stayed at five, so codegen emitted a five-argument call against a
+/// six-argument function and the build stopped.
 ///
-/// The wording says what the app does with the thing it is asking for, which
-/// is what review looks for and what a person deserves to be told.
+/// Both halves have to land in the same push: the validator refuses a declared
+/// argument that a call site does not supply, so declaring it alone fails and
+/// wiring it alone has nothing to wire.
+///
+/// The five live arguments are kept EXACTLY as they are — their keys are what
+/// every existing call site's values are filed under, so replacing them
+/// orphans the values. The new one is a deep copy of an existing String
+/// argument, renamed, so its data type is identical in shape to the ones the
+/// project already accepts rather than one reconstructed by hand.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    const reasons = <FFPermissionType, String>{
-      FFPermissionType.CAMERA:
-          'Use It Fresh uses the camera to photograph food and scan barcodes, '
-              'so you can add what you have without typing it.',
-      FFPermissionType.PHOTO_LIBRARY:
-          'Use It Fresh reads photos you choose, so you can add food from a '
-              'picture you already took.',
-      FFPermissionType.NOTIFICATIONS:
-          'Use It Fresh sends reminders before food needs using, so less of it '
-              'gets thrown away.',
-    };
+    final action = findCustomAction(project, name: 'CreateFoodItem');
+    if (action == null) throw StateError('CreateFoodItem is missing.');
 
-    final settings = project.appSettings.ensurePermissionsSettings();
-
-    reasons.forEach((type, reason) {
-      // Replace rather than append, so re-running does not stack duplicates.
-      settings.permissionMessages
-          .removeWhere((m) => m.permissionType == type);
-      settings.permissionMessages.add(
-        FFPermissionsSettings_PermissionMessage(
-          permissionType: type,
-          message: FFText(
-            textValue: FFStringValue(inputValue: reason),
-          ),
-        ),
-      );
-    });
-
-    for (final m in settings.permissionMessages) {
-      print('${m.permissionType.name}: ${m.message.textValue.inputValue}');
+    final existing = action.arguments.toList();
+    if (existing.any((p) => p.identifier.name == 'imageUrl')) {
+      print('imageUrl is already declared; leaving the arguments alone.');
+      return;
     }
+
+    final template =
+        existing.firstWhere((p) => p.identifier.name == 'category');
+    final imageUrl = template.deepCopy();
+    imageUrl.ensureIdentifier()
+      ..name = 'imageUrl'
+      ..key = 'imgurlkey';
+
+    updateCustomAction(
+      project,
+      name: 'CreateFoodItem',
+      arguments: [...existing, imageUrl],
+    );
+  });
+
+  // The confirm button hands the photo over with everything else. The output
+  // variable is renamed because ensureActions leaves a chain alone when it
+  // judges it equal to the one already there, and an added argument is not
+  // enough of a difference on its own.
+  app.editPage(ff.Pages.addFoodReviewPage, (page) {
+    page.ensureActions(
+      ff.Pages.addFoodReviewPage.widgets.byKey('Button_sm2avojh').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        CallCustomAction.named(
+          'CreateFoodItem',
+          args: {
+            'name': string,
+            'category': string,
+            'locationId': string,
+            'printedDate': dateTime,
+            'printedDateType': string,
+            'imageUrl': string,
+          },
+          returnType: string,
+          arguments: {
+            'name': Param('name'),
+            'category': Param('category'),
+            'locationId': Param('locationId'),
+            'printedDate': Param('printedDate'),
+            'printedDateType': Param('printedDateType'),
+            'imageUrl': Param('imageUrl'),
+          },
+          outputAs: 'savedOutcome',
+        ),
+        If(
+          Equals(const ActionOutput('savedOutcome'), ''),
+          then: [
+            Snackbar('Added to your kitchen.'),
+            Navigate(ff.Pages.inventoryPage),
+          ],
+          orElse: [Snackbar(const ActionOutput('savedOutcome'))],
+        ),
+      ],
+    );
   });
 }
