@@ -50,25 +50,6 @@ abstract final class HouseholdSetupPageWidgets {
         "ON_INIT_STATE",
       ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
-        "appBar": <ffai.ProjectWidgetHandle>[
-          ffai.ProjectWidgetHandle(
-            key: "AppBar_ba1jxr92",
-            type: "AppBar",
-            path: "HouseholdSetupPage.appBar[0]",
-            name: "AppBar",
-            slots: <String, List<ffai.ProjectWidgetHandle>>{
-              "title": <ffai.ProjectWidgetHandle>[
-                ffai.ProjectWidgetHandle(
-                  key: "Text_623b3cbj",
-                  type: "Text",
-                  path: "HouseholdSetupPage.appBar[0].title[0]",
-                  name: "AppBar Title",
-                  text: "Your household",
-                ),
-              ],
-            },
-          ),
-        ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
             key: "Container_x7z8gm24",
@@ -87,7 +68,7 @@ abstract final class HouseholdSetupPageWidgets {
                     type: "Text",
                     path: "HouseholdSetupPage.body[0].children[0].children[0]",
                     name: "Text",
-                    text: "A household is the shared space where your fridge, freezer, and pantry live. Create one, or join your family’s.",
+                    text: "Your household.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_rjw3nhre",

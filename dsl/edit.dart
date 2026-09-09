@@ -153,31 +153,134 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The review step's back button should be a button, not a bar.
+/// Every household-scoped screen resolves the household itself.
 ///
-/// It sits in a stretch column, so it spread the full width. A start-aligned
-/// row lets it keep its 40px circle.
+/// The add screen offered no locations at all on a fresh install: its query
+/// filters on `currentHouseholdId`, and that is only set by whichever screen
+/// happens to run first. Open the app and go straight to Scan → Add manually
+/// and there was nothing to choose from — the filter matched an empty string.
+///
+/// Depending on visit order is the bug. Each screen that needs the household
+/// now asks for it first, and `firstHouseholdId` keeps whatever is already held
+/// if it is still valid, so this costs one cheap query and never flips the
+/// household underneath someone.
+///
+/// Home and Inventory get the same treatment. Their queries were not scoped at
+/// all — row security returns every household you belong to, so with more than
+/// one they would mix items from all of them into one kitchen.
+///
+/// The app-state field is referenced through its typed handle. An earlier pass
+/// concluded the handle compiled to an empty `where` clause; that was wrong -
+/// the chain had been skipped wholesale by ensureActions, so the old unfiltered
+/// query was simply still there.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.addFoodReviewPage, (page) {
-    page.ensureReplaced(
-      ff.Pages.addFoodReviewPage.widgets.byKey('Container_369hw7v6').single,
-      Row(
-        name: 'ReviewBackRow',
-        mainAxis: MainAxis.start,
-        children: [
-          Container(
-            name: 'ReviewBack',
-            onTap: [NavigateBack()],
-            width: 40,
-            height: 40,
-            color: Colors.secondaryBackground,
-            borderColor: Colors.alternate,
-            borderWidth: 1,
-            borderRadius: 999,
-            child: Icon('arrow_back', size: 20, color: Colors.primaryText),
+  final firstHouseholdId = app.customFunction(
+    'firstHouseholdId',
+    args: {'rows': listOf(ff.Tables.households), 'current': string},
+    returns: string,
+    description:
+        'Keeps the current household if it is still one you belong to, '
+        'otherwise falls back to the oldest one.',
+    code: r"""
+if (rows == null || rows.isEmpty) return '';
+final ids = rows.map((r) => r.id).toList();
+final held = (current ?? '').trim();
+if (held.isNotEmpty && ids.contains(held)) return held;
+return ids.first;
+""",
+  );
+
+  /// The two actions that settle which household a screen is looking at.
+  List<DslAction> resolveHousehold() => [
+        PostgresQuery(
+          ff.Tables.households,
+          outputAs: 'householdsForScope',
+          query: PostgresQuerySpec(
+            orderBys: const [PostgresOrderBy('created_at')],
           ),
+        ),
+        UpdateAppState.set(
+          ff.AppState.currentHouseholdId,
+          CustomFunction(firstHouseholdId, args: {
+            'rows': const ActionOutput('householdsForScope'),
+            'current': AppState(ff.AppState.currentHouseholdId),
+          }),
+        ),
+      ];
+
+  PostgresFilter thisHousehold(String column) => PostgresFilter(
+        column,
+        relation: PostgresFilterRelation.equalTo,
+        value: AppState(ff.AppState.currentHouseholdId),
+      );
+
+  // ---- Add food: locations for this household only ------------------------
+  app.editPageOnLoad(ff.Pages.addFoodItemPage, [
+    ...resolveHousehold(),
+    PostgresQuery(
+      ff.Tables.storageLocations,
+      outputAs: 'locationsForHousehold',
+      query: PostgresQuerySpec(
+        filters: [thisHousehold('household_id')],
+        orderBys: const [
+          PostgresOrderBy('location_type'),
+          PostgresOrderBy('name'),
         ],
       ),
-    );
-  });
+    ),
+    SetState(
+      ff.Pages.addFoodItemPage.state.locations,
+      const ActionOutput('locationsForHousehold'),
+    ),
+  ]);
+
+  // ---- Inventory: this household's food ----------------------------------
+  app.editPageOnLoad(ff.Pages.inventoryPage, [
+    ...resolveHousehold(),
+    PostgresQuery(
+      ff.Tables.foodItemsStatus,
+      outputAs: 'kitchenForHousehold',
+      query: PostgresQuerySpec(
+        filters: [thisHousehold('household_id')],
+        orderBys: const [
+          PostgresOrderBy('urgency_rank'),
+          PostgresOrderBy('days_left'),
+        ],
+      ),
+    ),
+    SetState(ff.Pages.inventoryPage.state.allItems,
+        const ActionOutput('kitchenForHousehold')),
+    SetState(ff.Pages.inventoryPage.state.items,
+        const ActionOutput('kitchenForHousehold')),
+  ]);
+
+  // ---- Home: the greeting, and what to use first --------------------------
+  app.editPageOnLoad(ff.Pages.homePage, [
+    ...resolveHousehold(),
+    PostgresQuery(
+      ff.Tables.profiles,
+      outputAs: 'profileForHome',
+      query: PostgresQuerySpec(
+        filters: [
+          PostgresFilter('id',
+              relation: PostgresFilterRelation.equalTo,
+              value: const AuthUser(AuthUserField.userId)),
+        ],
+      ),
+    ),
+    SetState(ff.Pages.homePage.state.me, const ActionOutput('profileForHome')),
+    PostgresQuery(
+      ff.Tables.foodItemsStatus,
+      outputAs: 'urgentForHousehold',
+      query: PostgresQuerySpec(
+        filters: [thisHousehold('household_id')],
+        orderBys: const [
+          PostgresOrderBy('urgency_rank'),
+          PostgresOrderBy('days_left'),
+        ],
+      ),
+    ),
+    SetState(ff.Pages.homePage.state.useFirst,
+        const ActionOutput('urgentForHousehold')),
+  ]);
 }
