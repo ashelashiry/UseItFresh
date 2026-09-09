@@ -267,13 +267,13 @@ abstract final class InventoryPageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "GridView_0tntwxzc",
+                    key: "GridView_elxnrddg",
                     type: "GridView",
                     path: "InventoryPage.body[0].children[0].children[4]",
                     name: "InventoryGrid",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Container_9hdizcv6",
+                        key: "Container_j90wwotm",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[4].children[0]",
                         name: "InventoryCard",

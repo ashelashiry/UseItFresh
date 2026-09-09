@@ -531,17 +531,16 @@
 
   <header class="masthead">
     <div>
-      <p class="eyebrow">Build status &middot; prioritised for review</p>
+      <p class="eyebrow">Build status &middot; visual direction v3</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Screen Guide v2 is being implemented. Section 2 is the ordered list of work
-      and the reasoning behind the order &mdash; that is the part to review. Only one thing needs
-      you, and it is not blocking.</p>
+      <p class="sub">Tier 1 is done and tagged. The navigation is done. Home and Inventory are
+      rebuilt to v3 and live on localhost:8080. Section 3 is what remains, in order.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
-      commit <b>NJABtIEdmsRLY0Av0R6E</b><br>
-      guide <b>Screen Guide v2</b><br>
-      updated <b>8 Sep 2026</b>
+      commit <b>syj2ZvjpnROtitGgpA3M</b><br>
+      tag <b>v3-home-inventory</b><br>
+      updated <b>9 Sep 2026</b>
     </div>
   </header>
 
@@ -551,185 +550,191 @@
       <div class="v">0</div>
       <div class="n">building uninterrupted</div>
     </div>
+    <div class="tile is-good">
+      <span class="k">Tier 1</span>
+      <div class="v">3 / 3</div>
+      <div class="n">done, verified, tagged</div>
+    </div>
+    <div class="tile is-warn">
+      <span class="k">v3 screens</span>
+      <div class="v">2 / 6</div>
+      <div class="n">Home and Inventory</div>
+    </div>
     <div class="tile is-warn">
       <span class="k">Needs you eventually</span>
-      <div class="v">1</div>
-      <div class="n">Google &amp; Apple credentials</div>
-    </div>
-    <div class="tile is-good">
-      <span class="k">Guide progress</span>
-      <div class="v">2 / 9</div>
-      <div class="n">theme and Home done</div>
-    </div>
-    <div class="tile is-block">
-      <span class="k">Known broken</span>
-      <div class="v">3</div>
-      <div class="n">all small, all first in the queue</div>
+      <div class="v">2</div>
+      <div class="n">credentials &middot; test data call</div>
     </div>
   </div>
 
-  <!-- ================= 01 · NEEDS YOU ================= -->
+  <!-- ================= 01 · SEE IT ================= -->
   <section>
-    <h2><span class="idx">01</span> The one thing that needs you</h2>
-    <p class="lede">Not urgent and not blocking &mdash; email sign-in works, and everything in
-    section 2 proceeds without it. But it has a long tail (Apple review, real devices), so the
-    earlier it starts the better.</p>
-
-    <div class="todo">
-      <div class="job later">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>Google and Apple sign-in credentials <span class="mins">~50 min, once</span></h3>
-          <p class="why">These go together: if you offer Google on iPhone, Apple's review rules
-          require Apple sign-in too. The full step-by-step is unchanged from the last board &mdash;
-          Google Cloud Console &rarr; Web client, then Supabase &rarr; Providers; Apple Developer
-          &rarr; Services ID + Key, then Supabase. You have done both before on Spot a Paw, on this
-          same Supabase setup.</p>
-          <div class="note"><b>Do the Web client only.</b> Android needs a keystore SHA-1 that does
-          not exist yet and iOS needs the app registered with Apple &mdash; both belong at release.</div>
-          <div class="note warn"><b>Secrets rule, unchanged.</b> Client <b>IDs</b>, Services ID,
-          Team ID and Key ID are safe to send me. The Google client <b>secret</b>, the Apple
-          <span class="path">.p8</span> file, the service-role key and the database password go into
-          Supabase and nowhere else &mdash; never into the app, a message, or the repo.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= 02 · THE BACKLOG ================= -->
-  <section>
-    <h2><span class="idx">02</span> The work, in the order I would do it</h2>
-    <p class="lede">Four tiers. The ordering principle is simple: fix what is <b>broken</b> before
-    what is <b>unfinished</b>, do what appears on <b>every screen</b> before what appears on one,
-    and build the <b>shared pieces</b> before the screens that need them. Tell me a different order
-    and I will follow it &mdash; or say "go" and I will work straight down this list.</p>
-
-    <h3 style="font-family:var(--f-display);font-size:16px;margin:26px 0 4px">Tier 1 &mdash; broken things</h3>
-    <p class="lede" style="margin-bottom:14px">Three real faults found by driving the app, not by
-    reading code. All small. Doing them first costs about half a day and stops the app lying to you
-    while you review the redesign.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
-        <tbody>
-          <tr><td class="id">1</td><td><b>Storage locations shows nothing</b><span class="why">Your household has Fridge, Freezer and Pantry in the database &mdash; the trigger created them when the household was created &mdash; but the screen lists none. Either the query is not running or it is not filtered to the right household.</span></td><td class="c"><span class="size s-s">S</span></td><td>The screen is simply broken, and it is the one place storage is managed.</td></tr>
-          <tr><td class="id">2</td><td><b>"Manage household" opens the create form</b><span class="why">A member who already has a household is offered only "Create a household" and "Join with an invite code". It should show the household they are in: name, members, invite code.</span></td><td class="c"><span class="size s-m">M</span></td><td>Sends an existing user down a dead end. The guide calls this out explicitly.</td></tr>
-          <tr><td class="id">3</td><td><b>Profile setup opens empty</b><span class="why">The name field does not load the name already saved, so returning to change units silently costs you your name unless you retype it.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Quiet data loss, and a very cheap fix.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 style="font-family:var(--f-display);font-size:16px;margin:32px 0 4px">Tier 2 &mdash; everywhere at once</h3>
-    <p class="lede" style="margin-bottom:14px">These two change every screen in the app, including
-    ones not yet rebuilt. Doing them before the screen work means each screen is built once, not
-    restyled twice.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
-        <tbody>
-          <tr><td class="id">4</td><td><b>Bottom navigation to the guide</b><span class="why">White surface with a subtle top border, forest active icon and text on a pale selected background, labels always visible, and the centre Scan/Add as a 56px forest rounded square. Bottom safe-area padding and large tap targets.</span></td><td class="c"><span class="size s-m">M</span></td><td>It is on every main screen and it is currently the most visible deviation from the guide.</td></tr>
-          <tr><td class="id">5</td><td><b>The shared components</b><span class="why">PageHeader, MenuRow, LabelledField, PrimaryButton, SecondaryButton, FoodRow, FoodStatusBadge, SetupPrompt. EmptyKitchenPanel is already done and already shared by Home, Inventory and Recipes.</span></td><td class="c"><span class="size s-m">M</span></td><td>Jobs 6&ndash;10 are each mostly an assembly of these. Building them first is what makes the rest fast and consistent.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 style="font-family:var(--f-display);font-size:16px;margin:32px 0 4px">Tier 3 &mdash; screen by screen</h3>
-    <p class="lede" style="margin-bottom:14px">The guide's own order, with one change: Household
-    moves up, because tier&nbsp;1 job&nbsp;2 lands in the same screen and doing them together is one
-    piece of work rather than two.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
-        <tbody>
-          <tr><td class="id">6</td><td><b>Inventory</b><span class="why">Title with a real item count, search, then All / Fridge / Freezer / Pantry / Use first chips. Two distinct empty states &mdash; "no matching items" with Clear filters, versus an empty kitchen with Add your first item. A restrained loading state and a real retry state on error.</span></td><td class="c"><span class="size s-m">M</span></td><td>The guide pairs it with Home, and it is the screen people live in once there is food.</td></tr>
-          <tr><td class="id">7</td><td><b>Household</b><span class="why">Segmented Create / Join with only the selected form shown, persistent labels, helper text, one primary button. On success show the real household and its members; on failure keep what was typed and say what went wrong. Existing members see details, not the creation form.</span></td><td class="c"><span class="size s-m">M</span></td><td>Same screen as job 2. Creating a household already works and already reports failures properly.</td></tr>
-          <tr><td class="id">8</td><td><b>Add food</b><span class="why">Five full-width selectable rows &mdash; Item photo, Barcode, Receipt, Fridge photo, Add manually &mdash; each with one icon, a title, a short purpose and a chevron. Today it is five narrow outline buttons, which the guide explicitly rules out.</span></td><td class="c"><span class="size s-s">S</span></td><td>Mostly MenuRow from job 5, so it is quick once that exists.</td></tr>
-          <tr><td class="id">9</td><td><b>Profile setup</b><span class="why">Ordinary back header, clear title, persistent field label, full-width Save profile. Inline errors under the field rather than a toast alone.</span></td><td class="c"><span class="size s-s">S</span></td><td>Finishes the screen job 3 repairs.</td></tr>
-          <tr><td class="id">10</td><td><b>Profile</b><span class="why">Display name and household role at the top instead of the email address. Generous single-action rows, grouped: profile, household, shopping, reminders, privacy. Sign out at the bottom. Remove the duplicated pattern where a heading row is followed by a second small button doing the same thing.</span></td><td class="c"><span class="size s-m">M</span></td><td>The densest screen and the one furthest from the guide, but nothing else depends on it.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 style="font-family:var(--f-display);font-size:16px;margin:32px 0 4px">Tier 4 &mdash; after the redesign lands</h3>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
-        <tbody>
-          <tr><td class="id">11</td><td><b>Review step before food saves</b><span class="why">A confirm step between entering an item and writing it, per the spec's rule that adding stays short but never silent.</span></td><td class="c"><span class="size s-m">M</span></td><td>Correctness of the core loop &mdash; a wrong date here skews every "use first" answer afterwards. Held until the screens it sits between are settled.</td></tr>
-          <tr><td class="id">12</td><td><b>Clear the console 404s</b><span class="why">A missing <span class="path">manifest.json</span> and a missing <span class="path">app-icon-512.png</span>. Harmless in themselves.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>They are the only red in the console, so they bury anything real that appears next to them.</td></tr>
-          <tr><td class="id">13</td><td><b>Real Google and Apple buttons</b><span class="why">Swap the stand-in marks for the official assets and wire both providers.</span></td><td class="c"><span class="size s-s">S</span></td><td>Waits on section 1.</td></tr>
-          <tr><td class="id">14</td><td><b>Width checks at 390px and 360px</b><span class="why">Screenshots of the same empty account at both widths, plus large-text and keyboard layouts, before calling the redesign done.</span></td><td class="c"><span class="size s-s">S</span></td><td>The guide asks for this as the acceptance gate. Only meaningful once tiers 2 and 3 are in.</td></tr>
-          <tr><td class="id">15</td><td><b>Base of the fridge</b><span class="why">A hard black band where the render's own shadow meets your floor.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic, on a screen people see once.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="note" style="margin-top:18px"><b>My recommendation: do 1&ndash;5 as one block.</b>
-    That is the three broken things, the navigation and the shared components &mdash; roughly a day
-    and a half. It leaves the app with nothing visibly faulty and every screen sitting on the guide's
-    own building blocks, which makes tier 3 mostly assembly. If you would rather see the redesign
-    move faster and accept the three faults staying a while longer, say so and I will lead with
-    4&nbsp;and&nbsp;5.</div>
-  </section>
-
-  <!-- ================= 03 · DONE ================= -->
-  <section>
-    <h2><span class="idx">03</span> Done since the last board</h2>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>What</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr><td><b>Screen Guide v2 &mdash; the theme</b></td><td>Your light palette already carried the guide's exact values; the app was rendering its dark palette instead. Dark mode is now off entirely, so cream is the only theme &mdash; which is what "no dark page backgrounds remain" requires. The entrance stays dark on its own terms, being a photograph rather than a theme. Figtree headings and Nunito body wired, with the guide's scale: 28/32 page title, 18/24 section, 16/24 body, 14/20 supporting.</td></tr>
-          <tr><td><b>Screen Guide v2 &mdash; Home</b></td><td>App bar removed, since the guide asks that ordinary pages say what they are for rather than repeat "Use It Fresh". Now an eyebrow, a time-aware greeting in sentence case, a line of kitchen context, "Use first" as the main section with the sage empty panel, then two generous quick-add choices &mdash; one forest primary, one quiet bordered. The promotional panel is gone: the guide shows none on an account with nothing in it.</td></tr>
-          <tr><td><b>The shared empty panel</b></td><td>EmptyStateCard is now the guide's EmptyKitchenPanel &mdash; sage, generously rounded, roomy, centred. Home, Inventory and Recipes all use it, so all three moved at once.</td></tr>
-          <tr><td><b>Every form dropped the last thing you typed</b></td><td>A two-second delay sat on every text field before it saved its value. Type and tap immediately &mdash; which is what everyone does &mdash; and the app submitted a blank. It broke sign-in and made "Create household" do nothing, silently, with no error either time. Cleared on all 14 fields. This had been mistaken for two unrelated bugs.</td></tr>
-          <tr><td><b>Creating a household works</b></td><td>Confirmed end to end against the database: the household exists and the trigger seeded it correctly &mdash; one member, three storage locations, one shopping list. Failures now report why instead of throwing uncaught and doing nothing.</td></tr>
-          <tr><td><b>Signed in and walked the whole app</b></td><td>Everything behind sign-in had only ever been checked by reading generated code. With the test login I drove the real app in a browser: entrance, sign-in, all five tabs, household setup. Recording in <span class="path">design/Screen Recordings</span>.</td></tr>
-          <tr><td><b>Button contrast, resolved by the theme</b></td><td>White on the dark theme's green measured about 2.4:1, under the 4.5:1 floor. White on the cream theme's forest #07533A is roughly 9.5:1. The theme change fixed it rather than a separate patch.</td></tr>
-          <tr><td><b>The screen kit</b></td><td>Every screen rebuilt as editable HTML and CSS, from the app's own tokens and copy, for redesign work. <a href="https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1">Open the screen kit</a>.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ================= 04 · NOTES ================= -->
-  <section>
-    <h2><span class="idx">04</span> Worth knowing</h2>
+    <h2><span class="idx">01</span> See it</h2>
     <div class="live">
       <a href="http://localhost:8080" target="_blank" rel="noopener">localhost:8080 &mdash; the app</a>
       <a href="https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1" target="_blank" rel="noopener">The screen kit</a>
       <a href="https://github.com/ashelashiry/UseItFresh" target="_blank" rel="noopener">github.com/ashelashiry/UseItFresh</a>
     </div>
     <div class="note" style="margin-top:14px">
-      <b>Hard-refresh first</b> &mdash; Ctrl+Shift+R. The browser caches the old build otherwise, and
-      after a theme change that means you see the old dark one.<br><br>
-      The server now runs from a copy of the build, so it no longer holds the code folder open and no
-      longer has to be stopped every time I push.<br><br>
-      <b>Screen recordings work well as bug reports.</b> Drop them in
-      <span class="path">design/Screen Recordings</span> and I will find the problems myself &mdash; I read
-      the DevTools console in the frames too, which is where most of the signal was last time.
+      <b>Hard-refresh</b> &mdash; Ctrl+Shift+R, or you will get the cached build.<br><br>
+      Sign in, and Home and Inventory are the v3 photographic screens. Everything on them is real
+      data: real names, real quantities, and statuses the database computed from real printed dates.
     </div>
 
-    <h3 style="font-family:var(--f-display);font-size:15px;margin:26px 0 0">Three DSL traps, recorded so they do not recur</h3>
-    <p class="lede" style="margin-top:6px">Each of these produced wrong output silently &mdash; no
-    error, a successful push, and a broken screen. They cost most of the time in the last stage.</p>
+    <div class="todo" style="margin-top:18px">
+      <div class="job soft">
+        <div class="bar"></div>
+        <div class="in">
+          <h3>Five test items are in your household <span class="mins">your call</span></h3>
+          <p class="why">v3 is imagery-led, and the guide forbids the app inventing inventory to
+          fill the design &mdash; so with an empty kitchen there was nothing to show but the empty
+          state. I added <b>Spinach, Mushrooms, Tomatoes, Eggs and Yogurt</b> to Elashiry Home with
+          real printed dates, and let the urgency engine do the rest: Yogurt came out
+          <b>Use soon</b> with one day left, the others <b>Fresh</b>. The hero card says "1 item"
+          because that is genuinely how many need using.</p>
+          <div class="note"><b>Say the word and I will delete all five.</b> They are ordinary
+          inventory rows, added the way the app would add them &mdash; nothing special about them.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 · DONE ================= -->
+  <section>
+    <h2><span class="idx">02</span> Done since the last report</h2>
+
+    <div class="phase">
+      <div class="phase-head">
+        <span class="no">TIER 1</span>
+        <h3>The three broken things</h3>
+        <span class="pill done">Done</span>
+        <span class="rollup">tag tier1-complete</span>
+      </div>
+      <div class="t-scroll">
+        <table>
+          <thead><tr><th>What</th><th>What was actually wrong</th></tr></thead>
+          <tbody>
+            <tr><td><b>Storage locations showed nothing</b></td><td>Not just the list &mdash; the divider, the "Add a location" heading, the field, the dropdown and the button were all missing too. A ListView with no shrink-wrap inside a scroll view asks for unbounded height inside an unbounded parent; the layout fails and everything after it in the column goes with it. The query had been fine the whole time.</td></tr>
+            <tr><td><b>No notion of a current household</b></td><td>Fixing the layout revealed nine locations, three of each, because the account belongs to three households and nothing decided which one you were looking at. Row security was right to return them all &mdash; the app was missing the concept. Added <code>currentHouseholdId</code>, persisted, resolved from your oldest membership. Everything household-scoped can lean on it.</td></tr>
+            <tr><td><b>"Manage household" offered to create one</b></td><td>Now shows the household you are in, with its invite code, and hides the create form. Joining stays available &mdash; belonging to a second household is legitimate.</td></tr>
+            <tr><td><b>Profile setup opened empty</b></td><td>It had no page-load action at all, so returning to change units quietly cost you your name. It now loads the profile and fills both the name and the units box.</td></tr>
+            <tr><td><b>App bar titles unreadable</b></td><td>Left near-white from the dark theme, so they read as pale grey on cream. Fixed across all eleven pushed screens.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head">
+        <span class="no">TIER 2</span>
+        <h3>Navigation, and the shared pieces</h3>
+        <span class="pill done">Done</span>
+      </div>
+      <div class="t-scroll">
+        <table>
+          <thead><tr><th>What</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><b>The bottom navigation</b></td><td>No built-in bar can do all three things the guide asks for together: a label on every tab, a pale selected background, and a filled centre action. The Google bar shows a label only on the active tab; the Flutter bar shows all labels but has no pill and no centre square. So it became a component. White surface with a top border, a label on every tab so colour is never the only indicator, a pale sage pill on the selected tab, and Scan/Add as a permanently filled 56px forest square. Bottom safe area honoured, and because the host owns the tab state, switching tabs cannot re-run the fridge entrance.</td></tr>
+            <tr><td><b>The shared pieces, folded into v3</b></td><td>PageHeader and the empty panel were done under v2; FoodCard and the status badge are done under v3. What remains of the original job 5 is MenuRow and LabelledField, which now belong with the screens that need them &mdash; Profile and the forms.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head">
+        <span class="no">V3</span>
+        <h3>The photographic direction</h3>
+        <span class="pill done">Home &amp; Inventory</span>
+        <span class="rollup">tag v3-home-inventory</span>
+      </div>
+      <div class="t-scroll">
+        <table>
+          <thead><tr><th>What</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><b>Home</b></td><td>"Hi, Ash" over <b>Fresh today.</b>, a <i>Use these next</i> photograph card with a gradient scrim and a real count, then the use-first items as two-column photograph cards. <b>No recipe card</b> &mdash; v3 shows one, but there is no recipe data and the guide is explicit that nothing unsupported by data goes on screen. It goes in when recipes are wired.</td></tr>
+            <tr><td><b>Inventory</b></td><td>"Your kitchen." with a real item count and where things are kept, All / Fridge / Freezer / Pantry chips, and the same photograph cards. The filter moved from status to storage location, which is what those chips mean.</td></tr>
+            <tr><td><b>The food card</b></td><td>A photograph card now: square image, name, worded status pill, quantity. Photography follows the guide's rule &mdash; the person's own photo first, then a clearly illustrative category photograph, then nothing rather than a wrong picture.</td></tr>
+            <tr><td><b>Status badges that mean something</b></td><td>Every pill had been the same green, which is exactly what the guide rules out: Use soon and Use today are different urgencies. Now a custom widget colours itself from the computed status, with an icon and the words alongside &mdash; Fresh green, Use soon amber, Use today orange, and red reserved for past use-by and discarded, because a best-before reminder is a quality matter, not a warning. Status is never taken from the photograph.</td></tr>
+            <tr><td><b>The photography</b></td><td>Six card images resized to 720px WebP, 50&ndash;125KB each, served over jsDelivr so they load instantly. The 16MB PNG masters stayed out of the repo.</td></tr>
+            <tr><td><b>One search control</b></td><td>The Inventory field carried its own outline inside the bordered search container, so the magnifier appeared boxed off from the input.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 03 · WHAT REMAINS ================= -->
+  <section>
+    <h2><span class="idx">03</span> What remains, in order</h2>
+    <p class="lede">v3 sets the order itself: Home and Inventory first (done), then Add/Scan, then
+    the same restraint carried through Recipes, Household and Profile. Say "go" and I work down this
+    list.</p>
+
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Why here</th></tr></thead>
+        <tbody>
+          <tr><td class="id">1</td><td><b>Add and Scan</b><span class="why">A mode chooser, then a real camera feed after consent &mdash; scanning frame, shutter, gallery, flash, Add manually. Photo / Barcode / Receipt stay visible; Fridge photo lives in the chooser. Bottom navigation hides during capture so the shutter is not competing with the centre Scan button, and comes back when capture closes.</span></td><td class="c"><span class="size s-l">L</span></td><td>v3's own next screen, and the app's main verb. The largest piece left: consent, permission-denied, processing, retry, uncertain recognition and a manual fallback all have to work.</td></tr>
+          <tr><td class="id">2</td><td><b>Item details</b><span class="why">Tapping a card opens the item: dates, which kind of date it is, where it came from, storage history and the actions. Printed use-by, printed best-before and app estimates stay distinguishable.</span></td><td class="c"><span class="size s-m">M</span></td><td>The cards are tappable in the design but currently go nowhere, and this is where the honest date information lives.</td></tr>
+          <tr><td class="id">3</td><td><b>Review step before food saves</b><span class="why">A confirm step between entering an item and writing it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Correctness of the core loop &mdash; a wrong date here skews every "use first" answer afterwards. Pairs naturally with job 1's capture flow.</td></tr>
+          <tr><td class="id">4</td><td><b>Empty, loading and error states</b><span class="why">Kitchen-empty with one category image and "Your fresh start."; search-empty with Clear filters; a restrained loading state; a real retry on error; and a fallback when an image will not load.</span></td><td class="c"><span class="size s-m">M</span></td><td>The guide asks for all five and names them as acceptance criteria. Right now an empty kitchen and a failed query look the same.</td></tr>
+          <tr><td class="id">5</td><td><b>Profile and Household to v3</b><span class="why">Calm and short. Display name and household role at the top instead of the email address, generous single-action rows, one primary action per form, persistent labels, clear validation. Photography only where it earns its place.</span></td><td class="c"><span class="size s-m">M</span></td><td>Both work correctly now; this is the visual pass, and it needs MenuRow and LabelledField.</td></tr>
+          <tr><td class="id">6</td><td><b>Recipes</b><span class="why">One useful recipe card with a real title and duration, then the tab itself.</span></td><td class="c"><span class="size s-m">M</span></td><td>Held deliberately: the guide forbids claiming a recipe's ingredients or nutrition from an illustrative photograph, so this waits on real recipe data.</td></tr>
+          <tr><td class="id">7</td><td><b>Width and accessibility checks</b><span class="why">The same account at 390px and 360px, large text, keyboard layouts, safe areas, and image-loading failures.</span></td><td class="c"><span class="size s-s">S</span></td><td>The guide's acceptance gate. Only meaningful once the screens above are in.</td></tr>
+          <tr><td class="id">8</td><td><b>Clear the console 404s</b><span class="why">A missing manifest and a missing app icon.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Harmless, but they are the only red in the console and they bury anything real.</td></tr>
+          <tr><td class="id">9</td><td><b>Real Google and Apple sign-in</b><span class="why">Official assets, both providers wired.</span></td><td class="c"><span class="size s-s">S</span></td><td>Waits on your credentials.</td></tr>
+          <tr><td class="id">10</td><td><b>Base of the fridge</b><span class="why">A hard black band where the render's shadow meets your floor.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic, on a screen people see once.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top:16px"><b>Recommendation: 1 and 2 together.</b> Add/Scan is
+    the app's main verb and item details is where a tapped card should land &mdash; doing them as one
+    piece means the capture flow has somewhere to finish. Then 3 and 4, which complete the loop and
+    make the screens honest about loading and failure. 5 and 6 are visual passes over screens that
+    already work.</div>
+  </section>
+
+  <!-- ================= 04 · NOTES ================= -->
+  <section>
+    <h2><span class="idx">04</span> Worth knowing</h2>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;margin:0 0 6px">One thing that cost real time</h3>
+    <p class="lede">Batching removals with position-sensitive inserts in the DSL is unsafe.
+    Removals shift sibling indices as they apply, so later operations in the same batch hit the wrong
+    nodes. Three passes removed the wrong things; one destroyed the whole use-first section and
+    another overwrote the hero card's contents &mdash; each time with a clean, successful push and no
+    error. I rebuilt Home's children in a single deterministic pass instead, and structural work is
+    now one operation per push.</p>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;margin:24px 0 6px">Other traps, recorded</h3>
     <ul class="plain">
       <li><b>maxLines sets max characters.</b> The patch named <code>maxLines(2)</code> writes
         FlutterFlow's overridden max <i>characters</i>, so the greeting rendered as "Go" and the
-        empty state as "Not". Real line limits live in a different field.</li>
+        empty state as "Not".</li>
       <li><b>Container styling silently no-ops.</b> <code>color</code>, <code>borderRadius</code> and
-        <code>visible</code> apply to Buttons but do nothing on a Container, which made two earlier
-        passes look successful when nothing had changed. Containers have to be set on the node.</li>
-      <li><b>Full width is Infinity, not a percentage.</b> This project expresses a full-width button
-        as pixels&nbsp;=&nbsp;Infinity; a percent-of-parent width is ignored by codegen. Setting a
-        height also clears the width, which is why both quick-add buttons collapsed to hug their
-        labels.</li>
+        <code>visible</code> apply to Buttons but do nothing on a Container, which made two passes
+        look successful when nothing had changed.</li>
+      <li><b>Full width is Infinity, not a percentage.</b> Setting a height also clears the width,
+        which is why both quick-add buttons collapsed to hug their labels.</li>
+      <li><b>No conditional-value expression exists.</b> A container cannot pick its own colours from
+        a condition, so selected states need a rest/selected variant pair &mdash; or a custom widget,
+        which is what the status badge became.</li>
+      <li><b>Newly inserted widgets are not selectable until the next push</b>, and preflight requires
+        every component parameter to be referenced in the tree, so bindings often have to be written
+        inline rather than in a second pass.</li>
     </ul>
+
+    <h3 style="font-family:var(--f-display);font-size:15px;margin:24px 0 6px">How to report problems</h3>
+    <div class="note"><b>Screen recordings work well.</b> Drop them in
+    <span class="path">design/Screen Recordings</span> and I will find the problems myself &mdash; I
+    read the DevTools console in the frames too, which is where most of the signal was last time.</div>
   </section>
 
   <footer>
-    <span>Section 2 is the part to review. Reply with an order, or "go" for the one above.</span>
-    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 8 Sep 2026</span>
+    <span>Section 3 is the part to review. Reply with an order, or "go" for the one above.</span>
+    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 9 Sep 2026</span>
   </footer>
 
 </div>

@@ -14,6 +14,7 @@ final class FoodCardComponentHandle extends ffai.ProjectComponentHandle<FoodCard
         widgets: FoodCardWidgets.tree,
         paramTypes: <String, ffai.DslType>{
           "imageUrl": ffai.string,
+          "itemId": ffai.string,
           "itemName": ffai.string,
           "meta": ffai.string,
           "status": ffai.string,
@@ -25,6 +26,7 @@ final class FoodCardComponentHandle extends ffai.ProjectComponentHandle<FoodCard
     String? name,
     Object? visible,
     Object? imageUrl = ffai.kUnsetComponentArg,
+    Object? itemId = ffai.kUnsetComponentArg,
     Object? itemName = ffai.kUnsetComponentArg,
     Object? meta = ffai.kUnsetComponentArg,
     Object? status = ffai.kUnsetComponentArg,
@@ -35,6 +37,7 @@ final class FoodCardComponentHandle extends ffai.ProjectComponentHandle<FoodCard
       visible: visible,
       paramArgs: <String, Object?>{
         if (!ffai.isUnsetComponentArg(imageUrl)) "imageUrl": imageUrl,
+        if (!ffai.isUnsetComponentArg(itemId)) "itemId": itemId,
         if (!ffai.isUnsetComponentArg(itemName)) "itemName": itemName,
         if (!ffai.isUnsetComponentArg(meta)) "meta": meta,
         if (!ffai.isUnsetComponentArg(status)) "status": status,
@@ -50,6 +53,12 @@ final class FoodCardParams {
       const ffai.ProjectParamHandle(
         name: "imageUrl",
         key: "uzkjvfgk",
+        typeName: "String",
+      );
+  ffai.ProjectParamHandle get itemId =>
+      const ffai.ProjectParamHandle(
+        name: "itemId",
+        key: "e8japd89",
         typeName: "String",
       );
   ffai.ProjectParamHandle get itemName =>
@@ -89,6 +98,9 @@ abstract final class FoodCardWidgets {
       type: "Container",
       path: "FoodCard",
       name: "FoodCard",
+      triggers: const <String>[
+        "ON_TAP",
+      ],
       children: <ffai.ProjectWidgetHandle>[
         ffai.ProjectWidgetHandle(
           key: "Container_tgg5sw2c",

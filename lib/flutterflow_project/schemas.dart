@@ -2937,6 +2937,8 @@ abstract final class CustomCode {
     "hasRows",
     "heroImage",
     "hiLine",
+    "itemField",
+    "itemPhoto",
     "kitchenCount",
     "profileIsImperial",
     "profileName",
