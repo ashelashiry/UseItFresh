@@ -531,25 +531,25 @@
 
   <header class="masthead">
     <div>
-      <p class="eyebrow">Handover &middot; 9 September 2026</p>
+      <p class="eyebrow">Status &middot; 10 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Stopping here for a handover to another agent. One thing is
-      broken and section 1 says exactly how to fix it. Everything else is working and
-      verified in the running app.</p>
+      <p class="sub">The build is fixed and green, and the app has been driven
+      end to end again to prove it. Everything below is verified in the running
+      app, not read off the code.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
-      branch <b>main</b> &middot; git <b>4c18ba6</b><br>
-      FlutterFlow <b>OnSTcWUJlQAw7SSrCFSw</b><br>
+      branch <b>main</b> &middot; git <b>78c4ed5</b><br>
+      FlutterFlow <b>OKF0DbqxAuEcCjn3ZREM</b><br>
       handover <b>HANDOVER.md</b>
     </div>
   </header>
 
   <div class="tiles">
-    <div class="tile is-block">
+    <div class="tile is-good">
       <span class="k">Build</span>
-      <div class="v">Broken</div>
-      <div class="n">one argument mismatch</div>
+      <div class="v">Green</div>
+      <div class="n">web release builds and runs</div>
     </div>
     <div class="tile is-good">
       <span class="k">Screens to v3</span>
@@ -568,39 +568,31 @@
     </div>
   </div>
 
-  <!-- ================= 01 · THE BREAK ================= -->
+  <!-- ================= 01 · THE BREAK, FIXED ================= -->
   <section>
-    <h2><span class="idx">01</span> The build is broken. This is the fix.</h2>
-    <p class="lede">I added an image to the save action's body but not to its declared
-    argument list, and you asked me to stop mid-repair. FlutterFlow generates call sites
-    from the declaration, so it emits a five-argument call against a six-argument
-    function.</p>
+    <h2><span class="idx">01</span> The build is fixed</h2>
+    <p class="lede">The save action's Dart body had grown a sixth parameter for the
+    photo, but its declared argument list still had five. FlutterFlow writes call
+    sites from the declaration, so it emitted a five-argument call against a
+    six-argument function and the web build stopped.</p>
 
-    <div class="todo">
-      <div class="job">
-        <div class="bar"></div>
-        <div class="in">
-          <h3>Finish the photo argument <span class="mins">~15 min</span></h3>
-          <p class="why"><b>The error:</b> <code>Too few positional arguments: 6 required,
-          5 given.</code> in the review screen's confirm button.</p>
-          <p class="why"><b>The trap I hit:</b> when you append the sixth argument you must
-          keep the existing five <b>keys</b> exactly as they are. Every existing call
-          site's values are keyed by them, and replacing them orphans those values. The
-          live keys are in <span class="path">HANDOVER.md</span> section 1.</p>
-          <ol class="steps">
-            <li>Read <code>findCustomAction(project, name: 'CreateFoodItem').arguments</code></li>
-            <li>Keep those five untouched, append <code>imageUrl</code> (String, fresh key)</li>
-            <li>Pass the whole list to <code>updateCustomAction(arguments: [...])</code></li>
-            <li>Rewire button <code>Button_sm2avojh</code> on AddFoodReviewPage to pass
-              <code>Param('imageUrl')</code></li>
-            <li><code>flutter build web</code> and confirm green</li>
-          </ol>
-          <div class="note">Alternatively back it out: drop <code>imageUrl</code> from the
-          action's body and the <code>image_url</code> insert line. The photo capture UI on
-          the form still works and simply stores nothing &mdash; a coherent state.</div>
-        </div>
-      </div>
+    <div class="note">
+      <b>What actually made it stubborn.</b> Declaring the argument on its own does
+      not validate &mdash; FlutterFlow refuses a declared custom action argument that
+      any call site fails to supply. So the declaration and the wiring on the review
+      screen's confirm button had to land in a <b>single push</b>. My earlier attempt
+      read the six identical complaints as six orphaned values and rewrote all the
+      argument keys, which was the wrong diagnosis of the right symptom. The five live
+      keys are now preserved untouched and the sixth was cloned from an existing one
+      so its data type matches by construction.
     </div>
+
+    <p class="lede">Verified rather than assumed: <code>flutter build web --release</code>
+    is green, and the app was driven in a browser through the entrance, sign-in and
+    into the kitchen with the console watched throughout. The only errors left are the
+    two local-export 404s (<code>manifest.json</code>, <code>app-icon-512.png</code>),
+    which are artefacts of serving an exported build rather than defects in the app.
+    <code>localhost:8080</code> is serving the new build.</p>
   </section>
 
   <!-- ================= 02 · WHERE THE HANDOVER IS ================= -->
@@ -608,7 +600,7 @@
     <h2><span class="idx">02</span> Where the handover is</h2>
     <div class="note">
       <b><span class="path">HANDOVER.md</span></b> in the workspace root, committed to
-      <code>main</code>. Nine sections: the break and its fix, how to work on the project,
+      <code>main</code>. Nine sections: the break and how it was fixed, how to work on the project,
       what works, what is outstanding, <b>the DSL traps</b>, the verification harness, data
       and access, the design sources, and how you work.<br><br>
       <b>Section 5 is the one that saves the most time.</b> Sixteen traps in this DSL that
@@ -655,14 +647,13 @@
       <table>
         <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="id">1</td><td><b>Fix the build</b></td><td class="c"><span class="size s-xs">XS</span></td><td>Section 1. Before anything else.</td></tr>
-          <tr><td class="id">2</td><td><b>Verify photo capture</b><span class="why">Uploads to the household's folder and stores a one-year signed URL. The bucket is private on purpose; the year is a compromise that needs revisiting.</span></td><td class="c"><span class="size s-s">S</span></td><td>Built, never exercised.</td></tr>
-          <tr><td class="id">3</td><td><b>Barcode &rarr; product lookup</b><span class="why">Open Food Facts is free and needs no key.</span></td><td class="c"><span class="size s-m">M</span></td><td>The lookup is testable with typed barcodes; scanning needs a device build.</td></tr>
-          <tr><td class="id">4</td><td><b>Expiry reminders</b><span class="why">notification_preferences exists in the schema and nothing uses it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Needs push, so needs a device build.</td></tr>
-          <tr><td class="id">5</td><td><b>AI recognition</b></td><td class="c"><span class="size s-l">L</span></td><td>Gemini integrates first-class. <b>Needs an API key from you.</b></td></tr>
-          <tr><td class="id">6</td><td><b>Shopping list</b><span class="why">Table exists, no UI.</span></td><td class="c"><span class="size s-s">S</span></td><td>Cheap, self-contained, no dependencies.</td></tr>
-          <tr><td class="id">7</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real data.</td></tr>
-          <tr><td class="id">8</td><td><b>Two validator warnings</b><span class="why">The review screen's back button is under the recommended tap size; the loading indicator is too small.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic.</td></tr>
+          <tr><td class="id">1</td><td><b>Verify photo capture</b><span class="why">Uploads to the household's folder and stores a one-year signed URL. The bucket is private on purpose; the year is a compromise that needs revisiting.</span></td><td class="c"><span class="size s-s">S</span></td><td>Built, never exercised.</td></tr>
+          <tr><td class="id">2</td><td><b>Barcode &rarr; product lookup</b><span class="why">Open Food Facts is free and needs no key.</span></td><td class="c"><span class="size s-m">M</span></td><td>The lookup is testable with typed barcodes; scanning needs a device build.</td></tr>
+          <tr><td class="id">3</td><td><b>Expiry reminders</b><span class="why">notification_preferences exists in the schema and nothing uses it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Needs push, so needs a device build.</td></tr>
+          <tr><td class="id">4</td><td><b>AI recognition</b></td><td class="c"><span class="size s-l">L</span></td><td>Gemini integrates first-class. <b>Needs an API key from you.</b></td></tr>
+          <tr><td class="id">5</td><td><b>Shopping list</b><span class="why">Table exists, no UI.</span></td><td class="c"><span class="size s-s">S</span></td><td>Cheap, self-contained, no dependencies.</td></tr>
+          <tr><td class="id">6</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real data.</td></tr>
+          <tr><td class="id">7</td><td><b>Two validator warnings</b><span class="why">The review screen's back button is under the recommended tap size; the loading indicator is too small.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic.</td></tr>
         </tbody>
       </table>
     </div>
@@ -692,7 +683,7 @@
 
   <!-- ================= 06 · TODAY ================= -->
   <section>
-    <h2><span class="idx">06</span> Fixed today, from your test results</h2>
+    <h2><span class="idx">06</span> Fixed 9 Sep, from your test results</h2>
     <p class="lede">Your Word document had five screenshots and no notes, so these were read
     off the images.</p>
     <div class="t-scroll">
@@ -714,7 +705,7 @@
 
   <footer>
     <span>HANDOVER.md in the workspace root has the detail. Section 5 of it is the time-saver.</span>
-    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 9 Sep 2026</span>
+    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 10 Sep 2026</span>
   </footer>
 
 </div>
