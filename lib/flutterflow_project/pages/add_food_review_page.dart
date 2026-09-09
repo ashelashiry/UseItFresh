@@ -21,6 +21,12 @@ final class AddFoodReviewPageParams {
         key: "jm4pq547",
         typeName: "String",
       );
+  ffai.ProjectParamHandle get imageUrl =>
+      const ffai.ProjectParamHandle(
+        name: "imageUrl",
+        key: "8dv2v35s",
+        typeName: "String",
+      );
   ffai.ProjectParamHandle get locationId =>
       const ffai.ProjectParamHandle(
         name: "locationId",

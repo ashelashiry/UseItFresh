@@ -49,6 +49,12 @@ final class AddFoodItemPageState {
         key: "8sc513y2",
         typeName: "List<PostgresRow>",
       );
+  ffai.ProjectStateFieldHandle get photoUrl =>
+      const ffai.ProjectStateFieldHandle(
+        name: "photoUrl",
+        key: "79gro89t",
+        typeName: "String",
+      );
   ffai.ProjectStateFieldHandle get printedDate =>
       const ffai.ProjectStateFieldHandle(
         name: "printedDate",
@@ -107,9 +113,91 @@ abstract final class AddFoodItemPageWidgets {
                 name: "Column",
                 children: <ffai.ProjectWidgetHandle>[
                   ffai.ProjectWidgetHandle(
+                    key: "Column_rr37vtu0",
+                    type: "Column",
+                    path: "AddFoodItemPage.body[0].children[0].children[0]",
+                    name: "ItemPhotoBlock",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_oozlfxww",
+                        type: "Container",
+                        path: "AddFoodItemPage.body[0].children[0].children[0].children[0]",
+                        name: "TakePhotoPrompt",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Column_0fc6z21b",
+                            type: "Column",
+                            path: "AddFoodItemPage.body[0].children[0].children[0].children[0].children[0]",
+                            name: "Column",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_euvu81p3",
+                                type: "Container",
+                                path: "AddFoodItemPage.body[0].children[0].children[0].children[0].children[0].children[0]",
+                                name: "TakePhotoIcon",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_trtmvob9",
+                                type: "Text",
+                                path: "AddFoodItemPage.body[0].children[0].children[0].children[0].children[0].children[1]",
+                                name: "TakePhotoLabel",
+                                text: "Take a photo",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_71xitdco",
+                                type: "Text",
+                                path: "AddFoodItemPage.body[0].children[0].children[0].children[0].children[0].children[2]",
+                                name: "TakePhotoHint",
+                                text: "Optional. It becomes the picture on the card.",
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_yojo0u2x",
+                        type: "Container",
+                        path: "AddFoodItemPage.body[0].children[0].children[0].children[1]",
+                        name: "ItemPhotoTaken",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Image_x4tk3cga",
+                            type: "Image",
+                            path: "AddFoodItemPage.body[0].children[0].children[0].children[1].children[0]",
+                            name: "ItemPhotoPreview",
+                          ),
+                        ],
+                      ),
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_gd6h7gnb",
+                        type: "Container",
+                        path: "AddFoodItemPage.body[0].children[0].children[0].children[2]",
+                        name: "ItemPhotoClearRow",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Text_zvoa7ria",
+                            type: "Text",
+                            path: "AddFoodItemPage.body[0].children[0].children[0].children[2].children[0]",
+                            name: "ItemPhotoClear",
+                            text: "Remove photo",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "TextField_k6exjii3",
                     type: "TextField",
-                    path: "AddFoodItemPage.body[0].children[0].children[0]",
+                    path: "AddFoodItemPage.body[0].children[0].children[1]",
                     name: "ItemNameField",
                     text: "What is it?",
                     triggers: const <String>[
@@ -119,32 +207,32 @@ abstract final class AddFoodItemPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Text_q0c20e4l",
                     type: "Text",
-                    path: "AddFoodItemPage.body[0].children[0].children[1]",
+                    path: "AddFoodItemPage.body[0].children[0].children[2]",
                     name: "LocationHeading",
                     text: "Where is it kept?",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Text_rqno423n",
                     type: "Text",
-                    path: "AddFoodItemPage.body[0].children[0].children[2]",
+                    path: "AddFoodItemPage.body[0].children[0].children[3]",
                     name: "ChosenLocationText",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "ListView_jwll2rtx",
                     type: "ListView",
-                    path: "AddFoodItemPage.body[0].children[0].children[3]",
+                    path: "AddFoodItemPage.body[0].children[0].children[4]",
                     name: "LocationChoiceList",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Container_c21dxi2c",
                         type: "Container",
-                        path: "AddFoodItemPage.body[0].children[0].children[3].children[0]",
+                        path: "AddFoodItemPage.body[0].children[0].children[4].children[0]",
                         name: "LocationChoiceRow",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "ListTile_d0no66fc",
                             type: "ListTile",
-                            path: "AddFoodItemPage.body[0].children[0].children[3].children[0].children[0]",
+                            path: "AddFoodItemPage.body[0].children[0].children[4].children[0].children[0]",
                             name: "ListTile",
                             triggers: const <String>[
                               "ON_TAP",
@@ -157,7 +245,7 @@ abstract final class AddFoodItemPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "DropDown_iefh7jg2",
                     type: "DropDown",
-                    path: "AddFoodItemPage.body[0].children[0].children[4]",
+                    path: "AddFoodItemPage.body[0].children[0].children[5]",
                     name: "CategoryDropdown",
                     triggers: const <String>[
                       "ON_FORM_WIDGET_SELECTED",
@@ -166,14 +254,14 @@ abstract final class AddFoodItemPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Text_nob7id4d",
                     type: "Text",
-                    path: "AddFoodItemPage.body[0].children[0].children[5]",
+                    path: "AddFoodItemPage.body[0].children[0].children[6]",
                     name: "DateHeading",
                     text: "Printed date",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Button_jr7gtiom",
                     type: "Button",
-                    path: "AddFoodItemPage.body[0].children[0].children[6]",
+                    path: "AddFoodItemPage.body[0].children[0].children[7]",
                     name: "PickPrintedDateButton",
                     text: "Pick the date on the pack",
                     triggers: const <String>[
@@ -183,7 +271,7 @@ abstract final class AddFoodItemPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "DropDown_9myymut8",
                     type: "DropDown",
-                    path: "AddFoodItemPage.body[0].children[0].children[7]",
+                    path: "AddFoodItemPage.body[0].children[0].children[8]",
                     name: "DateTypeDropdown",
                     triggers: const <String>[
                       "ON_FORM_WIDGET_SELECTED",
@@ -192,14 +280,14 @@ abstract final class AddFoodItemPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Text_ja49simz",
                     type: "Text",
-                    path: "AddFoodItemPage.body[0].children[0].children[8]",
+                    path: "AddFoodItemPage.body[0].children[0].children[9]",
                     name: "DateTypeHelpText",
                     text: "Use-by is about safety. Best-before is about quality — food is often fine after it, once you have checked.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Button_xp09idpd",
                     type: "Button",
-                    path: "AddFoodItemPage.body[0].children[0].children[9]",
+                    path: "AddFoodItemPage.body[0].children[0].children[10]",
                     name: "SaveFoodItemButton",
                     text: "Review and add",
                     triggers: const <String>[
