@@ -553,12 +553,12 @@
     </div>
     <div class="tile is-good">
       <span class="k">Built today</span>
-      <div class="v">3</div>
-      <div class="n">barcode &middot; shopping list &middot; replace</div>
+      <div class="v">4</div>
+      <div class="n">barcode &middot; list &middot; replace &middot; history</div>
     </div>
     <div class="tile is-good">
       <span class="k">Faults fixed</span>
-      <div class="v">17</div>
+      <div class="v">18</div>
       <div class="n">1 build break &middot; 16 found by driving it</div>
     </div>
     <div class="tile is-warn">
@@ -580,13 +580,9 @@
     which Apple page each of FlutterFlow's four deployment fields comes from,
     in the order they have to be done, plus what must never be sent to me. It
     is a page, not chat, so you never have to scroll back for it.</div>
-    <div class="note warn" style="margin-top:10px"><b>Blocked right now:</b> this
-    machine's DNS client stopped resolving mid-session &mdash;
-    <code>nslookup</code> answers but git, the FlutterFlow CLI and the test
-    harness all fail with "could not resolve host". So <b>10 commits are still
-    waiting to reach GitHub</b>, and the waste-history screen is written but
-    not deployed. A reboot clears it. FlutterFlow's own copy of the app is
-    current and unaffected.</div>
+    <div class="note" style="margin-top:10px"><b>All backed up.</b> GitHub has
+    every commit, and FlutterFlow holds every app change independently. The DNS
+    fault that blocked this earlier is cleared.</div>
   </section>
 
   <!-- ================= 01 · BUILT TODAY ================= -->
@@ -612,6 +608,10 @@
             <td>Add, tick, remove, shared with the household. Bought things stay on the list struck through rather than vanishing — in the aisle the useful question is "has someone already got this?", and an item that disappears cannot answer it.</td>
           </tr>
           <tr>
+            <td><b>What you used</b><span class="why">The payoff for logging every outcome since day one.</span></td>
+            <td>Used up against thrown out over thirty days, which category goes in the bin most, and whether it is better than the month before. <b>No chart</b> &mdash; with a household's worth of data a chart would be four bars pretending to be a trend. It says nothing rather than inventing a pattern: no worst category until three things have gone and one clearly leads, and no month-on-month comparison until there is a month to compare against.</td>
+          </tr>
+          <tr>
             <td><b>Replace what you finish</b><span class="why">This is the loop the app is for.</span></td>
             <td>A toggle on the item screen: <i>Put it on the shopping list</i>. It applies whether you used it up or threw it out — running out of milk is a more common reason to need more than wasting it is. Off by default; nothing is ever added because the app guessed.</td>
           </tr>
@@ -630,6 +630,7 @@
         <thead><tr><th>Fault</th><th>Why it mattered</th></tr></thead>
         <tbody>
           <tr><td><b>A chocolate bar filed as bakery</b></td><td>The category exists only to estimate shelf life, so this would have had the app claim a Mars bar was going off within the week. It now reads 180 days. Caught because the mapping was tested against forty real products.</td></tr>
+          <tr><td><b>A stretching row hid three cards below it</b></td><td>A <code>Row</code> set to stretch inside a <i>scrollable</i> Column has no height to stretch to. It fails layout and takes every sibling after it down with it &mdash; the same family as the shrink-wrap bug that broke two screens before. The values were computed and stored correctly and simply never drawn.</td></tr>
           <tr><td><b>"I used it" only worked when something else had failed</b></td><td>Actions written after a conditional are nested <i>into</i> it. The settle ended up inside a failure branch, so finishing an item did nothing on the ordinary path.</td></tr>
           <tr><td><b>Adding to the shopping list was silently refused</b></td><td>Row security requires the client to supply <code>created_by</code>. Without it every insert was rejected while the screen looked like it had worked.</td></tr>
           <tr><td><b>Two new fields swallowed the first keystroke batch</b></td><td>Every new text field arrives with a two-second debounce, so tapping straight after typing used the previous value. It answered "that does not look like a barcode" about a perfectly good barcode.</td></tr>
