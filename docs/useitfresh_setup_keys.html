@@ -339,9 +339,10 @@
   <header class="masthead">
     <p class="eyebrow">Use It Fresh &middot; 10 September 2026</p>
     <h1>What I need from you</h1>
-    <p class="standfirst">Three tracks. Only the first one is holding anything
-    up. Each says what it unlocks, what it costs, and exactly where the
-    credential goes &mdash; which is never to me.</p>
+    <p class="standfirst">Three tracks. You already have the FlutterFlow plan
+    and the Apple Developer account, so Track A is down to one key. Each track
+    says what it unlocks, what it costs, and exactly where the credential goes
+    &mdash; which is never to me.</p>
   </header>
 
   <div class="rule">
@@ -416,17 +417,14 @@
 
     <div class="track">
       <div class="track-head">
-        <h3>FlutterFlow plan with App Store deployment</h3>
-        <span class="meta">~10 min &middot; paid</span>
+        <h3>FlutterFlow plan &mdash; confirmed, nothing to do</h3>
+        <span class="meta">done</span>
         <p class="unlocks">Unlocks: barcode <b>scanning</b>, push notifications, the native camera, real large-text testing.</p>
       </div>
       <div class="track-body">
-        <ol class="steps">
-          <li>Go to <a href="https://app.flutterflow.io" target="_blank" rel="noopener">app.flutterflow.io</a> &rarr; your avatar &rarr; <b>Account &amp; Billing</b>.</li>
-          <li>Pick a plan that lists <b>mobile deployment</b> / "Deploy to App Store". The free tier cannot produce an iOS build.
-            <span class="hint">Check the current tier names yourself — they change, and I would rather you read the page than trust my memory of it.</span></li>
-          <li>Confirm the project <span class="path">fridge-wise-gvpy0s</span> is under the upgraded account, not a personal one.</li>
-        </ol>
+        <p class="lede">Checked against your Mobile Deployment screen on 10 Sep:
+        <b>Deploy to App Store</b> is live rather than an upgrade prompt, and the
+        credential fields are editable. The plan covers it.</p>
       </div>
     </div>
 
@@ -437,23 +435,50 @@
         <p class="unlocks">Lets FlutterFlow upload builds to TestFlight without a Mac.</p>
       </div>
       <div class="track-body">
+        <p class="lede">FlutterFlow's Mobile Deployment screen asks for four
+        things. Three come from one Apple page; the fourth comes from the app
+        record, which has to exist first. In this order:</p>
         <ol class="steps">
-          <li>Open <a href="https://appstoreconnect.apple.com" target="_blank" rel="noopener">appstoreconnect.apple.com</a> &rarr; <b>Users and Access</b> &rarr; <b>Integrations</b> &rarr; <b>App Store Connect API</b>.</li>
-          <li>Generate a <b>Team key</b> with the <b>App Manager</b> role.
-            <span class="hint">Admin also works. App Manager is the least privilege that can upload builds.</span></li>
-          <li><b>Download the <code>.p8</code> immediately.</b> Apple shows it exactly once and there is no second chance — you would have to revoke and start again.</li>
-          <li>From that same page, note the <b>Key ID</b> and the <b>Issuer ID</b>. Those two are safe to send me if it helps.</li>
-          <li>Register the bundle ID <code>com.useitfresh.app</code> at <a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">developer.apple.com &rarr; Identifiers</a>, then create the matching app record in App Store Connect.
-            <span class="hint">The bundle ID is already set in the project, so it must match exactly.</span></li>
-          <li>In FlutterFlow: <b>Settings &amp; Integrations</b> &rarr; <b>App Settings</b> &rarr; <b>Mobile Deployment</b>. Paste the Key ID and Issuer ID, and upload the <code>.p8</code> there.</li>
+          <li><b>Register the bundle ID.</b> <a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">developer.apple.com &rarr; Identifiers</a> &rarr; new App ID with <code>com.useitfresh.app</code>.
+            <span class="hint">It is already set in the project, so it must match exactly. While you are there, this is also where Sign in with Apple gets enabled if you do Track C later.</span></li>
+          <li><b>Create the app record.</b> <a href="https://appstoreconnect.apple.com/apps" target="_blank" rel="noopener">App Store Connect &rarr; Apps</a> &rarr; <b>+</b> &rarr; New App, using that bundle ID.
+            <span class="hint">This is what produces the numeric App ID FlutterFlow wants — you cannot fill that field before the record exists.</span></li>
+          <li><b>Generate the API key.</b> <b>Users and Access</b> &rarr; <b>Integrations</b> &rarr; <b>App Store Connect API</b> &rarr; generate a <b>Team key</b> with the <b>App Manager</b> role.
+            <span class="hint">App Manager is the least privilege that can upload builds. Admin also works.</span></li>
+          <li><b>Download the <code>.p8</code> straight away.</b> Apple shows it once. Miss it and you revoke and start again.</li>
         </ol>
+
+        <p class="lede" style="margin-top:4px"><b>Then fill FlutterFlow's four fields:</b></p>
+        <div class="t-scroll">
+          <table>
+            <thead><tr><th>Field</th><th>Where it comes from</th></tr></thead>
+            <tbody>
+              <tr><td><b>Issuer ID</b></td><td>Top of the App Store Connect API page. One per team, a long UUID.</td></tr>
+              <tr><td><b>Key ID</b></td><td>The row of the key you just generated.</td></tr>
+              <tr><td><b>Private Key</b></td><td>Upload the <code>.p8</code> here. This is the secret &mdash; it goes nowhere else.</td></tr>
+              <tr><td><b>App ID</b></td><td>The <b>numeric</b> Apple ID of the app record: App Store Connect &rarr; your app &rarr; <b>App Information</b> &rarr; General Information &rarr; Apple ID. <b>Not</b> the bundle ID.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <div class="lands">
           <span class="k">Lands in</span>
-          <span>FlutterFlow only. The <code>.p8</code> never touches the repo — <span class="path">.gitignore</span> already blocks <code>*.p8</code> — and never comes to me.</span>
+          <span>FlutterFlow only. <span class="path">.gitignore</span> already blocks <code>*.p8</code>, so it cannot reach the repo by accident. Send me the Issuer ID and Key ID if useful; never the key itself.</span>
         </div>
+
+        <div class="flag">
+          <span class="k">Seen on your screen</span>
+          <span><b>Build Number is empty.</b> App Version reads 1.0.0 but the build number has no value, and a build without one is rejected on upload. Set it to <code>1</code>, and raise it by one for every upload after that &mdash; App Store Connect refuses a repeated build number even for the same version.</span>
+        </div>
+
+        <div class="flag">
+          <span class="k">Also on that screen</span>
+          <span><b>Privacy Manifest Configurations</b> is worth opening before the first upload. Apple requires declared reasons for certain APIs, and this app touches the camera, the photo library and local storage. A missing manifest is a rejection after the upload, not before.</span>
+        </div>
+
         <div class="flag">
           <span class="k">Before you submit</span>
-          <span>The exported <span class="path">ios/Runner/Info.plist</span> currently has <b>no camera or photo-library usage strings</b>. Without them iOS terminates the app instead of asking permission, and App Review rejects the build. I will check whether FlutterFlow is injecting them at build time as soon as I can reach it — flagging it now because camera is central to the app.</span>
+          <span>The exported <span class="path">ios/Runner/Info.plist</span> currently carries <b>no camera or photo-library usage strings</b>. Without them iOS terminates the app instead of asking permission. FlutterFlow has a <b>Permissions</b> page under Project Setup &mdash; worth checking the camera and photo library entries there have descriptions written. I will verify this properly as soon as I can reach the project.</span>
         </div>
       </div>
     </div>
