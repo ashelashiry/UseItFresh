@@ -339,10 +339,10 @@
   <header class="masthead">
     <p class="eyebrow">Use It Fresh &middot; 10 September 2026</p>
     <h1>What I need from you</h1>
-    <p class="standfirst">Three tracks. You already have the FlutterFlow plan
-    and the Apple Developer account, so Track A is down to one key. Each track
-    says what it unlocks, what it costs, and exactly where the credential goes
-    &mdash; which is never to me.</p>
+    <p class="standfirst">Three tracks, none of them blocking me. You already have
+    the FlutterFlow plan and the Apple Developer account, so Track A is down to
+    a single key. Each track says what it unlocks, what it costs, and exactly
+    where the credential goes &mdash; which is never to me.</p>
   </header>
 
   <div class="rule">
@@ -374,38 +374,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ============ IMMEDIATE ============ -->
-  <section>
-    <h2>First, two minutes on your machine</h2>
-    <p class="lede">Unrelated to keys, but it is blocking me right now.</p>
-    <div class="track">
-      <div class="track-head">
-        <h3>DNS resolution has stopped working</h3>
-        <span class="meta">~2 min</span>
-        <p class="unlocks">Blocks: the GitHub backup, every FlutterFlow push, and all verification.</p>
-      </div>
-      <div class="track-body">
-        <p class="lede"><code>nslookup github.com</code> answers correctly, but
-        every application &mdash; git, the FlutterFlow CLI, the browser
-        harness &mdash; fails with <i>"Could not resolve host"</i>. That is the
-        Windows DNS client, not your connection. It worked earlier this
-        session and stopped mid-way through.</p>
-        <ol class="steps">
-          <li><b>Restart the DNS Client service.</b> In an <b>admin</b>
-            PowerShell: <code>Restart-Service Dnscache -Force</code>
-            <span class="hint">If it refuses, a plain reboot does the same job.</span></li>
-          <li><b>Tell me when it is back.</b> I will push the 9 waiting commits
-            to GitHub and carry on.
-            <span class="hint">Nothing is lost meanwhile — the commits are safe locally, and FlutterFlow already holds every app change.</span></li>
-        </ol>
-        <div class="flag">
-          <span class="k">Note</span>
-          <span>Your GitHub backup currently stops at <span class="path">0b2460e &mdash; "the build is broken"</span>. Everything since, including all four features, is local only until that push lands.</span>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- ============ TRACK A ============ -->
   <section>
@@ -602,7 +570,7 @@
   </section>
 
   <footer>
-    <span>Nothing here blocks me except the DNS fix. I am building the waste-history view meanwhile.</span>
+    <span>Nothing here blocks me &mdash; I keep building while you work through it. Everything is backed up to GitHub and FlutterFlow.</span>
     <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s</span>
   </footer>
 
