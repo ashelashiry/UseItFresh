@@ -153,37 +153,88 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Wire the shopping-list row, now the widget exists to point at.
+/// Unblock the iOS build: MutationObserver has no non-web stub.
 ///
-/// It reports through the same message box the lookup errors use, rather than
-/// a snackbar, because the person is about to scan another packet and a
-/// snackbar would be gone before they looked up. Success says so plainly —
-/// silence after a tap reads as a tap that missed.
+/// letTapsThroughVideos already returns early off the web, but a runtime guard
+/// does not help a COMPILE error. universal_html provides stubs for most of
+/// dart:html so code like this still builds for a device; MutationObserver is
+/// not among them, so the iOS archive died on
+/// "Method not found: 'MutationObserver'".
+///
+/// The observer is dropped rather than replaced. It was belt-and-braces: the
+/// timer sweep below it already re-applies the fix over the first few seconds,
+/// which is the window platform views actually appear in. Everything else in
+/// the action is untouched, so the web behaviour it was written for still
+/// works.
+///
+/// Worth remembering: this is the first custom action in the project to face a
+/// real device compile. Anything reaching for dart:html needs the same look
+/// before the next build.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.barcodeScanPage, (page) {
-    page.ensureActions(
-      ff.Pages.barcodeScanPage.widgets.byKey('Container_d6qcqz43').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: [
-        CallCustomAction.named(
-          'AddNameToShoppingList',
-          args: {'name': string},
-          returnType: string,
-          arguments: {'name': AppState(ff.AppState.scanName)},
-          outputAs: 'listedOutcome',
-        ),
-        If(
-          Equals(ActionOutput('listedOutcome'), ''),
-          then: [
-            SetState(ff.Pages.barcodeScanPage.state.message,
-                'Added to your shopping list.'),
-          ],
-          orElse: [
-            SetState(ff.Pages.barcodeScanPage.state.message,
-                ActionOutput('listedOutcome')),
-          ],
-        ),
-      ],
+  app.raw((project) {
+    updateCustomAction(
+      project,
+      name: 'LetTapsThroughVideos',
+      description:
+          'Stops Flutter video platform views swallowing taps on the web. '
+          'Does nothing on a device, where taps already work.',
+      code: r'''
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:universal_html/html.dart' as html;
+
+/// Stops Flutter's video platform views from swallowing taps on the web.
+///
+/// A Flutter video on the web is a real <video> element the browser stacks on
+/// top of the whole app, and the app's own layer is `pointer-events: none`.
+/// Three elements have to be neutralised, and the third is the one that
+/// matters: the <flt-platform-view-slot> Flutter hides inside a shadow root.
+///
+/// Web only — on iOS and Android the video is a texture inside the widget tree
+/// and taps already work. Safe to call repeatedly.
+Future<void> letTapsThroughVideos() async {
+  if (!kIsWeb) return;
+
+  void kill(html.Element el) =>
+      el.style.setProperty('pointer-events', 'none', 'important');
+
+  void harden() {
+    for (final el in html.document
+        .querySelectorAll('flt-platform-view, flt-platform-view *')) {
+      kill(el);
+    }
+    // The slot lives in a shadow root, out of reach of any stylesheet.
+    for (final host in html.document.querySelectorAll('*')) {
+      final root = host.shadowRoot;
+      if (root == null) continue;
+      for (final el in root.querySelectorAll('flt-platform-view-slot')) {
+        kill(el);
+      }
+    }
+  }
+
+  if (html.document.getElementById('ff-video-pointer-fix') == null) {
+    final style = html.StyleElement()
+      ..id = 'ff-video-pointer-fix'
+      ..text =
+          'flt-platform-view, flt-platform-view * { pointer-events: none !important; }';
+    html.document.head?.append(style);
+  }
+
+  harden();
+  // A platform view appears a frame or two after its widget mounts, and the
+  // opening clip creates a second one when it plays, so re-apply for a while.
+  //
+  // This used to be backed by a MutationObserver as well. universal_html has
+  // no non-web stub for it, so the symbol failed to COMPILE for iOS even
+  // though the kIsWeb guard above meant it could never RUN there. The sweep
+  // covers the same window on its own.
+  for (final ms in const [50, 200, 600, 1200, 2400, 3600]) {
+    Timer(Duration(milliseconds: ms), harden);
+  }
+}
+''',
     );
   });
 }
