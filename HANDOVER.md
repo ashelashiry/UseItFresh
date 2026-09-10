@@ -178,6 +178,41 @@ Every one of these produced a **successful push and a wrong app**.
 - **`Page.setInterceptFileChooserDialog` + `DOM.setFileInputFiles`** is how you
   exercise the camera in the harness. `image_picker` on the web is a file
   input, so this drives the real path right up to the picker itself.
+- **Actions written after an `If` are nested INTO it, not run after it.** A
+  conditional is terminal. `[If(a){x}, y, If(b){z}]` compiles with `y` and the
+  second conditional living inside `if (a)`. Anything that must happen on every
+  path has to be repeated in every branch. This silently made "I used it" work
+  only when an earlier step had failed.
+- **An insert and a key-addressed `ensureActions` cannot share a push.** The
+  insert shifts sibling indices as it applies, so the action chain lands on the
+  newly inserted widget instead of the one you named. Same hazard as batched
+  removals, from the other direction.
+- **A custom function's `code` is the BODY only.** FlutterFlow generates the
+  signature from the declared arguments, so passing a whole declaration nests
+  one function inside another. The outer one falls off its end, returns null,
+  and the screen dies on a null check before painting anything — a grey screen
+  and "Null check operator used on a null value" in the console. Custom
+  **actions** are the opposite: a complete function, imports and all.
+- **Every new text field arrives with a 2000ms debounce.** Tapping a button
+  straight after typing reads the PREVIOUS value. Clear
+  `props.textField.debounceTimeValue.inputValue` on every field you add.
+- **A text field renders from its own controller, not the state behind it.**
+  Setting the state variable leaves the box looking empty; `SetFormField` puts
+  the value where it can be seen.
+- **Output variable names must be unique across widgets**, and every Postgres
+  write action produces one, defaulting to `rows`. Three widgets writing to one
+  table is three collisions. Give shared action chains a per-call-site tag.
+- **There is no `And` combinator.** Two conditions in one visibility test have
+  to become a custom function.
+- **An item field access (`item['id']`) is only legal inside a ListView's own
+  builder.** A widget inserted into an existing item template cannot see which
+  row it is on — the whole list has to be rebuilt.
+- **Row security that checks a client-supplied column fails silently.**
+  `shopping_list_items` requires `created_by = auth.uid()`; without it every
+  insert was refused while the screen looked like it had worked.
+- **`Page.setInterceptFileChooserDialog` + `DOM.setFileInputFiles`** is how you
+  exercise the camera in the harness. `image_picker` on the web is a file
+  input, so this drives the real path right up to the picker itself.
 - **Validation is your friend.** The nav-bar component contract
   (`selectedIndex`, `onItemTapped` taking one int, both non-nullable,
   `selectedIndex` actually referenced) was discovered entirely from validation
