@@ -553,8 +553,8 @@
     </div>
     <div class="tile is-good">
       <span class="k">Built today</span>
-      <div class="v">4</div>
-      <div class="n">barcode &middot; list &middot; replace &middot; history</div>
+      <div class="v">5</div>
+      <div class="n">barcode &middot; list &middot; replace &middot; history &middot; restock</div>
     </div>
     <div class="tile is-good">
       <span class="k">Faults fixed</span>
@@ -602,6 +602,10 @@
           <tr>
             <td><b>Barcode lookup</b><span class="why">Open Food Facts: open, no key, no quota.</span></td>
             <td>Type the number, get the real product — name, brand, size, photograph — and the add form starts already filled in. Saved with its barcode and marked as coming from one, so the same product can be recognised again later.<br><br>The <b>scanner</b> is native-only and needs a device; the <b>lookup</b> is the valuable half and works today.</td>
+          </tr>
+          <tr>
+            <td><b>Scan an empty packet</b><span class="why">The other half of the barcode gesture.</span></td>
+            <td>You are out of something that was never in your kitchen &mdash; scan the empty packet and it goes straight on the shopping list. The screen stays put so you can work through a cupboard without it jumping away between each one.</td>
           </tr>
           <tr>
             <td><b>Shopping list</b><span class="why">Table existed since day one, no screen.</span></td>
@@ -661,8 +665,9 @@
           <tr><td class="id">1</td><td><b>TestFlight on your iPhone</b><span class="why">Unblocks barcode SCANNING, push, and the native camera in one go.</span></td><td class="c"><span class="size s-m">M</span></td><td><b>You:</b> a FlutterFlow paid plan and an App Store Connect API key. No Mac needed.</td></tr>
           <tr><td class="id">2</td><td><b>AI recognition</b><span class="why">Point the camera at food and have it named.</span></td><td class="c"><span class="size s-l">L</span></td><td><b>You:</b> a Gemini API key. Goes into FlutterFlow, never to me.</td></tr>
           <tr><td class="id">3</td><td><b>Expiry reminders</b><span class="why">notification_preferences exists and nothing reads it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Needs push, so it follows item 1.</td></tr>
-          <tr><td class="id">4</td><td><b>Large-text accessibility</b></td><td class="c"><span class="size s-s">S</span></td><td>Flutter takes text scaling from the platform, so it cannot be emulated in a browser. Needs a device.</td></tr>
-          <tr><td class="id">5</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real recipe data.</td></tr>
+          <tr><td class="id">4</td><td><b>Multi-user household</b><span class="why">Invite codes and joining are built but have never been exercised with a second account, and row security is what a second account would test.</span></td><td class="c"><span class="size s-s">S</span></td><td><b>You:</b> a second test account. I will not create accounts on your behalf, and I cannot delete one afterwards without the service-role key. <code>you+tester@gmail.com</code> works.</td></tr>
+          <tr><td class="id">5</td><td><b>Large-text accessibility</b></td><td class="c"><span class="size s-s">S</span></td><td>Flutter takes text scaling from the platform, so it cannot be emulated in a browser. Needs a device.</td></tr>
+          <tr><td class="id">6</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real recipe data.</td></tr>
         </tbody>
       </table>
     </div>
