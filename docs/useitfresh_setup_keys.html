@@ -1,0 +1,577 @@
+<title>Use It Fresh Setup Keys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Nunito:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ---------- Light palette: complete, on bare :root ---------- */
+  :root {
+    --ground:      #FAF8F1;
+    --surface:     #FFFFFF;
+    --sunk:        #F1EEE3;
+    --line:        #E2DED0;
+    --line-soft:   #EDEAE0;
+
+    --ink:         #1E2A1C;
+    --ink-mid:     #46523F;
+    --ink-soft:    #5F6C58;
+    --ink-faint:   #8A9683;
+
+    --forest:      #07533A;
+    --forest-mid:  #2F8A57;
+    --forest-wash: #E6EFE8;
+
+    --amber:       #B25E12;
+    --amber-wash:  #FBEEE0;
+    --danger:      #A8321F;
+    --danger-wash: #F8E6E2;
+
+    --on-forest:   #F2F7F2;
+    --on-forest-soft: #B9CFBF;
+
+    --shadow: 0 1px 2px rgba(30,42,28,.05), 0 6px 20px rgba(30,42,28,.06);
+
+    --f-display: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body:    "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  /* ---------- Dark: system default (unstamped) ---------- */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #10160F;
+      --surface:     #192118;
+      --sunk:        #202A1F;
+      --line:        #303D2E;
+      --line-soft:   #273123;
+
+      --ink:         #E7EEE4;
+      --ink-mid:     #BDC9B9;
+      --ink-soft:    #A0AF9B;
+      --ink-faint:   #7C8A77;
+
+      --forest:      #6FBE8C;
+      --forest-mid:  #4E9E6D;
+      --forest-wash: #1B2A21;
+
+      --amber:       #E5964F;
+      --amber-wash:  #2E2115;
+      --danger:      #E08C7B;
+      --danger-wash: #31201C;
+
+      --on-forest:   #0E1A12;
+      --on-forest-soft: #33523E;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.34), 0 6px 20px rgba(0,0,0,.3);
+    }
+  }
+
+  /* ---------- Dark: explicit toggle ---------- */
+  :root[data-theme="dark"] {
+    --ground:      #10160F;
+    --surface:     #192118;
+    --sunk:        #202A1F;
+    --line:        #303D2E;
+    --line-soft:   #273123;
+
+    --ink:         #E7EEE4;
+    --ink-mid:     #BDC9B9;
+    --ink-soft:    #A0AF9B;
+    --ink-faint:   #7C8A77;
+
+    --forest:      #6FBE8C;
+    --forest-mid:  #4E9E6D;
+    --forest-wash: #1B2A21;
+
+    --amber:       #E5964F;
+    --amber-wash:  #2E2115;
+    --danger:      #E08C7B;
+    --danger-wash: #31201C;
+
+    --on-forest:   #0E1A12;
+    --on-forest-soft: #33523E;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.34), 0 6px 20px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding-block: 44px 90px;
+    padding-left: 22px;
+    padding-right: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 42px;
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--forest-mid);
+    margin: 0;
+  }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(30px, 5.4vw, 44px);
+    line-height: 1.04;
+    letter-spacing: -.024em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst {
+    margin: 0;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    font-size: 16.5px;
+  }
+
+  /* ---------- The rule: the one thing that matters ---------- */
+  .rule {
+    background: var(--forest);
+    color: var(--on-forest);
+    border-radius: 14px;
+    padding: 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  :root:not([data-theme="light"]) .rule,
+  :root[data-theme="dark"] .rule { background: #123322; color: #E7EEE4; }
+  .rule h2 {
+    font-family: var(--f-display);
+    font-size: 21px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -.012em;
+    color: inherit;
+  }
+  .rule p { margin: 0; font-size: 15.5px; max-width: 66ch; color: inherit; opacity: .93; }
+  .rule .sep { height: 1px; background: rgba(255,255,255,.16); }
+  :root:not([data-theme="light"]) .rule .sep,
+  :root[data-theme="dark"] .rule .sep { background: rgba(255,255,255,.1); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .split h3 {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+    color: inherit;
+    opacity: .72;
+  }
+  .split ul { margin: 0; padding-left: 17px; font-size: 14.5px; }
+  .split li { margin-bottom: 5px; }
+  .split li::marker { color: rgba(255,255,255,.45); }
+
+  /* ---------- Sections ---------- */
+  section { display: flex; flex-direction: column; gap: 16px; }
+  h2 {
+    font-family: var(--f-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -.016em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede { margin: 0; color: var(--ink-soft); max-width: 68ch; font-size: 15.5px; }
+
+  /* ---------- Track cards ---------- */
+  .track {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .track-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 14px;
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--sunk);
+  }
+  .track-head h3 {
+    font-family: var(--f-display);
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -.012em;
+    flex: 1 1 auto;
+  }
+  .meta {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+  .unlocks {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .track-body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 16px; }
+
+  ol.steps { margin: 0; padding-left: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; }
+  ol.steps li {
+    counter-increment: s;
+    position: relative;
+    padding: 11px 0 11px 40px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 15px;
+  }
+  ol.steps li:first-child { padding-top: 0; }
+  ol.steps li:first-child::before { top: 0; }
+  ol.steps li:last-child { border-bottom: none; padding-bottom: 0; }
+  ol.steps li::before {
+    content: counter(s);
+    position: absolute; left: 0; top: 11px;
+    width: 25px; height: 25px; border-radius: 50%;
+    background: var(--forest-wash);
+    color: var(--forest);
+    font-family: var(--f-mono); font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps b { font-weight: 700; }
+  ol.steps .hint { display: block; color: var(--ink-faint); font-size: 13.5px; margin-top: 2px; }
+
+  .lands {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 12px 14px;
+    background: var(--forest-wash);
+    border-radius: 10px;
+    font-size: 14.5px;
+    color: var(--ink-mid);
+  }
+  .lands .k {
+    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--forest);
+    white-space: nowrap;
+  }
+
+  .flag {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 12px 14px;
+    background: var(--amber-wash);
+    border-radius: 10px;
+    font-size: 14.5px;
+    color: var(--ink-mid);
+  }
+  .flag .k {
+    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--amber);
+    white-space: nowrap;
+  }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: .87em;
+    background: var(--sunk);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--ink-mid);
+    word-break: break-word;
+  }
+  .path {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    color: var(--ink-mid);
+  }
+
+  a { color: var(--forest); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--forest-mid); outline-offset: 2px; border-radius: 2px; }
+
+  /* ---------- Reference table ---------- */
+  .t-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  th {
+    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+    text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td { padding: 12px 18px; border-bottom: 1px solid var(--line-soft); font-size: 14.5px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .yes { color: var(--forest-mid); font-weight: 700; }
+  .no  { color: var(--danger); font-weight: 700; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
+  }
+  footer .mono { font-family: var(--f-mono); font-size: 11.5px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  @media (max-width: 640px) {
+    .split { grid-template-columns: 1fr; gap: 16px; }
+    .wrap { padding-block: 30px 64px; gap: 34px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Use It Fresh &middot; 10 September 2026</p>
+    <h1>What I need from you</h1>
+    <p class="standfirst">Three tracks. Only the first one is holding anything
+    up. Each says what it unlocks, what it costs, and exactly where the
+    credential goes &mdash; which is never to me.</p>
+  </header>
+
+  <div class="rule">
+    <h2>The one rule: secrets never come to me</h2>
+    <p>Everything below goes straight from you into FlutterFlow or Supabase.
+    Don't paste a secret into our chat, a file, or the repo &mdash; not even
+    briefly. I never need to see one to wire it up: I reference it by name and
+    the platform resolves it. If a secret does get pasted somewhere, treat it
+    as burned and rotate it rather than deleting the message.</p>
+    <div class="sep"></div>
+    <div class="split">
+      <div>
+        <h3>Fine to send me</h3>
+        <ul>
+          <li>Client <b>IDs</b> (Google, Apple Services ID)</li>
+          <li>Team ID, Key ID, Issuer ID</li>
+          <li>Supabase project URL and anon key</li>
+          <li>Anything already inside the shipped app</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Never send me</h3>
+        <ul>
+          <li>Any <code>.p8</code> file or its contents</li>
+          <li>Google client <b>secret</b></li>
+          <li>Gemini API key</li>
+          <li>Supabase service-role key or database password</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ IMMEDIATE ============ -->
+  <section>
+    <h2>First, two minutes on your machine</h2>
+    <p class="lede">Unrelated to keys, but it is blocking me right now.</p>
+    <div class="track">
+      <div class="track-head">
+        <h3>DNS resolution has stopped working</h3>
+        <span class="meta">~2 min</span>
+        <p class="unlocks">Blocks: the GitHub backup, every FlutterFlow push, and all verification.</p>
+      </div>
+      <div class="track-body">
+        <p class="lede"><code>nslookup github.com</code> answers correctly, but
+        every application &mdash; git, the FlutterFlow CLI, the browser
+        harness &mdash; fails with <i>"Could not resolve host"</i>. That is the
+        Windows DNS client, not your connection. It worked earlier this
+        session and stopped mid-way through.</p>
+        <ol class="steps">
+          <li><b>Restart the DNS Client service.</b> In an <b>admin</b>
+            PowerShell: <code>Restart-Service Dnscache -Force</code>
+            <span class="hint">If it refuses, a plain reboot does the same job.</span></li>
+          <li><b>Tell me when it is back.</b> I will push the 9 waiting commits
+            to GitHub and carry on.
+            <span class="hint">Nothing is lost meanwhile — the commits are safe locally, and FlutterFlow already holds every app change.</span></li>
+        </ol>
+        <div class="flag">
+          <span class="k">Note</span>
+          <span>Your GitHub backup currently stops at <span class="path">0b2460e &mdash; "the build is broken"</span>. Everything since, including all four features, is local only until that push lands.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRACK A ============ -->
+  <section>
+    <h2>Track A &mdash; getting it onto your iPhone</h2>
+    <p class="lede">The one I would do first. It is the only item that unlocks
+    three others, and both things it needs are administrative rather than
+    technical. You already have the Apple Developer account, which is the part
+    that takes days.</p>
+
+    <div class="track">
+      <div class="track-head">
+        <h3>FlutterFlow plan with App Store deployment</h3>
+        <span class="meta">~10 min &middot; paid</span>
+        <p class="unlocks">Unlocks: barcode <b>scanning</b>, push notifications, the native camera, real large-text testing.</p>
+      </div>
+      <div class="track-body">
+        <ol class="steps">
+          <li>Go to <a href="https://app.flutterflow.io" target="_blank" rel="noopener">app.flutterflow.io</a> &rarr; your avatar &rarr; <b>Account &amp; Billing</b>.</li>
+          <li>Pick a plan that lists <b>mobile deployment</b> / "Deploy to App Store". The free tier cannot produce an iOS build.
+            <span class="hint">Check the current tier names yourself — they change, and I would rather you read the page than trust my memory of it.</span></li>
+          <li>Confirm the project <span class="path">fridge-wise-gvpy0s</span> is under the upgraded account, not a personal one.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="track">
+      <div class="track-head">
+        <h3>App Store Connect API key</h3>
+        <span class="meta">~15 min &middot; free</span>
+        <p class="unlocks">Lets FlutterFlow upload builds to TestFlight without a Mac.</p>
+      </div>
+      <div class="track-body">
+        <ol class="steps">
+          <li>Open <a href="https://appstoreconnect.apple.com" target="_blank" rel="noopener">appstoreconnect.apple.com</a> &rarr; <b>Users and Access</b> &rarr; <b>Integrations</b> &rarr; <b>App Store Connect API</b>.</li>
+          <li>Generate a <b>Team key</b> with the <b>App Manager</b> role.
+            <span class="hint">Admin also works. App Manager is the least privilege that can upload builds.</span></li>
+          <li><b>Download the <code>.p8</code> immediately.</b> Apple shows it exactly once and there is no second chance — you would have to revoke and start again.</li>
+          <li>From that same page, note the <b>Key ID</b> and the <b>Issuer ID</b>. Those two are safe to send me if it helps.</li>
+          <li>Register the bundle ID <code>com.useitfresh.app</code> at <a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">developer.apple.com &rarr; Identifiers</a>, then create the matching app record in App Store Connect.
+            <span class="hint">The bundle ID is already set in the project, so it must match exactly.</span></li>
+          <li>In FlutterFlow: <b>Settings &amp; Integrations</b> &rarr; <b>App Settings</b> &rarr; <b>Mobile Deployment</b>. Paste the Key ID and Issuer ID, and upload the <code>.p8</code> there.</li>
+        </ol>
+        <div class="lands">
+          <span class="k">Lands in</span>
+          <span>FlutterFlow only. The <code>.p8</code> never touches the repo — <span class="path">.gitignore</span> already blocks <code>*.p8</code> — and never comes to me.</span>
+        </div>
+        <div class="flag">
+          <span class="k">Before you submit</span>
+          <span>The exported <span class="path">ios/Runner/Info.plist</span> currently has <b>no camera or photo-library usage strings</b>. Without them iOS terminates the app instead of asking permission, and App Review rejects the build. I will check whether FlutterFlow is injecting them at build time as soon as I can reach it — flagging it now because camera is central to the app.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRACK B ============ -->
+  <section>
+    <h2>Track B &mdash; naming food from a photograph</h2>
+    <div class="track">
+      <div class="track-head">
+        <h3>Gemini API key</h3>
+        <span class="meta">~5 min &middot; free tier</span>
+        <p class="unlocks">Point the camera at food and have it named, instead of typing it.</p>
+      </div>
+      <div class="track-body">
+        <ol class="steps">
+          <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in.</li>
+          <li><b>Create API key</b>, attached to a Google Cloud project. Make a new one rather than reusing an existing project, so the spend is visible on its own.</li>
+          <li>Read the free-tier limits on that page before we build against it. If we exceed them the app should degrade to typing, not fail — I will build it that way.</li>
+          <li>In FlutterFlow: <b>Settings &amp; Integrations</b> &rarr; <b>Integrations</b> &rarr; <b>Gemini</b>, and paste the key.</li>
+          <li>Tell me it is in place. I never need the key itself.</li>
+        </ol>
+        <div class="lands">
+          <span class="k">Lands in</span>
+          <span>FlutterFlow only.</span>
+        </div>
+        <div class="flag">
+          <span class="k">A limit worth knowing</span>
+          <span>Recognition names things; it will not read a printed date reliably, and the guide forbids deriving safety or freshness from a photograph. Dates stay yours to enter, and the screen will keep saying so.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRACK C ============ -->
+  <section>
+    <h2>Track C &mdash; the sign-in buttons that do nothing</h2>
+    <p class="lede">Google and Apple sit on the sign-in card as stand-ins today
+    &mdash; they are drawn, not wired. Optional, but Apple requires Sign in with
+    Apple on any app that offers another social login, so these two ship
+    together or not at all.</p>
+
+    <div class="track">
+      <div class="track-head">
+        <h3>Google sign-in</h3>
+        <span class="meta">~20 min &middot; free</span>
+      </div>
+      <div class="track-body">
+        <ol class="steps">
+          <li><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a> &rarr; <b>APIs &amp; Services</b> &rarr; <b>Credentials</b>.</li>
+          <li>Configure the <b>OAuth consent screen</b> first, or credential creation is blocked.</li>
+          <li>Create OAuth client IDs: one <b>iOS</b> (bundle <code>com.useitfresh.app</code>) and one <b>Web</b>. The Web one is what Supabase uses.</li>
+          <li>In Supabase: <b>Authentication</b> &rarr; <b>Providers</b> &rarr; <b>Google</b>. Paste the Web <b>client ID</b> and <b>client secret</b>, and enable it.</li>
+          <li>Copy the <b>callback URL</b> Supabase shows there back into the Google credential's authorised redirect URIs.</li>
+          <li>Send me the client <b>IDs</b> only. I will wire the buttons.</li>
+        </ol>
+        <div class="lands">
+          <span class="k">Lands in</span>
+          <span>Supabase only. The client <b>secret</b> stays there.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="track">
+      <div class="track-head">
+        <h3>Sign in with Apple</h3>
+        <span class="meta">~25 min &middot; needs the developer account</span>
+      </div>
+      <div class="track-body">
+        <ol class="steps">
+          <li><a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">Apple Developer</a> &rarr; <b>Identifiers</b>. On the <code>com.useitfresh.app</code> App ID, enable the <b>Sign in with Apple</b> capability.</li>
+          <li>Create a <b>Services ID</b> (a separate identifier, e.g. <code>com.useitfresh.signin</code>) and enable Sign in with Apple on it. This is the one that carries the web redirect.</li>
+          <li>Under <b>Keys</b>, create a key with <b>Sign in with Apple</b> enabled. It downloads a <code>.p8</code> &mdash; again, once only.</li>
+          <li>Collect your <b>Team ID</b> (top right of the developer portal) and the new <b>Key ID</b>.</li>
+          <li>In Supabase: <b>Authentication</b> &rarr; <b>Providers</b> &rarr; <b>Apple</b>. Enter the Services ID, Team ID, Key ID, and paste the <code>.p8</code> contents into the secret field.</li>
+          <li>Put the callback URL Supabase gives you into the Services ID's <b>Return URLs</b>.</li>
+          <li>Send me the <b>Services ID</b>, <b>Team ID</b> and <b>Key ID</b>. Never the <code>.p8</code>.</li>
+        </ol>
+        <div class="lands">
+          <span class="k">Lands in</span>
+          <span>Supabase only.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REFERENCE ============ -->
+  <section>
+    <h2>Quick reference</h2>
+    <p class="lede">Every credential this project touches, and where it belongs.</p>
+    <div class="t-scroll">
+      <table>
+        <thead>
+          <tr><th>Credential</th><th>Lives in</th><th class="c">Send to me?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>App Store Connect <code>.p8</code></td><td>FlutterFlow</td><td class="no">Never</td></tr>
+          <tr><td>App Store Key ID &amp; Issuer ID</td><td>FlutterFlow</td><td class="yes">Fine</td></tr>
+          <tr><td>Gemini API key</td><td>FlutterFlow</td><td class="no">Never</td></tr>
+          <tr><td>Sign in with Apple <code>.p8</code></td><td>Supabase</td><td class="no">Never</td></tr>
+          <tr><td>Apple Services ID / Team ID / Key ID</td><td>Supabase</td><td class="yes">Fine</td></tr>
+          <tr><td>Google client secret</td><td>Supabase</td><td class="no">Never</td></tr>
+          <tr><td>Google client IDs</td><td>Supabase</td><td class="yes">Fine</td></tr>
+          <tr><td>Supabase service-role key</td><td>Supabase only, never the app</td><td class="no">Never</td></tr>
+          <tr><td>Supabase database password</td><td>Supabase only</td><td class="no">Never</td></tr>
+          <tr><td>Supabase URL &amp; anon key</td><td>Already inside the app</td><td class="yes">Fine</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flag">
+      <span class="k">Why this split</span>
+      <span>The "fine" column is everything that already ships inside the app bundle or is public by design &mdash; anyone with the app can read them, so telling me costs nothing. The "never" column is everything that can spend your money, impersonate your app, or read every household's data.</span>
+    </div>
+  </section>
+
+  <footer>
+    <span>Nothing here blocks me except the DNS fix. I am building the waste-history view meanwhile.</span>
+    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s</span>
+  </footer>
+
+</div>
