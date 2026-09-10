@@ -104,11 +104,10 @@ second-guess it in the UI; read `computed_status`, `status_label`,
 
 ## 4. Outstanding, in the order I would take it
 
-1. **Photo capture is built but unverified.** `CaptureFoodPhoto` uploads to
-   `food-images/<household_id>/<uuid>.jpg` and returns a **one-year signed
-   URL**. The bucket is private on purpose. The year is a compromise that needs
-   revisiting — storing the path and signing on read is the stricter answer.
-   Nobody has yet taken a photo through this flow.
+1. **Photo capture is verified** (10 Sep) — camera, upload, signed URL,
+   review, item, card and details hero. The **one-year signed URL** is still a
+   compromise worth revisiting: storing the path and signing on read is the
+   stricter answer.
 2. **Barcode → product lookup.** Open Food Facts is free and needs no key.
    `BarcodeScanner` exists in the DSL but is **native-only**, so scanning needs
    a device build; the lookup itself can be built and tested with typed-in
@@ -170,6 +169,15 @@ Every one of these produced a **successful push and a wrong app**.
   explicit edges.
 - **Sub-messages need `ensureX()`**, not the bare getter, or you get
   "Attempted to change a read-only message".
+- **A custom function's `code` is the BODY only.** FlutterFlow generates the
+  signature from the declared arguments, so passing a whole declaration nests
+  one function inside another. The outer one then falls off its end, returns
+  null, and the screen dies on a null check before painting anything — a grey
+  screen and "Null check operator used on a null value" in the console. Custom
+  **actions** are the opposite: a complete function, imports and all.
+- **`Page.setInterceptFileChooserDialog` + `DOM.setFileInputFiles`** is how you
+  exercise the camera in the harness. `image_picker` on the web is a file
+  input, so this drives the real path right up to the picker itself.
 - **Validation is your friend.** The nav-bar component contract
   (`selectedIndex`, `onItemTapped` taking one int, both non-nullable,
   `selectedIndex` actually referenced) was discovered entirely from validation
@@ -211,9 +219,9 @@ directly holds a file lock that makes `flutterflow ai run` fail with
   Its profile is kept; all households, food, locations and shopping lists were
   deleted on 9 Sep at the owner's request, so it starts at "signed in, no
   household".
-- **Six migrations exist; migration 6 was never run** and may not be needed —
-  household creation started working before it was applied, so its diagnosis is
-  unconfirmed. It also contains a diagnostic query worth running to learn why
+- **Migration 6 is not needed** (confirmed 10 Sep). A household insert as the
+  signed-in user succeeds against the existing policy, and the SECURITY
+  DEFINER trigger seeds the member, three locations and the shopping list. It also contains a diagnostic query worth running to learn why
   the original insert policy was rejecting. See
   `supabase/migrations/20260908110000_household_create_visibility.sql`.
 - Storage buckets `food-images`, `receipts`, `avatars` exist and are empty.

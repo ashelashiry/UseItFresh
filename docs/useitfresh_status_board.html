@@ -533,14 +533,14 @@
     <div>
       <p class="eyebrow">Status &middot; 10 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">The build is fixed and green, and the app has been driven
-      end to end again to prove it. Everything below is verified in the running
-      app, not read off the code.</p>
+      <p class="sub">Build green, photo capture proven end to end, and four
+      faults it exposed on the way already fixed. Below is what is done and
+      what I would take next, sized so you can pick.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
-      branch <b>main</b> &middot; git <b>78c4ed5</b><br>
-      FlutterFlow <b>OKF0DbqxAuEcCjn3ZREM</b><br>
+      branch <b>main</b> &middot; git <b>c9da409</b><br>
+      FlutterFlow <b>Hk7npc7zXTL2wL4HQ7vd</b><br>
       handover <b>HANDOVER.md</b>
     </div>
   </header>
@@ -552,14 +552,14 @@
       <div class="n">web release builds and runs</div>
     </div>
     <div class="tile is-good">
-      <span class="k">Screens to v3</span>
-      <div class="v">7</div>
-      <div class="n">Home, Inventory, Scan, Item, Add, Review, Profile</div>
+      <span class="k">Photo capture</span>
+      <div class="v">Proven</div>
+      <div class="n">camera &rarr; storage &rarr; item</div>
     </div>
     <div class="tile is-good">
-      <span class="k">Real bugs fixed</span>
-      <div class="v">14</div>
-      <div class="n">found by driving the app</div>
+      <span class="k">Fixed today</span>
+      <div class="v">5</div>
+      <div class="n">1 build break &middot; 4 found by driving it</div>
     </div>
     <div class="tile is-warn">
       <span class="k">Needs you</span>
@@ -568,143 +568,146 @@
     </div>
   </div>
 
-  <!-- ================= 01 · THE BREAK, FIXED ================= -->
+  <!-- ================= 01 · TODAY ================= -->
   <section>
-    <h2><span class="idx">01</span> The build is fixed</h2>
-    <p class="lede">The save action's Dart body had grown a sixth parameter for the
-    photo, but its declared argument list still had five. FlutterFlow writes call
-    sites from the declaration, so it emitted a five-argument call against a
-    six-argument function and the web build stopped.</p>
+    <h2><span class="idx">01</span> What changed today</h2>
+    <p class="lede">The build break first, then photo capture &mdash; which had
+    been built but never once exercised. Driving it is what found the rest.</p>
 
-    <div class="note">
-      <b>What actually made it stubborn.</b> Declaring the argument on its own does
-      not validate &mdash; FlutterFlow refuses a declared custom action argument that
-      any call site fails to supply. So the declaration and the wiring on the review
-      screen's confirm button had to land in a <b>single push</b>. My earlier attempt
-      read the six identical complaints as six orphaned values and rewrote all the
-      argument keys, which was the wrong diagnosis of the right symptom. The five live
-      keys are now preserved untouched and the sixth was cloned from an existing one
-      so its data type matches by construction.
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>What</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>The build break</b></td>
+            <td>The save action's body took six parameters; its declared
+            argument list had five, so FlutterFlow generated a five-argument
+            call. The part that made it stubborn: declaring the argument alone
+            does not validate, because FlutterFlow refuses a declared argument
+            that any call site fails to supply &mdash; so the declaration and
+            the wiring had to land in <b>one push</b>. My earlier attempt read
+            the six identical complaints as six orphaned values and rewrote all
+            the keys, which was the wrong diagnosis of the right symptom.</td>
+          </tr>
+          <tr>
+            <td><b>Photo capture, proven</b></td>
+            <td>Driven in a browser with the file chooser intercepted &mdash;
+            the same path a phone takes right up to the picker. Uploads to
+            <code>food-images/&lt;household&gt;/&lt;uuid&gt;.jpg</code>, returns
+            a signed URL, survives review, lands on the item as
+            <code>image_url</code> with <code>source_type: photo</code>. The
+            card and the details hero both show the person's own picture
+            instead of the illustrative one.</td>
+          </tr>
+          <tr>
+            <td><b>Review screen showed everything but the photo</b></td>
+            <td>It said "This is what will be recorded" and omitted the one
+            thing you cannot check anywhere else before saving. Now shown above
+            the first fact.</td>
+          </tr>
+          <tr>
+            <td><b>Review screen printed database codes</b></td>
+            <td><code>vegetables</code> rather than "Vegetables" &mdash; the
+            function only swapped underscores for spaces. Now uses the same
+            words the picker offered. Same family as the dropdown fault you
+            reported on 9 Sep.</td>
+          </tr>
+          <tr>
+            <td><b>Every storage location wore a fridge icon</b></td>
+            <td>Those three rows were still the stock <code>ListTile</code>
+            FlutterFlow generates &mdash; one hardcoded <code>Icons.kitchen</code>
+            on all three, with the raw <code>location_type</code> printed
+            underneath the name. Rebuilt as v3 rows with the right icon per
+            type. The icons already existed and were used correctly on the
+            inventory chips; nothing was binding them here.</td>
+          </tr>
+          <tr>
+            <td><b>Both dropdowns were blank boxes</b></td>
+            <td>Neither had hint text, so an untouched dropdown said nothing at
+            all. Now "What kind of food is it?" and "Which date is on the
+            pack?". As a side effect the form fits without scrolling.</td>
+          </tr>
+          <tr>
+            <td><b>Migration 6 settled</b></td>
+            <td>It is <b>not needed</b>. Creating a household as the signed-in
+            user succeeds against the policy as it stands, and the trigger seeds
+            the member, three locations and the shopping list correctly. That
+            open question from the handover is closed.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <p class="lede">Verified rather than assumed: <code>flutter build web --release</code>
-    is green, and the app was driven in a browser through the entrance, sign-in and
-    into the kitchen with the console watched throughout. The only errors left are the
-    two local-export 404s (<code>manifest.json</code>, <code>app-icon-512.png</code>),
-    which are artefacts of serving an exported build rather than defects in the app.
-    <code>localhost:8080</code> is serving the new build.</p>
   </section>
 
-  <!-- ================= 02 · WHERE THE HANDOVER IS ================= -->
+  <!-- ================= 02 · WHAT TO DO NEXT ================= -->
   <section>
-    <h2><span class="idx">02</span> Where the handover is</h2>
-    <div class="note">
-      <b><span class="path">HANDOVER.md</span></b> in the workspace root, committed to
-      <code>main</code>. Nine sections: the break and how it was fixed, how to work on the project,
-      what works, what is outstanding, <b>the DSL traps</b>, the verification harness, data
-      and access, the design sources, and how you work.<br><br>
-      <b>Section 5 is the one that saves the most time.</b> Sixteen traps in this DSL that
-      each produced a successful push and a wrong app &mdash; a patch that sets max
-      <i>characters</i> when it says max lines, container styling that silently no-ops,
-      batched removals that hit the wrong nodes. Every one of them cost me at least one
-      cycle to find.
+    <h2><span class="idx">02</span> What I would do next</h2>
+    <p class="lede">Ordered by what unblocks the most. The first two need
+    nothing from you; items 3 and 5 are waiting on you.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="id">1</td><td><b>Barcode &rarr; product lookup</b><span class="why">Open Food Facts is free and needs no key. Type a barcode in and it fills the name, brand and category.</span></td><td class="c"><span class="size s-m">M</span></td><td>The <b>lookup</b> is fully testable now with typed-in barcodes. Only the <b>scanning</b> needs a device. This is the highest-value next feature: a barcode is the only capture method that gives a real product identity rather than a guess.</td></tr>
+          <tr><td class="id">2</td><td><b>Shopping list</b><span class="why">The table and the per-household list already exist; there is no screen.</span></td><td class="c"><span class="size s-s">S</span></td><td>Self-contained, no dependencies, nothing to wait for.</td></tr>
+          <tr><td class="id">3</td><td><b>TestFlight on your iPhone</b></td><td class="c"><span class="size s-m">M</span></td><td><b>Yours:</b> a FlutterFlow paid plan and an App Store Connect API key. No Mac needed. Unblocks barcode scanning, push, and the native camera.</td></tr>
+          <tr><td class="id">4</td><td><b>Expiry reminders</b><span class="why">notification_preferences exists in the schema and nothing reads it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Needs push, so it follows item 3.</td></tr>
+          <tr><td class="id">5</td><td><b>AI recognition</b><span class="why">Point the camera at food and have it named for you.</span></td><td class="c"><span class="size s-l">L</span></td><td>Gemini integrates first-class. <b>Needs an API key from you.</b></td></tr>
+          <tr><td class="id">6</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real recipe data.</td></tr>
+          <tr><td class="id">7</td><td><b>Smaller things</b><span class="why">A selected location does not look selected. A date type is saved even when no date was picked. The review back button and the loading indicator are under the recommended sizes.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic and tidy-up; worth a single pass rather than one at a time.</td></tr>
+        </tbody>
+      </table>
     </div>
+    <div class="note" style="margin-top:14px"><b>Still unverified, and it needs a
+    device:</b> large-text accessibility. Flutter takes text scaling from the
+    platform, so it cannot be emulated against this build in a headless
+    browser.</div>
   </section>
 
   <!-- ================= 03 · WHAT WORKS ================= -->
   <section>
     <h2><span class="idx">03</span> What works, verified in the running app</h2>
-    <p class="lede">Not "the code looks right" &mdash; driven in a browser, screenshotted and
-    checked, with the database read afterwards to confirm what was written.</p>
+    <p class="lede">Not "the code looks right" &mdash; driven in a browser,
+    screenshotted and checked, with the database read afterwards to confirm
+    what was actually written.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>Screen</th><th>State</th></tr></thead>
         <tbody>
           <tr><td><b>Entrance and sign-in</b></td><td>Fridge animation, email sign-in, sign-up, reset. Google and Apple are stand-in buttons, not wired.</td></tr>
-          <tr><td><b>Home</b></td><td>v3. Greeting, <i>Use these next</i> photograph card with a real count, use-first items as two-column photograph cards, and a compact household prompt when there is no household.</td></tr>
-          <tr><td><b>Inventory</b></td><td>v3. Real item count and locations, All / Fridge / Freezer / Pantry chips with the supplied icons, search, photograph cards. Loading, empty-kitchen and no-matches states are distinct.</td></tr>
+          <tr><td><b>Home</b></td><td>v3. Greeting, <i>Use these next</i> photograph card with a real count, use-first items as two-column cards, and a household prompt when there is no household.</td></tr>
+          <tr><td><b>Inventory</b></td><td>v3. Real count and locations, All / Fridge / Freezer / Pantry chips, search, photograph cards. Loading, empty-kitchen and no-matches states are distinct.</td></tr>
+          <tr><td><b>Add food</b></td><td>Chooser &rarr; form &rarr; review &rarr; save, <b>including a photograph</b>, verified end to end today.</td></tr>
           <tr><td><b>Item details</b></td><td>Dates said as what they are, where the date came from, how the status was reached, and <b>I used it</b> / <b>Throw it out</b> writing to the event log.</td></tr>
-          <tr><td><b>Add food</b></td><td>Chooser &rarr; form &rarr; <b>review</b> &rarr; save, verified end to end. Photo capture is built but nobody has taken a photo through it yet.</td></tr>
-          <tr><td><b>Household</b></td><td>Create, invite code, join, and it shows the household you are in rather than offering to make another.</td></tr>
+          <tr><td><b>Household</b></td><td>Create, invite code, join. Creation seeds three storage locations and a shopping list automatically.</td></tr>
           <tr><td><b>Profile</b></td><td>v3. Name and household role, one row per destination, sign out.</td></tr>
-          <tr><td><b>Navigation</b></td><td>A component bar, because no built-in one can do a label on every tab <i>and</i> a selected pill <i>and</i> a filled centre action. Supplied icons throughout.</td></tr>
-          <tr><td><b>Widths</b></td><td>390px, 360px and 364&times;564 all checked. Large text is <b>not</b> verified &mdash; Flutter's text scaling comes from the platform, so it cannot be emulated here. Needs a device.</td></tr>
+          <tr><td><b>Navigation</b></td><td>A component bar, because no built-in one can do a label on every tab <i>and</i> a selected pill <i>and</i> a filled centre action.</td></tr>
+          <tr><td><b>Widths</b></td><td>390px, 360px and 364&times;564 all checked.</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="note" style="margin-top:14px"><b>The urgency engine is the strongest part of
-    this app.</b> Statuses are computed in the database from printed dates and storage type
-    and recomputed against today &mdash; an item genuinely moved from "Use soon" to "Use
-    today" overnight during testing, on its own. Read <code>computed_status</code> and
-    <code>status_label</code> from the view; never re-derive it in the UI, and never take a
+    <div class="note" style="margin-top:14px"><b>The urgency engine remains the
+    strongest part of this app.</b> Today's test item, saved with no printed
+    date, came back as "Fresh &mdash; 7 days left &mdash; based on a typical
+    shelf life for this category". It is computed in the database and
+    recomputed against today. Never re-derive it in the UI, and never take a
     status from a photograph.</div>
   </section>
 
-  <!-- ================= 04 · WHAT REMAINS ================= -->
+  <!-- ================= 04 · ACCOUNT ================= -->
   <section>
-    <h2><span class="idx">04</span> What remains</h2>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Note</th></tr></thead>
-        <tbody>
-          <tr><td class="id">1</td><td><b>Verify photo capture</b><span class="why">Uploads to the household's folder and stores a one-year signed URL. The bucket is private on purpose; the year is a compromise that needs revisiting.</span></td><td class="c"><span class="size s-s">S</span></td><td>Built, never exercised.</td></tr>
-          <tr><td class="id">2</td><td><b>Barcode &rarr; product lookup</b><span class="why">Open Food Facts is free and needs no key.</span></td><td class="c"><span class="size s-m">M</span></td><td>The lookup is testable with typed barcodes; scanning needs a device build.</td></tr>
-          <tr><td class="id">3</td><td><b>Expiry reminders</b><span class="why">notification_preferences exists in the schema and nothing uses it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Needs push, so needs a device build.</td></tr>
-          <tr><td class="id">4</td><td><b>AI recognition</b></td><td class="c"><span class="size s-l">L</span></td><td>Gemini integrates first-class. <b>Needs an API key from you.</b></td></tr>
-          <tr><td class="id">5</td><td><b>Shopping list</b><span class="why">Table exists, no UI.</span></td><td class="c"><span class="size s-s">S</span></td><td>Cheap, self-contained, no dependencies.</td></tr>
-          <tr><td class="id">6</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real data.</td></tr>
-          <tr><td class="id">7</td><td><b>Two validator warnings</b><span class="why">The review screen's back button is under the recommended tap size; the loading indicator is too small.</span></td><td class="c"><span class="size s-xs">XS</span></td><td>Cosmetic.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ================= 05 · TESTING ON THE PHONE ================= -->
-  <section>
-    <h2><span class="idx">05</span> Testing on your iPhone</h2>
-    <p class="lede">You have an Apple Developer account, so TestFlight is open. Two things
-    still stand between here and a build on your phone, and both are yours.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>Route</th><th>Gets you</th><th>Needs</th></tr></thead>
-        <tbody>
-          <tr><td><b>Safari over HTTPS</b><span class="why">Free, this week.</span></td><td>Photo capture and the whole add &rarr; review &rarr; catalogue flow on the real phone. Camera does work in iOS Safari.</td><td>An HTTPS tunnel &mdash; localhost from another device will not do.</td></tr>
-          <tr><td><b>TestFlight</b><span class="why">The real thing.</span></td><td>Native camera, <b>native barcode scanner</b>, push, icon on the home screen, and other testers.</td><td>A FlutterFlow paid plan for App Store deployment, and an App Store Connect API key. <b>No Mac needed</b> &mdash; FlutterFlow builds in the cloud. Bundle ID <span class="path">com.useitfresh.app</span> is already set.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="note warn" style="margin-top:14px"><b>The App Store Connect <span class="path">.p8</span>
-    key is a secret.</b> Same class as the Sign in with Apple key. It goes into FlutterFlow
-    and nowhere else &mdash; never into a message, the repo, or to an agent.</div>
-    <div class="note"><b>Barcode is the scanning feature worth prioritising</b>, because it is
-    the only capture method that yields a reliable product identity rather than a guess. It
-    is also the one thing the free route cannot test.</div>
-  </section>
-
-  <!-- ================= 06 · TODAY ================= -->
-  <section>
-    <h2><span class="idx">06</span> Fixed 9 Sep, from your test results</h2>
-    <p class="lede">Your Word document had five screenshots and no notes, so these were read
-    off the images.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>What</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr><td><b>Dropdowns showed database values</b></td><td>"bread_bakery", "best_before", "freezer" &mdash; the stored codes, on screen. Every option's label had been set to the same string as its value and the flag letting them differ was off. Values untouched, because the check constraints and the urgency engine depend on them.</td></tr>
-          <tr><td><b>Household had no way back</b></td><td>It is pushed from Profile, not a tab, and I had removed its app bar along with the tabs'. The only escape was the nav bar, which loses where you came from.</td></tr>
-          <tr><td><b>Fields looked like a different app</b></td><td>Every text field was filled with no fill colour set, so it fell back to a grey wash while every other v3 surface is white on a gentle border.</td></tr>
-          <tr><td><b>Sign out was unreachable</b></td><td>Two faults: the column I rebuilt Profile into was not scrollable, and the nav bar is drawn over the body, so the last control sat underneath it even once scrolling worked.</td></tr>
-          <tr><td><b>Add food never worked at all</b></td><td>Three faults stacked: a ListView with no shrink-wrap killed everything below it including the save button; the location query was not scoped, so it offered all nine locations across three households; and the insert omitted household_id, which is not-null, so saving would have thrown silently.</td></tr>
-          <tr><td><b>Home had no route to a household</b></td><td>The v3 rebuild dropped the setup panel &mdash; right for an account that has a household, but it left a new one stuck, since adding food refuses without one.</td></tr>
-          <tr><td><b>The kitchen icons</b></td><td>Twelve icons, three tones, decoded at the size drawn. Navigation, filters, and the empty state now showing the place you are looking at &mdash; the mismatch the handoff called out in its own screenshot.</td></tr>
-          <tr><td><b>Camera permission strings</b></td><td>None were declared. iOS terminates rather than prompts without them, and App Review rejects the build. Not yet confirmed in the local Info.plist &mdash; check on the first real build.</td></tr>
-        </tbody>
-      </table>
+    <h2><span class="idx">04</span> Your account</h2>
+    <div class="note">
+      The test data I created to prove photo capture has been <b>removed</b> —
+      the household, both test items and the two uploaded photos. The account is
+      back where you asked for it: <b>signed in, no household</b>, so you can
+      walk the first-run flow yourself from the beginning.<br><br>
+      <b>localhost:8080</b> is serving the current build.
     </div>
   </section>
 
   <footer>
-    <span>HANDOVER.md in the workspace root has the detail. Section 5 of it is the time-saver.</span>
+    <span>HANDOVER.md in the workspace root has the detail. Section 5 of it &mdash; the DSL traps &mdash; is the time-saver.</span>
     <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 10 Sep 2026</span>
   </footer>
 
