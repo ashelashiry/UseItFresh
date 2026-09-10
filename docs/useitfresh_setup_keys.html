@@ -378,14 +378,15 @@
   <!-- ============ TRACK A ============ -->
   <section>
     <h2>Track A &mdash; onto your iPhone</h2>
-    <p class="lede">Six parts, roughly 40 minutes end to end. You already have
-    the Apple Developer account and the FlutterFlow plan, which are the two
-    parts that take days or money. Do these in order &mdash; each one produces
-    something the next needs.</p>
+    <p class="lede"><b>Parts 1 to 3 are done</b> &mdash; the bundle is
+    registered, the app record exists, and its Apple ID is
+    <b style="font-family:var(--f-mono)">6810644731</b>. You are at Part 4:
+    generating the API key, about fifteen minutes. Each part produces something
+    the next one needs, so keep them in order.</p>
 
     <div class="part">
       <div class="part-head">
-        <span class="no">Part 1 of 6</span>
+        <span class="no" style="color:var(--forest)">Part 1 of 6 &middot; done</span>
         <h3>Register the Bundle ID</h3>
         <span class="where">developer.apple.com &middot; ~5 min</span>
       </div>
@@ -415,7 +416,7 @@
 
     <div class="part">
       <div class="part-head">
-        <span class="no">Part 2 of 6</span>
+        <span class="no" style="color:var(--forest)">Part 2 of 6 &middot; done</span>
         <h3>Create the app record</h3>
         <span class="where">appstoreconnect.apple.com &middot; ~5 min</span>
       </div>
@@ -446,7 +447,7 @@
 
     <div class="part">
       <div class="part-head">
-        <span class="no">Part 3 of 6</span>
+        <span class="no" style="color:var(--forest)">Part 3 of 6 &middot; done</span>
         <h3>Copy the ten-digit Apple ID</h3>
         <span class="where">appstoreconnect.apple.com &middot; ~1 min</span>
       </div>
@@ -459,8 +460,11 @@
             <span class="hint">Ten digits, something like 6478123456. This is the value FlutterFlow's "App ID" field wants.</span></li>
         </ol>
         <div class="ok">
-          <span class="k">Safe to send me</span>
-          <span>This number identifies a public App Store listing. It is not a secret.</span>
+          <span class="k">Done &mdash; yours is</span>
+          <span><b style="font-family:var(--f-mono);font-size:16px">6810644731</b>
+          &nbsp;&mdash; captured 10 Sep. It is the public listing identifier
+          (it shows up in the App Store URL as <code>id6810644731</code>), so it
+          is not a secret. Copy it into FlutterFlow at Part 5, step 7.</span>
         </div>
       </div>
     </div>
@@ -518,8 +522,8 @@
           <li><b>Issuer ID</b> &rarr; paste from Part 4, step 4.</li>
           <li><b>Key ID</b> &rarr; paste from Part 4, step 10.</li>
           <li><b>Private Key</b> &rarr; click <b>Upload Private Key</b> and choose the <code>.p8</code> from Part 4, step 9.</li>
-          <li><b>App ID</b> &rarr; paste the <b>ten-digit number</b> from Part 3.
-            <span class="hint">Not com.useitfresh.app. See the callout at the top of this page.</span></li>
+          <li><b>App ID</b> &rarr; <span class="val">6810644731</span>
+            <span class="hint">Your real value, from Part 3. NOT com.useitfresh.app — see the callout at the top of this page.</span></li>
           <li>Open <b>Deployment Source</b> and confirm it is pointing at the branch you want shipped &mdash; <code>main</code>.</li>
           <li>Open <b>Privacy Manifest Configurations</b> and work through it.
             <span class="hint">Apple requires declared reasons for certain APIs. This app uses the camera, the photo library and local storage. A missing manifest is a rejection AFTER a 20-minute upload, so it is worth the two minutes now.</span></li>
