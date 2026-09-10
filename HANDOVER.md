@@ -295,3 +295,36 @@ status or safety from a photograph**.
 - Keep them running on `localhost:8080` and re-copy the build after every push.
 - Status board: <https://claude.ai/code/artifact/b5a7bfe7-b7ac-446e-a846-679f567c21ab>
 - Screen kit: <https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1>
+
+## 10. Reminders are local, not push
+
+Decided 11 Sep. Reminders are scheduled **on the device** with
+`flutter_local_notifications`, not sent from a server.
+
+**Why.** FlutterFlow's push is Firebase-based and this project has no Firebase
+— adding one for a single feature would mean a second backend to configure,
+pay for and reason about alongside Supabase. The phone already holds every
+expiry date once the inventory loads, so it can schedule reminders itself.
+It is also the more private answer: nothing about what is in someone's fridge
+leaves their phone to make reminders work, and it keeps working offline.
+
+**The cost, stated plainly.** The schedule only refreshes while the app is
+open. Someone who does not open it for a month gets the schedule as it stood a
+month ago. A server-push design would not have that limit. If this becomes the
+thing people complain about, that is the reason to revisit — not before.
+
+**How it behaves.** `ScheduleExpiryReminders` cancels everything and rebuilds
+from the current inventory rather than diffing, because a diff is the only
+place a stale reminder could survive, and a reminder about food eaten last
+week is the fastest way to get an app's notifications switched off for good.
+Settled items are skipped. Items with neither a printed date nor a category
+estimate get no reminder at all — there is nothing to be right about. iOS caps
+pending local notifications at 64 and silently drops the rest, so the scheduler
+stops deliberately at 60, nearest dates first.
+
+**The wording matters.** A printed date and an app estimate must not read the
+same on a lock screen. A printed one says "its date is in two days"; an
+estimate says "around two days left, going by a typical shelf life. Worth
+checking." Never "this is off" — the status is a guess from a shelf life, not
+an inspection.
+

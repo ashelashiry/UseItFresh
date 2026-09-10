@@ -153,52 +153,69 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Scan, fill the field, look it up — one tap.
+/// Refresh the schedule whenever the kitchen changes.
 ///
-/// Making someone scan and then press a second button would be a pointless
-/// step: there is nothing to decide between the two. So the chain runs the
-/// lookup itself and lands on the same result card the typed route produces.
+/// A reminder set from last week's inventory is worse than none: it names food
+/// you have already eaten, and that is how an app teaches someone to swipe its
+/// notifications away without reading them.
 ///
-/// The scanned value goes into the visible field as well as the state, because
-/// a screen that looks something up without showing what it read is impossible
-/// to argue with when it gets the wrong product.
-///
-/// Backing out of the scanner returns an empty string. That is not an error
-/// and gets no message — the person changed their mind, and the screen is
-/// already where they want to be.
+/// Inventory page load is the right hook. It is the screen people land on
+/// after adding, after settling an item, and after opening the app at all — so
+/// the schedule is rebuilt on every path that could have changed it, without
+/// bolting the call onto each one separately.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.barcodeScanPage, (page) {
-    page.ensureActions(
-      ff.Pages.barcodeScanPage.widgets.byKey('Button_gcnwv64o').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: [
-        SetState(ff.Pages.barcodeScanPage.state.message, ''),
-        BarcodeScanner(barcodeMode: true, outputAs: 'scanned'),
-        If(
-          Equals(ActionOutput('scanned'), ''),
-          // Backed out of the camera. Nothing to say.
-          then: [Terminate()],
-          orElse: [
-            SetState(ff.Pages.barcodeScanPage.state.typed,
-                ActionOutput('scanned')),
-            // Show what was read, so a wrong product is arguable.
-            SetFormField(
-                ff.Pages.barcodeScanPage.widgets
-                    .byKey('TextField_2f277q20')
-                    .single,
-                ActionOutput('scanned')),
-            CallCustomAction.named(
-              'LookupBarcode',
-              args: {'barcode': string},
-              returnType: string,
-              arguments: {'barcode': ActionOutput('scanned')},
-              outputAs: 'scanLookup',
-            ),
-            SetState(ff.Pages.barcodeScanPage.state.message,
-                ActionOutput('scanLookup')),
-          ],
+  app.editPageOnLoad(ff.Pages.inventoryPage, [
+    PostgresQuery(
+      ff.Tables.households,
+      outputAs: 'invHouseholds',
+      query: PostgresQuerySpec(
+        orderBys: const [PostgresOrderBy('created_at')],
+      ),
+    ),
+    UpdateAppState.set(
+      ff.AppState.currentHouseholdId,
+      CustomFunction(
+        CustomFunctionHandle(
+          name: 'firstHouseholdId',
+          args: {'rows': listOf(ff.Tables.households), 'current': string},
+          returnType: string,
         ),
-      ],
-    );
-  });
+        args: {
+          'rows': const ActionOutput('invHouseholds'),
+          'current': AppState(ff.AppState.currentHouseholdId),
+        },
+      ),
+    ),
+    PostgresQuery(
+      ff.Tables.foodItemsStatus,
+      outputAs: 'invItems',
+      query: PostgresQuerySpec(
+        filters: [
+          PostgresFilter(
+            'household_id',
+            relation: PostgresFilterRelation.equalTo,
+            value: AppState(ff.AppState.currentHouseholdId),
+          ),
+        ],
+        orderBys: const [
+          PostgresOrderBy('urgency_rank'),
+          PostgresOrderBy('days_left'),
+        ],
+      ),
+    ),
+    // BOTH lists: allItems backs search and the filter chips, items is what
+    // the grid draws. Setting only one silently breaks filtering.
+    SetState(ff.Pages.inventoryPage.state.allItems,
+        const ActionOutput('invItems')),
+    SetState(ff.Pages.inventoryPage.state.items,
+        const ActionOutput('invItems')),
+    // Last, so it schedules from the inventory this load just fetched.
+    CallCustomAction.named(
+      'ScheduleExpiryReminders',
+      args: {},
+      returnType: string,
+      arguments: {},
+      outputAs: 'invReschedule',
+    ),
+  ]);
 }

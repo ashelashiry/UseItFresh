@@ -526,14 +526,29 @@
           <li><b>App ID</b> &rarr; <span class="val">6810644731</span>
             <span class="hint">Your real value, from Part 3. NOT com.useitfresh.app — see the callout at the top of this page.</span></li>
           <li>Open <b>Deployment Source</b> and confirm it is pointing at the branch you want shipped &mdash; <code>main</code>.</li>
-          <li>Open <b>Privacy Manifest Configurations</b> and work through it.
-            <span class="hint">Apple requires declared reasons for certain APIs. This app uses the camera, the photo library and local storage. A missing manifest is a rejection AFTER a 20-minute upload, so it is worth the two minutes now.</span></li>
+          <li>Open <b>Privacy Manifest Configurations</b>. See the note below for what actually needs filling &mdash; it is less than Apple's documentation suggests.</li>
         </ol>
         <div class="ok">
           <span class="k">Already done</span>
           <span>The camera, photo-library and notification permission
           descriptions are configured in the project &mdash; I checked. You do
           not need to write those.</span>
+        </div>
+
+        <div class="ok">
+          <span class="k">Privacy manifest</span>
+          <span><b>Leave all five toggles OFF, then deploy.</b> They are for
+          APIs your own app binary calls directly, and it calls none of them.
+          The plugins that do (shared_preferences, path_provider, sqflite,
+          image_picker, url_launcher) each ship their own declaration &mdash; I
+          checked all five.</span>
+        </div>
+
+        <div class="flag">
+          <span class="k">If Apple emails</span>
+          <span>It names the exact category. Flip that one toggle, redeploy.
+          Turning one on for an API you do not use would be a false statement to
+          Apple, so off is the correct default.</span>
         </div>
       </div>
     </div>
