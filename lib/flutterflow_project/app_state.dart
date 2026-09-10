@@ -29,6 +29,42 @@ abstract final class AppState {
     typeName: "Boolean",
     persisted: false,
   );
+  static const scanBarcode = ffai.ProjectAppStateFieldHandle(
+    name: "scanBarcode",
+    key: "pne0944b",
+    typeName: "String",
+    persisted: false,
+  );
+  static const scanBrand = ffai.ProjectAppStateFieldHandle(
+    name: "scanBrand",
+    key: "4y1iv0y6",
+    typeName: "String",
+    persisted: false,
+  );
+  static const scanCategory = ffai.ProjectAppStateFieldHandle(
+    name: "scanCategory",
+    key: "396caw0t",
+    typeName: "String",
+    persisted: false,
+  );
+  static const scanImageUrl = ffai.ProjectAppStateFieldHandle(
+    name: "scanImageUrl",
+    key: "g7sxj2x3",
+    typeName: "String",
+    persisted: false,
+  );
+  static const scanName = ffai.ProjectAppStateFieldHandle(
+    name: "scanName",
+    key: "tve6kjbt",
+    typeName: "String",
+    persisted: false,
+  );
+  static const scanQuantity = ffai.ProjectAppStateFieldHandle(
+    name: "scanQuantity",
+    key: "w1mv4c3p",
+    typeName: "String",
+    persisted: false,
+  );
   static const searchQuery = ffai.ProjectAppStateFieldHandle(
     name: "searchQuery",
     key: "searchQuery",
@@ -41,13 +77,75 @@ abstract final class AppState {
     typeName: "String",
     persisted: false,
   );
+  static const wasteBinnedCount = ffai.ProjectAppStateFieldHandle(
+    name: "wasteBinnedCount",
+    key: "q1zte4rv",
+    typeName: "Integer",
+    persisted: false,
+  );
+  static const wasteDetail = ffai.ProjectAppStateFieldHandle(
+    name: "wasteDetail",
+    key: "ofrklz0j",
+    typeName: "String",
+    persisted: false,
+  );
+  static const wasteHasData = ffai.ProjectAppStateFieldHandle(
+    name: "wasteHasData",
+    key: "kzg1sg7v",
+    typeName: "Boolean",
+    persisted: false,
+  );
+  static const wasteHeadline = ffai.ProjectAppStateFieldHandle(
+    name: "wasteHeadline",
+    key: "p72vr258",
+    typeName: "String",
+    persisted: false,
+  );
+  static const wasteLoaded = ffai.ProjectAppStateFieldHandle(
+    name: "wasteLoaded",
+    key: "2qz4wz5x",
+    typeName: "Boolean",
+    persisted: false,
+  );
+  static const wasteTrend = ffai.ProjectAppStateFieldHandle(
+    name: "wasteTrend",
+    key: "b40jlw8q",
+    typeName: "String",
+    persisted: false,
+  );
+  static const wasteUsedCount = ffai.ProjectAppStateFieldHandle(
+    name: "wasteUsedCount",
+    key: "d2j2sf2p",
+    typeName: "Integer",
+    persisted: false,
+  );
+  static const wasteWorst = ffai.ProjectAppStateFieldHandle(
+    name: "wasteWorst",
+    key: "7nj80m9i",
+    typeName: "String",
+    persisted: false,
+  );
   static const all = <ffai.ProjectAppStateFieldHandle>[
     currentHouseholdId,
     expiryAlertDays,
     hasOpenedFridge,
     isMetric,
+    scanBarcode,
+    scanBrand,
+    scanCategory,
+    scanImageUrl,
+    scanName,
+    scanQuantity,
     searchQuery,
     selectedCategory,
+    wasteBinnedCount,
+    wasteDetail,
+    wasteHasData,
+    wasteHeadline,
+    wasteLoaded,
+    wasteTrend,
+    wasteUsedCount,
+    wasteWorst,
   ];
 }
 

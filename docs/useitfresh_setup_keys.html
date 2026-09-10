@@ -476,9 +476,16 @@
           <span><b>Privacy Manifest Configurations</b> is worth opening before the first upload. Apple requires declared reasons for certain APIs, and this app touches the camera, the photo library and local storage. A missing manifest is a rejection after the upload, not before.</span>
         </div>
 
-        <div class="flag">
-          <span class="k">Before you submit</span>
-          <span>The exported <span class="path">ios/Runner/Info.plist</span> currently carries <b>no camera or photo-library usage strings</b>. Without them iOS terminates the app instead of asking permission. FlutterFlow has a <b>Permissions</b> page under Project Setup &mdash; worth checking the camera and photo library entries there have descriptions written. I will verify this properly as soon as I can reach the project.</span>
+        <div class="lands">
+          <span class="k">Checked</span>
+          <span><b>The permission strings are in place.</b> I flagged this as a
+          risk earlier and was over-cautious: the exported
+          <span class="path">Info.plist</span> in this workspace carries none,
+          but that export is not what ships &mdash; FlutterFlow's cloud build
+          is. Reading the project itself shows all three declared, with real
+          copy: camera ("to photograph food and scan barcodes"), photo library,
+          and notifications. Worth a glance on the first build, but not a
+          blocker.</span>
         </div>
       </div>
     </div>

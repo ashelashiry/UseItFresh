@@ -31,6 +31,12 @@ final class FoodItemPageState {
         key: "mt18fvfi",
         typeName: "List<PostgresRow>",
       );
+  ffai.ProjectStateFieldHandle get replace =>
+      const ffai.ProjectStateFieldHandle(
+        name: "replace",
+        key: "9om3awkj",
+        typeName: "Boolean",
+      );
 }
 
 abstract final class FoodItemPageWidgets {
@@ -330,9 +336,47 @@ abstract final class FoodItemPageWidgets {
                         name: "ItemActions",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
+                            key: "Container_twamrhpx",
+                            type: "Container",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0]",
+                            name: "ItemReplaceToggle",
+                            triggers: const <String>[
+                              "ON_TAP",
+                            ],
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Row_i47w4bjl",
+                                type: "Row",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0]",
+                                name: "Row",
+                                children: <ffai.ProjectWidgetHandle>[
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Icon_emavulm8",
+                                    type: "Icon",
+                                    path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0].children[0]",
+                                    name: "ItemReplaceOff",
+                                  ),
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Icon_69sqo82c",
+                                    type: "Icon",
+                                    path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0].children[1]",
+                                    name: "ItemReplaceOn",
+                                  ),
+                                  ffai.ProjectWidgetHandle(
+                                    key: "Text_rdeflnkr",
+                                    type: "Text",
+                                    path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0].children[2]",
+                                    name: "ItemReplaceLabel",
+                                    text: "Put it on the shopping list",
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          ffai.ProjectWidgetHandle(
                             key: "Button_q7rrsu3l",
                             type: "Button",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[1]",
                             name: "ItemUsed",
                             text: "I used it",
                             triggers: const <String>[
@@ -342,7 +386,7 @@ abstract final class FoodItemPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_fdabmnbe",
                             type: "Button",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[1]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[2]",
                             name: "ItemDiscarded",
                             text: "Throw it out",
                             triggers: const <String>[

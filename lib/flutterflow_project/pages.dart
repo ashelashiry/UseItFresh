@@ -5,6 +5,7 @@ library;
 import 'package:flutterflow_ai/flutterflow_ai.dart' as ffai;
 import 'pages/add_food_item_page.dart' show addFoodItemPageHandle;
 import 'pages/add_food_review_page.dart' show addFoodReviewPageHandle;
+import 'pages/barcode_scan_page.dart' show barcodeScanPageHandle;
 import 'pages/food_item_page.dart' show foodItemPageHandle;
 import 'pages/home_page.dart' show homePageHandle;
 import 'pages/household_setup_page.dart' show householdSetupPageHandle;
@@ -14,15 +15,18 @@ import 'pages/profile_page.dart' show profilePageHandle;
 import 'pages/recipes_page.dart' show recipesPageHandle;
 import 'pages/reset_password_page.dart' show resetPasswordPageHandle;
 import 'pages/scan_add_page.dart' show scanAddPageHandle;
+import 'pages/shopping_list_page.dart' show shoppingListPageHandle;
 import 'pages/sign_in_page.dart' show signInPageHandle;
 import 'pages/sign_up_page.dart' show signUpPageHandle;
 import 'pages/storage_locations_page.dart' show storageLocationsPageHandle;
 import 'pages/update_password_page.dart' show updatePasswordPageHandle;
+import 'pages/waste_history_page.dart' show wasteHistoryPageHandle;
 import 'pages/welcome_page.dart' show welcomePageHandle;
 
 abstract final class Pages {
   static final addFoodItemPage = addFoodItemPageHandle;
   static final addFoodReviewPage = addFoodReviewPageHandle;
+  static final barcodeScanPage = barcodeScanPageHandle;
   static final foodItemPage = foodItemPageHandle;
   static final homePage = homePageHandle;
   static final householdSetupPage = householdSetupPageHandle;
@@ -32,14 +36,17 @@ abstract final class Pages {
   static final recipesPage = recipesPageHandle;
   static final resetPasswordPage = resetPasswordPageHandle;
   static final scanAddPage = scanAddPageHandle;
+  static final shoppingListPage = shoppingListPageHandle;
   static final signInPage = signInPageHandle;
   static final signUpPage = signUpPageHandle;
   static final storageLocationsPage = storageLocationsPageHandle;
   static final updatePasswordPage = updatePasswordPageHandle;
+  static final wasteHistoryPage = wasteHistoryPageHandle;
   static final welcomePage = welcomePageHandle;
   static final all = <ffai.ProjectPageHandle>[
     addFoodItemPage,
     addFoodReviewPage,
+    barcodeScanPage,
     foodItemPage,
     homePage,
     householdSetupPage,
@@ -49,10 +56,12 @@ abstract final class Pages {
     recipesPage,
     resetPasswordPage,
     scanAddPage,
+    shoppingListPage,
     signInPage,
     signUpPage,
     storageLocationsPage,
     updatePasswordPage,
+    wasteHistoryPage,
     welcomePage,
   ];
 }

@@ -179,16 +179,52 @@ abstract final class ProfilePageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
+                    key: "Container_kc7jzzk5",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[6]",
+                    name: "ProfileShopping",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_0uk7dn99",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[6].children[0]",
+                        name: "ProfileShoppingRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_pxukv1g3",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[7]",
+                    name: "ProfileHistory",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_f0gvv0l3",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[7].children[0]",
+                        name: "ProfileHistoryRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "Text_47tb7tt1",
                     type: "Text",
-                    path: "ProfilePage.body[0].children[0].children[6]",
+                    path: "ProfilePage.body[0].children[0].children[8]",
                     name: "ProfileSafetyNote",
                     text: "Use It Fresh provides general food-management guidance, not a guarantee of safety. When in doubt — especially with high-risk food — throw it out and follow local food-safety advice.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_pv4flta3",
                     type: "Container",
-                    path: "ProfilePage.body[0].children[0].children[7]",
+                    path: "ProfilePage.body[0].children[0].children[9]",
                     name: "ProfileSignOut",
                     triggers: const <String>[
                       "ON_TAP",
@@ -197,7 +233,7 @@ abstract final class ProfilePageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Text_vvxnrys1",
                         type: "Text",
-                        path: "ProfilePage.body[0].children[0].children[7].children[0]",
+                        path: "ProfilePage.body[0].children[0].children[9].children[0]",
                         name: "ProfileSignOutLabel",
                         text: "Sign out",
                       ),

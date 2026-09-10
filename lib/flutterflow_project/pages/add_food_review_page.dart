@@ -15,6 +15,12 @@ final addFoodReviewPageHandle = ffai.ProjectPageHandle<AddFoodReviewPageParams, 
 
 final class AddFoodReviewPageParams {
   const AddFoodReviewPageParams();
+  ffai.ProjectParamHandle get barcode =>
+      const ffai.ProjectParamHandle(
+        name: "barcode",
+        key: "4oja283v",
+        typeName: "String",
+      );
   ffai.ProjectParamHandle get category =>
       const ffai.ProjectParamHandle(
         name: "category",
@@ -124,28 +130,42 @@ abstract final class AddFoodReviewPageWidgets {
                     text: "This is what will be recorded.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Container_htyl8fk4",
+                    key: "Container_6o5wc4ct",
                     type: "Container",
                     path: "AddFoodReviewPage.body[0].children[0].children[3]",
+                    name: "ReviewPhoto",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Image_33qxvncs",
+                        type: "Image",
+                        path: "AddFoodReviewPage.body[0].children[0].children[3].children[0]",
+                        name: "ReviewPhotoImage",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_htyl8fk4",
+                    type: "Container",
+                    path: "AddFoodReviewPage.body[0].children[0].children[4]",
                     name: "Review_name",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_s3a17qup",
                         type: "Column",
-                        path: "AddFoodReviewPage.body[0].children[0].children[3].children[0]",
+                        path: "AddFoodReviewPage.body[0].children[0].children[4].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_u08472em",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[3].children[0].children[0]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[4].children[0].children[0]",
                             name: "ReviewLabel_name",
                             text: "WHAT IT IS",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_3tdp3luh",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[3].children[0].children[1]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[4].children[0].children[1]",
                             name: "ReviewValue_name",
                           ),
                         ],
@@ -155,26 +175,26 @@ abstract final class AddFoodReviewPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_b259xmmb",
                     type: "Container",
-                    path: "AddFoodReviewPage.body[0].children[0].children[4]",
+                    path: "AddFoodReviewPage.body[0].children[0].children[5]",
                     name: "Review_category",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_fay5ks9r",
                         type: "Column",
-                        path: "AddFoodReviewPage.body[0].children[0].children[4].children[0]",
+                        path: "AddFoodReviewPage.body[0].children[0].children[5].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_8cx87uld",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[4].children[0].children[0]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[5].children[0].children[0]",
                             name: "ReviewLabel_category",
                             text: "CATEGORY",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_03tav600",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[4].children[0].children[1]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[5].children[0].children[1]",
                             name: "ReviewValue_category",
                           ),
                         ],
@@ -184,26 +204,26 @@ abstract final class AddFoodReviewPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_40ouo8us",
                     type: "Container",
-                    path: "AddFoodReviewPage.body[0].children[0].children[5]",
+                    path: "AddFoodReviewPage.body[0].children[0].children[6]",
                     name: "Review_where",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_xcvbeymu",
                         type: "Column",
-                        path: "AddFoodReviewPage.body[0].children[0].children[5].children[0]",
+                        path: "AddFoodReviewPage.body[0].children[0].children[6].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_7xxsrqga",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[5].children[0].children[0]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[6].children[0].children[0]",
                             name: "ReviewLabel_where",
                             text: "WHERE IT GOES",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_hqbjqumh",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[5].children[0].children[1]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[6].children[0].children[1]",
                             name: "ReviewValue_where",
                           ),
                         ],
@@ -213,26 +233,26 @@ abstract final class AddFoodReviewPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_o9vo7l5m",
                     type: "Container",
-                    path: "AddFoodReviewPage.body[0].children[0].children[6]",
+                    path: "AddFoodReviewPage.body[0].children[0].children[7]",
                     name: "Review_date",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_3xlrg2iy",
                         type: "Column",
-                        path: "AddFoodReviewPage.body[0].children[0].children[6].children[0]",
+                        path: "AddFoodReviewPage.body[0].children[0].children[7].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_xr58cv6i",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[6].children[0].children[0]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[7].children[0].children[0]",
                             name: "ReviewLabel_date",
                             text: "THE DATE",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_780el5wc",
                             type: "Text",
-                            path: "AddFoodReviewPage.body[0].children[0].children[6].children[0].children[1]",
+                            path: "AddFoodReviewPage.body[0].children[0].children[7].children[0].children[1]",
                             name: "ReviewValue_date",
                           ),
                         ],
@@ -242,13 +262,13 @@ abstract final class AddFoodReviewPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_xkib7ah7",
                     type: "Container",
-                    path: "AddFoodReviewPage.body[0].children[0].children[7]",
+                    path: "AddFoodReviewPage.body[0].children[0].children[8]",
                     name: "ReviewDateNote",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Text_t144zlcl",
                         type: "Text",
-                        path: "AddFoodReviewPage.body[0].children[0].children[7].children[0]",
+                        path: "AddFoodReviewPage.body[0].children[0].children[8].children[0]",
                         name: "ReviewDateNoteText",
                       ),
                     ],
@@ -256,7 +276,7 @@ abstract final class AddFoodReviewPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Button_sm2avojh",
                     type: "Button",
-                    path: "AddFoodReviewPage.body[0].children[0].children[8]",
+                    path: "AddFoodReviewPage.body[0].children[0].children[9]",
                     name: "ReviewConfirm",
                     text: "Add to my kitchen",
                     triggers: const <String>[
@@ -266,7 +286,7 @@ abstract final class AddFoodReviewPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_44domhde",
                     type: "Container",
-                    path: "AddFoodReviewPage.body[0].children[0].children[9]",
+                    path: "AddFoodReviewPage.body[0].children[0].children[10]",
                     name: "ReviewEdit",
                     triggers: const <String>[
                       "ON_TAP",
@@ -275,7 +295,7 @@ abstract final class AddFoodReviewPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Text_a1dfflnr",
                         type: "Text",
-                        path: "AddFoodReviewPage.body[0].children[0].children[9].children[0]",
+                        path: "AddFoodReviewPage.body[0].children[0].children[10].children[0]",
                         name: "ReviewEditLabel",
                         text: "Back to edit",
                       ),

@@ -19,6 +19,12 @@ final class AddFoodItemPageParams {
 
 final class AddFoodItemPageState {
   const AddFoodItemPageState();
+  ffai.ProjectStateFieldHandle get barcode =>
+      const ffai.ProjectStateFieldHandle(
+        name: "barcode",
+        key: "fmb0ahtn",
+        typeName: "String",
+      );
   ffai.ProjectStateFieldHandle get category =>
       const ffai.ProjectStateFieldHandle(
         name: "category",
@@ -218,24 +224,44 @@ abstract final class AddFoodItemPageWidgets {
                     name: "ChosenLocationText",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "ListView_jwll2rtx",
+                    key: "ListView_x35uiy3w",
                     type: "ListView",
                     path: "AddFoodItemPage.body[0].children[0].children[4]",
-                    name: "LocationChoiceList",
+                    name: "LocationPicker",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Container_c21dxi2c",
+                        key: "Container_pdc3f339",
                         type: "Container",
                         path: "AddFoodItemPage.body[0].children[0].children[4].children[0]",
-                        name: "LocationChoiceRow",
+                        name: "LocationOption",
+                        triggers: const <String>[
+                          "ON_TAP",
+                        ],
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "ListTile_d0no66fc",
-                            type: "ListTile",
+                            key: "Row_facqtbio",
+                            type: "Row",
                             path: "AddFoodItemPage.body[0].children[0].children[4].children[0].children[0]",
-                            name: "ListTile",
-                            triggers: const <String>[
-                              "ON_TAP",
+                            name: "Row",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Container_106p8mep",
+                                type: "Container",
+                                path: "AddFoodItemPage.body[0].children[0].children[4].children[0].children[0].children[0]",
+                                name: "LocationOptionIcon",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_inn3gh0u",
+                                type: "Text",
+                                path: "AddFoodItemPage.body[0].children[0].children[4].children[0].children[0].children[1]",
+                                name: "LocationOptionName",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Icon_ga1lxmlp",
+                                type: "Icon",
+                                path: "AddFoodItemPage.body[0].children[0].children[4].children[0].children[0].children[2]",
+                                name: "LocationOptionTick",
+                              ),
                             ],
                           ),
                         ],
