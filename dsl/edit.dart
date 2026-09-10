@@ -153,45 +153,26 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// What you used, and what you did not.
+/// Take the diagnostics out.
 ///
-/// Every "I used it" and "Throw it out" has been writing to food_item_events
-/// since the first migration and nothing has ever read it back. This is the
-/// payoff for all that logging: the one screen that can say whether the app is
-/// actually working.
-///
-/// Rules this screen holds to, from the guides:
-///
-///   * Never invent. With nothing settled it says nothing settled, rather than
-///     drawing an empty chart or a zero that looks like a score.
-///   * Never scold. The number is reported, not judged. Nobody needs an app
-///     telling them off about a cucumber.
-///   * Say what the window is. "Most thrown out: vegetables" is meaningless
-///     without "of the 14 things you finished with in the last 30 days".
-///
-/// The reasoning lives in Dart rather than the UI, because the awkward parts —
-/// too little data to have an opinion, a tie between categories, the first
-/// month having no previous month to compare against — are all judgement, and
-/// judgement in widget bindings is where this project has lost the most time.
+/// The probe Text and the print statements did their job: they proved the
+/// values were correct and the position was wrong. Neither belongs in the app.
 void buildStarterEditFlow(App app) {
-  app.state('wasteHeadline', string.withDefault(''));
-  app.state('wasteDetail', string.withDefault(''));
-  app.state('wasteWorst', string.withDefault(''));
-  app.state('wasteTrend', string.withDefault(''));
-  app.state('wasteUsedCount', int_.withDefault(0));
-  app.state('wasteBinnedCount', int_.withDefault(0));
-  app.state('wasteHasData', bool_.withDefault(false));
-  app.state('wasteLoaded', bool_.withDefault(false));
+  app.editPage(ff.Pages.wasteHistoryPage, (page) {
+    page.ensureRemoved(
+      ff.Pages.wasteHistoryPage.widgets.byKey('Column_i1528br6').single,
+    );
+  });
 
-  app.customAction(
-    'LoadWasteSummary',
-    args: {},
-    returns: string,
-    description:
-        'Reads the settled-item history for this household and works out what '
-        'was used, what was thrown, and what is thrown most. Returns an empty '
-        'string on success, or a message explaining why not.',
-    code: r'''
+  app.raw((project) {
+    updateCustomAction(
+      project,
+      name: 'LoadWasteSummary',
+      description:
+          'Reads the settled-item history for this household and works out '
+          'what was used, what was thrown, and what is thrown most. Returns '
+          'an empty string on success, or a message explaining why not.',
+      code: r'''
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Works out the household's use-versus-waste picture over the last 30 days.
@@ -340,5 +321,6 @@ String _label(String code) {
   return names[code] ?? code.replaceAll('_', ' ');
 }
 ''',
-  );
+    );
+  });
 }

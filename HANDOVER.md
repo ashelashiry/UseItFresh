@@ -162,6 +162,11 @@ Every one of these produced a **successful push and a wrong app**.
   typed handle represents it as `json`, so a list of actions will not normalise
   at the call site. Make the component presentational and put the tap on a
   wrapper.
+- **A `Row` with `crossAxis: stretch` inside a SCROLLABLE Column** has no
+  bounded height to stretch to. It fails layout and takes every sibling after
+  it down with it, silently — the same family as the shrink-wrap bug. The tell
+  is that the offending row also loses its own decoration. Anything after it
+  simply is not drawn, however correct its data and its condition.
 - **A `ListView` with no shrink-wrap inside a Column** fails layout and takes
   everything after it in the column with it. This broke two whole screens. A
   sweep found only those two, but check any new one.
