@@ -378,11 +378,10 @@
   <!-- ============ TRACK A ============ -->
   <section>
     <h2>Track A &mdash; onto your iPhone</h2>
-    <p class="lede"><b>Parts 1 to 3 are done</b> &mdash; the bundle is
-    registered, the app record exists, and its Apple ID is
-    <b style="font-family:var(--f-mono)">6810644731</b>. You are at Part 4:
-    generating the API key, about fifteen minutes. Each part produces something
-    the next one needs, so keep them in order.</p>
+    <p class="lede"><b>Parts 1 to 5 are done.</b> Bundle registered, app record
+    created, key generated, and all four fields filled in FlutterFlow with the
+    build number set to 1. <b>Only Part 6 is left</b> &mdash; the privacy
+    manifest, then the deploy itself, which is mostly waiting.</p>
 
     <div class="part">
       <div class="part-head">
@@ -471,7 +470,7 @@
 
     <div class="part">
       <div class="part-head">
-        <span class="no">Part 4 of 6</span>
+        <span class="no" style="color:var(--forest)">Part 4 of 6 &middot; done</span>
         <h3>Generate the API key</h3>
         <span class="where">appstoreconnect.apple.com &middot; ~5 min</span>
       </div>
@@ -499,17 +498,19 @@
           one. Download it before you leave the page.</span>
         </div>
         <div class="ok">
-          <span class="k">You now have</span>
-          <span><b>Issuer ID</b> (step 4), <b>Key ID</b> (step 10), the
-          <code>.p8</code> file (step 9), and the <b>Apple ID</b> number from
-          Part 3. That is all four.</span>
+          <span class="k">Done &mdash; yours are</span>
+          <span><b>Issuer ID</b>
+          <code>9115ec7b-3a8c-418f-b561-767f26c2a50a</code><br>
+          <b>Key ID</b> <code>GH8H7Y223C</code><br>
+          Both are identifiers rather than secrets, so they are safe here. The
+          <code>.p8</code> itself is in FlutterFlow and nowhere else.</span>
         </div>
       </div>
     </div>
 
     <div class="part">
       <div class="part-head">
-        <span class="no">Part 5 of 6</span>
+        <span class="no" style="color:var(--forest)">Part 5 of 6 &middot; done</span>
         <h3>Fill FlutterFlow in</h3>
         <span class="where">FlutterFlow &middot; ~5 min</span>
       </div>
