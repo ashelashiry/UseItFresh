@@ -153,77 +153,158 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Repair reviewLine: a custom function's `code` is the BODY only.
+/// Correct where a chocolate bar lands.
 ///
-/// updateCustomFunction generates the signature from the declared arguments,
-/// so passing a whole function declaration nested one inside the other. The
-/// outer function then fell off its end and returned null, and the review
-/// screen died on a null check before painting anything — a grey screen with
-/// "Null check operator used on a null value" in the console.
-///
-/// Custom ACTIONS are the opposite: their code is a complete function,
-/// imports and all. That asymmetry is worth remembering.
+/// Driving the finished flow filed a Mars bar under "Bread & bakery", because
+/// Open Food Facts tags it en:biscuits-and-cakes and that sat in the bakery
+/// rule. Bakery implies days; a chocolate bar keeps for months, and the
+/// category exists purely to estimate shelf life — so the wrong bucket is not
+/// cosmetic, it would have made the app claim the thing was going off.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomFunction(
+    updateCustomAction(
       project,
-      name: 'reviewLine',
-      code: r'''
-  String dateOnly(DateTime? d) {
-    if (d == null) return '';
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
+      name: 'LookupBarcode',
+      description:
+        'Looks a barcode up in Open Food Facts and puts what it found into '
+        'app state. Returns an empty string on success, or a message saying '
+        'why not.',
+    code: r'''
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+/// Looks up a barcode, and says why if it could not.
+///
+/// Returns '' when something usable was found. Every other outcome returns a
+/// sentence a person can act on, because "lookup failed" tells them nothing
+/// about whether to wait, retype, or give up and add it by hand.
+Future<String> lookupBarcode(String? barcode) async {
+  final code = (barcode ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+  if (code.length < 8) {
+    return 'That does not look like a barcode. They are usually 8 to 14 digits.';
   }
 
-  // The same words the picker offered. Anything unrecognised falls back to
-  // the code with its underscores opened up, so a category added to the
-  // schema later reads awkwardly rather than disappearing.
-  const categoryNames = <String, String>{
-    'dairy': 'Dairy',
-    'meat_poultry': 'Meat & poultry',
-    'seafood': 'Seafood',
-    'eggs': 'Eggs',
-    'cooked_leftovers': 'Cooked leftovers',
-    'fruit': 'Fruit',
-    'vegetables': 'Vegetables',
-    'bread_bakery': 'Bread & bakery',
-    'pantry_dry': 'Pantry & dry goods',
-    'frozen': 'Frozen food',
-    'condiments_sauces': 'Condiments & sauces',
-    'infant_food': 'Infant food & formula',
+  // Clear first, so a failed second lookup cannot leave the first one's
+  // answer on screen looking like the new one.
+  FFAppState().scanBarcode = code;
+  FFAppState().scanName = '';
+  FFAppState().scanBrand = '';
+  FFAppState().scanCategory = '';
+  FFAppState().scanImageUrl = '';
+  FFAppState().scanQuantity = '';
+
+  final url = Uri.parse(
+      'https://world.openfoodfacts.org/api/v2/product/$code.json'
+      '?fields=product_name,brands,categories_tags,image_front_small_url,quantity');
+
+  http.Response res;
+  try {
+    res = await http.get(url, headers: {
+      // Open Food Facts asks callers to identify themselves.
+      'User-Agent': 'UseItFresh/1.0 (https://useitfresh.app)',
+    }).timeout(const Duration(seconds: 12));
+  } catch (error) {
+    return 'Could not reach the product database. Check your connection, or '
+        'add it by hand.';
+  }
+
+  // An unknown barcode comes back as 404, not as a 200 with a flag.
+  if (res.statusCode == 404) {
+    return 'No product found for $code. You can still add it by hand.';
+  }
+  if (res.statusCode != 200) {
+    return 'The product database is not answering right now. Try again in a '
+        'moment, or add it by hand.';
+  }
+
+  Map<String, dynamic> body;
+  try {
+    body = json.decode(res.body) as Map<String, dynamic>;
+  } catch (_) {
+    return 'The product database sent something unreadable.';
+  }
+  if (body['status'] != 1 || body['product'] == null) {
+    return 'No product found for $code. You can still add it by hand.';
+  }
+
+  final product = body['product'] as Map<String, dynamic>;
+  final name = (product['product_name'] ?? '').toString().trim();
+  final brands = (product['brands'] ?? '').toString().trim();
+  // brands is a comma-separated list, longest-established first; one is plenty.
+  final brand = brands.isEmpty ? '' : brands.split(',').first.trim();
+
+  if (name.isEmpty) {
+    return 'That barcode is in the database but has no name yet. Add it by '
+        'hand and it will still be recorded.';
+  }
+
+  final tags = <String>[
+    for (final t in (product['categories_tags'] as List<dynamic>? ?? []))
+      t.toString()
+  ];
+
+  FFAppState().scanName = name;
+  FFAppState().scanBrand = brand;
+  FFAppState().scanCategory = _categoryFor(tags);
+  FFAppState().scanQuantity = (product['quantity'] ?? '').toString().trim();
+  FFAppState().scanImageUrl =
+      (product['image_front_small_url'] ?? '').toString().trim();
+  return '';
+}
+
+/// Our category for a product, or '' when nothing matches confidently.
+///
+/// Order is precedence, most specific first. Storage beats ingredient: a bag
+/// of frozen peas is 'frozen', not 'vegetables', because how it is kept is
+/// what decides how long it lasts — and the shelf-life estimate is the whole
+/// reason this app records a category at all.
+///
+/// Returning '' is a real answer. Leaving the picker empty is better than
+/// filing yoghurt under pantry because a rule half-matched.
+String _categoryFor(List<String> tags) {
+  const rules = <String, List<String>>{
+    'infant_food': ['en:baby-foods', 'en:baby-milks', 'en:infant-formulae',
+        'en:baby-snacks'],
+    'frozen': ['en:frozen-foods', 'en:frozen-desserts', 'en:ice-creams'],
+    'eggs': ['en:eggs'],
+    'seafood': ['en:seafood', 'en:fishes', 'en:fishes-and-their-products',
+        'en:shellfish', 'en:canned-fishes'],
+    'meat_poultry': ['en:meats-and-their-products', 'en:meats', 'en:poultry',
+        'en:prepared-meats', 'en:charcuterie'],
+    'dairy': ['en:dairies', 'en:milks', 'en:cheeses', 'en:yogurts',
+        'en:fermented-milk-products', 'en:creams', 'en:butters'],
+    // Fresh bakery only. Biscuits, cakes and chocolate bars are shelf-stable
+    // and belong with dry goods: filing a chocolate bar as bakery would have
+    // the app estimate a few days for something that keeps for months, and
+    // that estimate is the only reason a category is recorded at all.
+    'bread_bakery': ['en:breads', 'en:viennoiserie', 'en:pastries',
+        'en:bakery-products'],
+    'pantry_dry': ['en:biscuits-and-cakes', 'en:confectioneries',
+        'en:chocolate-candies', 'en:candy-chocolate-bars',
+        'en:sweet-snacks', 'en:crisps-and-chips'],
+    'condiments_sauces': ['en:sauces', 'en:condiments', 'en:spreads',
+        'en:dressings', 'en:mustards', 'en:vinegars'],
+    'fruit': ['en:fresh-fruits', 'en:fruits'],
+    'vegetables': ['en:fresh-vegetables', 'en:vegetables',
+        'en:fruits-and-vegetables'],
   };
 
-  switch (field ?? '') {
-    case 'name':
-      final n = (name ?? '').trim();
-      return n.isEmpty ? 'Unnamed' : n;
-    case 'category':
-      final c = (category ?? '').trim();
-      if (c.isEmpty) return 'No category';
-      return categoryNames[c] ?? c.replaceAll('_', ' ');
-    case 'where':
-      final w = (locationLabel ?? '').trim();
-      return w.isEmpty ? 'Not chosen' : w;
-    case 'date':
-      final d = dateOnly(printedDate);
-      if (d.isEmpty) return 'No date on the pack';
-      final type = printedDateType ?? '';
-      if (type == 'use_by') return 'Use by $d';
-      if (type == 'best_before') return 'Best before $d';
-      if (type == 'sell_by') return 'Sell by $d';
-      return 'Printed $d';
-    case 'dateNote':
-      if (printedDate != null) return '';
-      // Being explicit about the consequence, rather than silently estimating.
-      return 'Without a printed date the app estimates from the category, and '
-          'says so wherever it shows the result.';
-    default:
-      return '';
+  final have = tags.toSet();
+  for (final entry in rules.entries) {
+    if (have.intersection(entry.value.toSet()).isNotEmpty) return entry.key;
   }
+  // A packaged grocery matching nothing specific is usually ambient dry goods,
+  // but only say so when the tags look like food at all.
+  const ambient = {
+    'en:plant-based-foods-and-beverages', 'en:plant-based-foods',
+    'en:cereals-and-potatoes', 'en:groceries', 'en:canned-foods', 'en:snacks',
+    'en:beverages', 'en:beverages-and-beverages-preparations',
+  };
+  if (have.intersection(ambient).isNotEmpty) return 'pantry_dry';
+  return '';
+}
 ''',
-    );
+  );
   });
 }
