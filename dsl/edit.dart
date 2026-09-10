@@ -153,12 +153,81 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Remove the location list that had no chosen state.
-/// Its own push: a removal shifts every sibling index as it applies.
+/// Already on the list is a success, not a failure.
+///
+/// The action reported "X is already on the list" as an error string. It is
+/// not an error: the wanted end state — that thing is on the next shop — is
+/// already true. Returning empty keeps the meaning of the return value clean
+/// (empty means "it is done"), which matters because the caller no longer
+/// shows this message and would otherwise be quietly ignoring a real failure.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.addFoodItemPage, (page) {
-    page.ensureRemoved(
-      ff.Pages.addFoodItemPage.widgets.byKey('ListView_c59glwuj').single,
+  app.raw((project) {
+    updateCustomAction(
+      project,
+      name: 'AddItemToShoppingList',
+      description:
+          'Puts a food item on the household shopping list as a replacement. '
+          'Returns an empty string on success, or a message saying why not.',
+      code: r'''
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Adds the named item to the household's shopping list.
+///
+/// Reads the name and household from the item itself, so the list entry always
+/// matches the thing being settled.
+Future<String> addItemToShoppingList(String? itemId) async {
+  final id = (itemId ?? '').trim();
+  if (id.isEmpty) return 'No item to add.';
+
+  try {
+    final item = await SupaFlow.client
+        .from('food_items')
+        .select('name, household_id')
+        .eq('id', id)
+        .maybeSingle();
+    if (item == null) return 'Could not find that item.';
+
+    final name = (item['name'] ?? '').toString().trim();
+    final household = (item['household_id'] ?? '').toString();
+    if (name.isEmpty || household.isEmpty) return 'Could not find that item.';
+
+    // Creating a household seeds exactly one list, so the oldest is the one.
+    final lists = await SupaFlow.client
+        .from('shopping_lists')
+        .select('id')
+        .eq('household_id', household)
+        .order('created_at')
+        .limit(1);
+    if (lists.isEmpty) return 'This household has no shopping list yet.';
+
+    // Already there and not yet bought: the wanted end state already holds,
+    // so this reports success rather than adding a second line for one thing.
+    final already = await SupaFlow.client
+        .from('shopping_list_items')
+        .select('id')
+        .eq('shopping_list_id', lists.first['id'])
+        .eq('name', name)
+        .eq('is_purchased', false);
+    if (already.isNotEmpty) return '';
+
+    await SupaFlow.client.from('shopping_list_items').insert({
+      'shopping_list_id': lists.first['id'],
+      'name': name,
+      'source': 'replacement',
+      // Required by the insert policy, not merely a record of who did it.
+      'created_by': SupaFlow.client.auth.currentUser?.id,
+    });
+    return '';
+  } on PostgrestException catch (error) {
+    if (error.code == '42501') {
+      return 'Your account is not allowed to add to this list.';
+    }
+    return error.message;
+  } catch (error) {
+    return 'Could not add it to the list. $error';
+  }
+}
+''',
     );
   });
 }
