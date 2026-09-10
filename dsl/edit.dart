@@ -153,88 +153,52 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Unblock the iOS build: MutationObserver has no non-web stub.
+/// Scan, fill the field, look it up — one tap.
 ///
-/// letTapsThroughVideos already returns early off the web, but a runtime guard
-/// does not help a COMPILE error. universal_html provides stubs for most of
-/// dart:html so code like this still builds for a device; MutationObserver is
-/// not among them, so the iOS archive died on
-/// "Method not found: 'MutationObserver'".
+/// Making someone scan and then press a second button would be a pointless
+/// step: there is nothing to decide between the two. So the chain runs the
+/// lookup itself and lands on the same result card the typed route produces.
 ///
-/// The observer is dropped rather than replaced. It was belt-and-braces: the
-/// timer sweep below it already re-applies the fix over the first few seconds,
-/// which is the window platform views actually appear in. Everything else in
-/// the action is untouched, so the web behaviour it was written for still
-/// works.
+/// The scanned value goes into the visible field as well as the state, because
+/// a screen that looks something up without showing what it read is impossible
+/// to argue with when it gets the wrong product.
 ///
-/// Worth remembering: this is the first custom action in the project to face a
-/// real device compile. Anything reaching for dart:html needs the same look
-/// before the next build.
+/// Backing out of the scanner returns an empty string. That is not an error
+/// and gets no message — the person changed their mind, and the screen is
+/// already where they want to be.
 void buildStarterEditFlow(App app) {
-  app.raw((project) {
-    updateCustomAction(
-      project,
-      name: 'LetTapsThroughVideos',
-      description:
-          'Stops Flutter video platform views swallowing taps on the web. '
-          'Does nothing on a device, where taps already work.',
-      code: r'''
-import 'dart:async';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:universal_html/html.dart' as html;
-
-/// Stops Flutter's video platform views from swallowing taps on the web.
-///
-/// A Flutter video on the web is a real <video> element the browser stacks on
-/// top of the whole app, and the app's own layer is `pointer-events: none`.
-/// Three elements have to be neutralised, and the third is the one that
-/// matters: the <flt-platform-view-slot> Flutter hides inside a shadow root.
-///
-/// Web only — on iOS and Android the video is a texture inside the widget tree
-/// and taps already work. Safe to call repeatedly.
-Future<void> letTapsThroughVideos() async {
-  if (!kIsWeb) return;
-
-  void kill(html.Element el) =>
-      el.style.setProperty('pointer-events', 'none', 'important');
-
-  void harden() {
-    for (final el in html.document
-        .querySelectorAll('flt-platform-view, flt-platform-view *')) {
-      kill(el);
-    }
-    // The slot lives in a shadow root, out of reach of any stylesheet.
-    for (final host in html.document.querySelectorAll('*')) {
-      final root = host.shadowRoot;
-      if (root == null) continue;
-      for (final el in root.querySelectorAll('flt-platform-view-slot')) {
-        kill(el);
-      }
-    }
-  }
-
-  if (html.document.getElementById('ff-video-pointer-fix') == null) {
-    final style = html.StyleElement()
-      ..id = 'ff-video-pointer-fix'
-      ..text =
-          'flt-platform-view, flt-platform-view * { pointer-events: none !important; }';
-    html.document.head?.append(style);
-  }
-
-  harden();
-  // A platform view appears a frame or two after its widget mounts, and the
-  // opening clip creates a second one when it plays, so re-apply for a while.
-  //
-  // This used to be backed by a MutationObserver as well. universal_html has
-  // no non-web stub for it, so the symbol failed to COMPILE for iOS even
-  // though the kIsWeb guard above meant it could never RUN there. The sweep
-  // covers the same window on its own.
-  for (final ms in const [50, 200, 600, 1200, 2400, 3600]) {
-    Timer(Duration(milliseconds: ms), harden);
-  }
-}
-''',
+  app.editPage(ff.Pages.barcodeScanPage, (page) {
+    page.ensureActions(
+      ff.Pages.barcodeScanPage.widgets.byKey('Button_gcnwv64o').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        SetState(ff.Pages.barcodeScanPage.state.message, ''),
+        BarcodeScanner(barcodeMode: true, outputAs: 'scanned'),
+        If(
+          Equals(ActionOutput('scanned'), ''),
+          // Backed out of the camera. Nothing to say.
+          then: [Terminate()],
+          orElse: [
+            SetState(ff.Pages.barcodeScanPage.state.typed,
+                ActionOutput('scanned')),
+            // Show what was read, so a wrong product is arguable.
+            SetFormField(
+                ff.Pages.barcodeScanPage.widgets
+                    .byKey('TextField_2f277q20')
+                    .single,
+                ActionOutput('scanned')),
+            CallCustomAction.named(
+              'LookupBarcode',
+              args: {'barcode': string},
+              returnType: string,
+              arguments: {'barcode': ActionOutput('scanned')},
+              outputAs: 'scanLookup',
+            ),
+            SetState(ff.Pages.barcodeScanPage.state.message,
+                ActionOutput('scanLookup')),
+          ],
+        ),
+      ],
     );
   });
 }
