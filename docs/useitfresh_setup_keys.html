@@ -27,7 +27,6 @@
     --danger-wash: #F8E6E2;
 
     --on-forest:   #F2F7F2;
-    --on-forest-soft: #B9CFBF;
 
     --shadow: 0 1px 2px rgba(30,42,28,.05), 0 6px 20px rgba(30,42,28,.06);
 
@@ -36,7 +35,6 @@
     --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
-  /* ---------- Dark: system default (unstamped) ---------- */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --ground:      #10160F;
@@ -60,13 +58,11 @@
       --danger-wash: #31201C;
 
       --on-forest:   #0E1A12;
-      --on-forest-soft: #33523E;
 
       --shadow: 0 1px 2px rgba(0,0,0,.34), 0 6px 20px rgba(0,0,0,.3);
     }
   }
 
-  /* ---------- Dark: explicit toggle ---------- */
   :root[data-theme="dark"] {
     --ground:      #10160F;
     --surface:     #192118;
@@ -89,7 +85,6 @@
     --danger-wash: #31201C;
 
     --on-forest:   #0E1A12;
-    --on-forest-soft: #33523E;
 
     --shadow: 0 1px 2px rgba(0,0,0,.34), 0 6px 20px rgba(0,0,0,.3);
   }
@@ -106,139 +101,118 @@
   }
 
   .wrap {
-    max-width: 860px;
+    max-width: 820px;
     margin: 0 auto;
     padding-block: 44px 90px;
     padding-left: 22px;
     padding-right: 22px;
     display: flex;
     flex-direction: column;
-    gap: 42px;
+    gap: 40px;
   }
 
-  /* ---------- Masthead ---------- */
   .masthead { display: flex; flex-direction: column; gap: 12px; }
   .eyebrow {
     font-family: var(--f-mono);
-    font-size: 11.5px;
-    font-weight: 600;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--forest-mid);
-    margin: 0;
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--forest-mid); margin: 0;
   }
   h1 {
-    font-family: var(--f-display);
-    font-weight: 800;
-    font-size: clamp(30px, 5.4vw, 44px);
-    line-height: 1.04;
-    letter-spacing: -.024em;
-    margin: 0;
-    text-wrap: balance;
+    font-family: var(--f-display); font-weight: 800;
+    font-size: clamp(30px, 5.4vw, 42px);
+    line-height: 1.05; letter-spacing: -.024em;
+    margin: 0; text-wrap: balance;
   }
-  .standfirst {
-    margin: 0;
-    color: var(--ink-soft);
-    max-width: 62ch;
-    font-size: 16.5px;
-  }
+  .standfirst { margin: 0; color: var(--ink-soft); max-width: 62ch; font-size: 16.5px; }
 
-  /* ---------- The rule: the one thing that matters ---------- */
+  /* ---------- The secrets rule ---------- */
   .rule {
-    background: var(--forest);
-    color: var(--on-forest);
-    border-radius: 14px;
-    padding: 26px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    background: var(--forest); color: var(--on-forest);
+    border-radius: 14px; padding: 24px 26px;
+    display: flex; flex-direction: column; gap: 14px;
   }
   :root:not([data-theme="light"]) .rule,
   :root[data-theme="dark"] .rule { background: #123322; color: #E7EEE4; }
   .rule h2 {
-    font-family: var(--f-display);
-    font-size: 21px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -.012em;
-    color: inherit;
+    font-family: var(--f-display); font-size: 20px; font-weight: 700;
+    margin: 0; letter-spacing: -.012em; color: inherit;
   }
   .rule p { margin: 0; font-size: 15.5px; max-width: 66ch; color: inherit; opacity: .93; }
   .rule .sep { height: 1px; background: rgba(255,255,255,.16); }
-  :root:not([data-theme="light"]) .rule .sep,
-  :root[data-theme="dark"] .rule .sep { background: rgba(255,255,255,.1); }
-
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .split h3 {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .11em;
-    text-transform: uppercase;
-    margin: 0 0 8px;
-    color: inherit;
-    opacity: .72;
+    font-family: var(--f-mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .11em; text-transform: uppercase;
+    margin: 0 0 8px; color: inherit; opacity: .72;
   }
   .split ul { margin: 0; padding-left: 17px; font-size: 14.5px; }
   .split li { margin-bottom: 5px; }
-  .split li::marker { color: rgba(255,255,255,.45); }
 
-  /* ---------- Sections ---------- */
+  /* ---------- The terminology callout ---------- */
+  .trap {
+    border: 2px solid var(--amber);
+    border-radius: 14px;
+    padding: 22px 24px;
+    background: var(--amber-wash);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .trap h2 {
+    font-family: var(--f-display); font-size: 20px; font-weight: 700;
+    margin: 0; letter-spacing: -.012em; color: var(--ink);
+  }
+  .trap p { margin: 0; font-size: 15.5px; color: var(--ink-mid); max-width: 68ch; }
+  .versus { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .vs-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .vs-card .t {
+    font-family: var(--f-display); font-weight: 700; font-size: 15px;
+    margin-bottom: 4px; color: var(--ink);
+  }
+  .vs-card .e {
+    font-family: var(--f-mono); font-size: 13px; color: var(--forest);
+    display: block; margin: 6px 0;
+  }
+  .vs-card .d { font-size: 13.5px; color: var(--ink-soft); }
+
   section { display: flex; flex-direction: column; gap: 16px; }
   h2 {
-    font-family: var(--f-display);
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -.016em;
-    margin: 0;
-    text-wrap: balance;
+    font-family: var(--f-display); font-size: 24px; font-weight: 700;
+    letter-spacing: -.016em; margin: 0; text-wrap: balance;
   }
   .lede { margin: 0; color: var(--ink-soft); max-width: 68ch; font-size: 15.5px; }
 
-  /* ---------- Track cards ---------- */
-  .track {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
+  /* ---------- Part blocks ---------- */
+  .part {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
   }
-  .track-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 10px 14px;
-    padding: 18px 22px 16px;
+  .part-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px;
+    padding: 16px 22px 14px;
     border-bottom: 1px solid var(--line-soft);
     background: var(--sunk);
   }
-  .track-head h3 {
-    font-family: var(--f-display);
-    font-size: 19px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -.012em;
-    flex: 1 1 auto;
-  }
-  .meta {
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    color: var(--ink-faint);
-    white-space: nowrap;
-  }
-  .unlocks {
+  .part-head .no {
+    font-family: var(--f-mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--forest-mid);
     flex-basis: 100%;
-    margin: 0;
-    font-size: 14px;
-    color: var(--ink-soft);
   }
-  .track-body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .part-head h3 {
+    font-family: var(--f-display); font-size: 18.5px; font-weight: 700;
+    margin: 0; letter-spacing: -.012em; flex: 1 1 auto;
+  }
+  .where {
+    font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-faint);
+  }
+  .part-body { padding: 18px 22px 20px; display: flex; flex-direction: column; gap: 14px; }
 
   ol.steps { margin: 0; padding-left: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; }
   ol.steps li {
-    counter-increment: s;
-    position: relative;
-    padding: 11px 0 11px 40px;
+    counter-increment: s; position: relative;
+    padding: 10px 0 10px 38px;
     border-bottom: 1px solid var(--line-soft);
     font-size: 15px;
   }
@@ -247,64 +221,61 @@
   ol.steps li:last-child { border-bottom: none; padding-bottom: 0; }
   ol.steps li::before {
     content: counter(s);
-    position: absolute; left: 0; top: 11px;
-    width: 25px; height: 25px; border-radius: 50%;
-    background: var(--forest-wash);
-    color: var(--forest);
-    font-family: var(--f-mono); font-size: 12px; font-weight: 600;
+    position: absolute; left: 0; top: 10px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--forest-wash); color: var(--forest);
+    font-family: var(--f-mono); font-size: 11.5px; font-weight: 600;
     display: flex; align-items: center; justify-content: center;
   }
-  ol.steps b { font-weight: 700; }
-  ol.steps .hint { display: block; color: var(--ink-faint); font-size: 13.5px; margin-top: 2px; }
-
-  .lands {
-    display: flex; gap: 10px; align-items: baseline;
-    padding: 12px 14px;
-    background: var(--forest-wash);
-    border-radius: 10px;
-    font-size: 14.5px;
-    color: var(--ink-mid);
-  }
-  .lands .k {
-    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
-    letter-spacing: .1em; text-transform: uppercase; color: var(--forest);
-    white-space: nowrap;
+  ol.steps .hint { display: block; color: var(--ink-faint); font-size: 13.5px; margin-top: 3px; }
+  ol.steps .val {
+    display: inline-block; font-family: var(--f-mono); font-size: 13px;
+    background: var(--forest-wash); color: var(--forest);
+    border-radius: 4px; padding: 1px 6px; margin-top: 3px;
   }
 
   .flag {
     display: flex; gap: 10px; align-items: baseline;
-    padding: 12px 14px;
-    background: var(--amber-wash);
-    border-radius: 10px;
-    font-size: 14.5px;
-    color: var(--ink-mid);
+    padding: 11px 14px; background: var(--amber-wash);
+    border-radius: 10px; font-size: 14.5px; color: var(--ink-mid);
   }
   .flag .k {
     font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
     letter-spacing: .1em; text-transform: uppercase; color: var(--amber);
     white-space: nowrap;
   }
+  .stop {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 11px 14px; background: var(--danger-wash);
+    border-radius: 10px; font-size: 14.5px; color: var(--ink-mid);
+  }
+  .stop .k {
+    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--danger);
+    white-space: nowrap;
+  }
+  .ok {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 11px 14px; background: var(--forest-wash);
+    border-radius: 10px; font-size: 14.5px; color: var(--ink-mid);
+  }
+  .ok .k {
+    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--forest);
+    white-space: nowrap;
+  }
 
   code {
-    font-family: var(--f-mono);
-    font-size: .87em;
-    background: var(--sunk);
-    border: 1px solid var(--line-soft);
-    border-radius: 4px;
-    padding: 1px 5px;
-    color: var(--ink-mid);
+    font-family: var(--f-mono); font-size: .87em;
+    background: var(--sunk); border: 1px solid var(--line-soft);
+    border-radius: 4px; padding: 1px 5px; color: var(--ink-mid);
     word-break: break-word;
   }
-  .path {
-    font-family: var(--f-mono);
-    font-size: 13px;
-    color: var(--ink-mid);
-  }
+  .path { font-family: var(--f-mono); font-size: 13px; color: var(--ink-mid); }
 
   a { color: var(--forest); text-decoration-thickness: 1px; text-underline-offset: 2px; }
   a:focus-visible { outline: 2px solid var(--forest-mid); outline-offset: 2px; border-radius: 2px; }
 
-  /* ---------- Reference table ---------- */
   .t-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
   table { width: 100%; border-collapse: collapse; min-width: 520px; }
   th {
@@ -319,18 +290,16 @@
   .no  { color: var(--danger); font-weight: 700; }
 
   footer {
-    border-top: 1px solid var(--line);
-    padding-top: 18px;
-    font-size: 13.5px;
-    color: var(--ink-faint);
+    border-top: 1px solid var(--line); padding-top: 18px;
+    font-size: 13.5px; color: var(--ink-faint);
     display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
   }
   footer .mono { font-family: var(--f-mono); font-size: 11.5px; }
 
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   @media (max-width: 640px) {
-    .split { grid-template-columns: 1fr; gap: 16px; }
-    .wrap { padding-block: 30px 64px; gap: 34px; }
+    .split, .versus { grid-template-columns: 1fr; gap: 14px; }
+    .wrap { padding-block: 30px 64px; gap: 32px; }
   }
 </style>
 
@@ -339,28 +308,27 @@
   <header class="masthead">
     <p class="eyebrow">Use It Fresh &middot; 10 September 2026</p>
     <h1>What I need from you</h1>
-    <p class="standfirst">Three tracks, none of them blocking me. You already have
-    the FlutterFlow plan and the Apple Developer account, so Track A is down to
-    a single key. Each track says what it unlocks, what it costs, and exactly
-    where the credential goes &mdash; which is never to me.</p>
+    <p class="standfirst">Every click, in order, nothing assumed. Track A is the
+    only one holding anything up &mdash; and you already own the two slow parts
+    of it.</p>
   </header>
 
   <div class="rule">
     <h2>The one rule: secrets never come to me</h2>
     <p>Everything below goes straight from you into FlutterFlow or Supabase.
     Don't paste a secret into our chat, a file, or the repo &mdash; not even
-    briefly. I never need to see one to wire it up: I reference it by name and
-    the platform resolves it. If a secret does get pasted somewhere, treat it
-    as burned and rotate it rather than deleting the message.</p>
+    briefly. I never need to see one: I reference it by name and the platform
+    resolves it. If one does get pasted somewhere, treat it as burned and
+    rotate it rather than deleting the message.</p>
     <div class="sep"></div>
     <div class="split">
       <div>
         <h3>Fine to send me</h3>
         <ul>
-          <li>Client <b>IDs</b> (Google, Apple Services ID)</li>
+          <li>Client <b>IDs</b>, Services ID</li>
           <li>Team ID, Key ID, Issuer ID</li>
-          <li>Supabase project URL and anon key</li>
-          <li>Anything already inside the shipped app</li>
+          <li>The app's numeric Apple ID</li>
+          <li>Supabase URL and anon key</li>
         </ul>
       </div>
       <div>
@@ -369,91 +337,226 @@
           <li>Any <code>.p8</code> file or its contents</li>
           <li>Google client <b>secret</b></li>
           <li>Gemini API key</li>
-          <li>Supabase service-role key or database password</li>
+          <li>Supabase service-role key or DB password</li>
         </ul>
       </div>
     </div>
   </div>
 
+  <!-- ============ THE TERMINOLOGY TRAP ============ -->
+  <div class="trap">
+    <h2>First: Apple says "App ID" for two different things</h2>
+    <p>This is what my earlier instructions got wrong, and it is the single
+    most confusing thing in the whole process. They are not the same, you need
+    both, and they are created in different places at different times.</p>
+    <div class="versus">
+      <div class="vs-card">
+        <div class="t">App ID <span style="font-weight:500;color:var(--ink-faint)">(= Bundle ID)</span></div>
+        <span class="e">com.useitfresh.app</span>
+        <div class="d">A reverse-domain name <b>you choose</b>. Registered at
+        developer.apple.com. Already set inside the project, so it must match
+        exactly. <b>Part 1 creates this.</b></div>
+      </div>
+      <div class="vs-card">
+        <div class="t">Apple ID <span style="font-weight:500;color:var(--ink-faint)">(of the app)</span></div>
+        <span class="e">6478123456</span>
+        <div class="d">A ten-digit number <b>Apple assigns</b> when you create
+        the app record. You cannot choose or guess it. <b>Part 2 creates it,
+        Part 3 finds it.</b></div>
+      </div>
+    </div>
+    <div class="flag">
+      <span class="k">So</span>
+      <span>The field FlutterFlow labels <b>"App ID"</b> wants the
+      <b>ten-digit number</b> on the right &mdash; not
+      <code>com.useitfresh.app</code>. And you cannot get that number until the
+      app record exists, which you cannot create until the bundle ID is
+      registered. Hence the order below.</span>
+    </div>
+  </div>
+
   <!-- ============ TRACK A ============ -->
   <section>
-    <h2>Track A &mdash; getting it onto your iPhone</h2>
-    <p class="lede">The one I would do first. It is the only item that unlocks
-    three others, and both things it needs are administrative rather than
-    technical. You already have the Apple Developer account, which is the part
-    that takes days.</p>
+    <h2>Track A &mdash; onto your iPhone</h2>
+    <p class="lede">Six parts, roughly 40 minutes end to end. You already have
+    the Apple Developer account and the FlutterFlow plan, which are the two
+    parts that take days or money. Do these in order &mdash; each one produces
+    something the next needs.</p>
 
-    <div class="track">
-      <div class="track-head">
-        <h3>FlutterFlow plan &mdash; confirmed, nothing to do</h3>
-        <span class="meta">done</span>
-        <p class="unlocks">Unlocks: barcode <b>scanning</b>, push notifications, the native camera, real large-text testing.</p>
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Part 1 of 6</span>
+        <h3>Register the Bundle ID</h3>
+        <span class="where">developer.apple.com &middot; ~5 min</span>
       </div>
-      <div class="track-body">
-        <p class="lede">Checked against your Mobile Deployment screen on 10 Sep:
-        <b>Deploy to App Store</b> is live rather than an upgrade prompt, and the
-        credential fields are editable. The plan covers it.</p>
+      <div class="part-body">
+        <ol class="steps">
+          <li>Go to <a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">developer.apple.com/account &rarr; Identifiers</a> and sign in.
+            <span class="hint">The full path if that link moves: Account &rarr; Certificates, Identifiers &amp; Profiles &rarr; Identifiers (left sidebar).</span></li>
+          <li>Check the list first. If <code>com.useitfresh.app</code> is already there, <b>skip to Part 2</b>.</li>
+          <li>Click the blue <b>+</b> next to the "Identifiers" heading.</li>
+          <li>Select <b>App IDs</b> &rarr; <b>Continue</b>.</li>
+          <li>Select type <b>App</b> (not App Clip) &rarr; <b>Continue</b>.</li>
+          <li><b>Description:</b> type <span class="val">Use It Fresh</span>
+            <span class="hint">Internal label only. Apple rejects punctuation and emoji here — letters, numbers and spaces.</span></li>
+          <li><b>Bundle ID:</b> choose <b>Explicit</b> (not Wildcard), and enter exactly:
+            <span class="val">com.useitfresh.app</span>
+            <span class="hint">Must match character for character — it is already baked into the project.</span></li>
+          <li><b>Capabilities:</b> leave everything unticked for now.
+            <span class="hint">Push Notifications and Sign in with Apple get enabled here later, when we actually build those. Ticking them early does no harm but is not needed.</span></li>
+          <li><b>Continue</b> &rarr; review the summary &rarr; <b>Register</b>.</li>
+        </ol>
+        <div class="ok">
+          <span class="k">Done when</span>
+          <span><code>com.useitfresh.app</code> appears in the Identifiers list.</span>
+        </div>
       </div>
     </div>
 
-    <div class="track">
-      <div class="track-head">
-        <h3>App Store Connect API key</h3>
-        <span class="meta">~15 min &middot; free</span>
-        <p class="unlocks">Lets FlutterFlow upload builds to TestFlight without a Mac.</p>
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Part 2 of 6</span>
+        <h3>Create the app record</h3>
+        <span class="where">appstoreconnect.apple.com &middot; ~5 min</span>
       </div>
-      <div class="track-body">
-        <p class="lede">FlutterFlow's Mobile Deployment screen asks for four
-        things. Three come from one Apple page; the fourth comes from the app
-        record, which has to exist first. In this order:</p>
+      <div class="part-body">
         <ol class="steps">
-          <li><b>Register the bundle ID.</b> <a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">developer.apple.com &rarr; Identifiers</a> &rarr; new App ID with <code>com.useitfresh.app</code>.
-            <span class="hint">It is already set in the project, so it must match exactly. While you are there, this is also where Sign in with Apple gets enabled if you do Track C later.</span></li>
-          <li><b>Create the app record.</b> <a href="https://appstoreconnect.apple.com/apps" target="_blank" rel="noopener">App Store Connect &rarr; Apps</a> &rarr; <b>+</b> &rarr; New App, using that bundle ID.
-            <span class="hint">This is what produces the numeric App ID FlutterFlow wants — you cannot fill that field before the record exists.</span></li>
-          <li><b>Generate the API key.</b> <b>Users and Access</b> &rarr; <b>Integrations</b> &rarr; <b>App Store Connect API</b> &rarr; generate a <b>Team key</b> with the <b>App Manager</b> role.
-            <span class="hint">App Manager is the least privilege that can upload builds. Admin also works.</span></li>
-          <li><b>Download the <code>.p8</code> straight away.</b> Apple shows it once. Miss it and you revoke and start again.</li>
+          <li>Go to <a href="https://appstoreconnect.apple.com/apps" target="_blank" rel="noopener">appstoreconnect.apple.com &rarr; Apps</a>.</li>
+          <li>Click the blue <b>+</b> above the app list &rarr; <b>New App</b>.</li>
+          <li><b>Platforms:</b> tick <b>iOS</b> only.</li>
+          <li><b>Name:</b> <span class="val">Use It Fresh</span>
+            <span class="hint">This is the public App Store name and must be unique across the entire store. If it is taken, Apple says so immediately — try "Use It Fresh: Food Waste" or similar. It can be changed later, before you publish.</span></li>
+          <li><b>Primary Language:</b> English (U.K.) or English (U.S.), your choice.</li>
+          <li><b>Bundle ID:</b> open the dropdown and select <b>com.useitfresh.app</b>.
+            <span class="hint">This is the step that needs Part 1. If the dropdown is empty or the ID is missing, Part 1 did not complete — go back and finish it, then reload this page.</span></li>
+          <li><b>SKU:</b> <span class="val">useitfresh-ios-001</span>
+            <span class="hint">Your own internal reference. Never shown to anyone. Any unique string will do.</span></li>
+          <li><b>User Access:</b> <b>Full Access</b>.</li>
+          <li>Click <b>Create</b>.</li>
         </ol>
-
-        <p class="lede" style="margin-top:4px"><b>Then fill FlutterFlow's four fields:</b></p>
-        <div class="t-scroll">
-          <table>
-            <thead><tr><th>Field</th><th>Where it comes from</th></tr></thead>
-            <tbody>
-              <tr><td><b>Issuer ID</b></td><td>Top of the App Store Connect API page. One per team, a long UUID.</td></tr>
-              <tr><td><b>Key ID</b></td><td>The row of the key you just generated.</td></tr>
-              <tr><td><b>Private Key</b></td><td>Upload the <code>.p8</code> here. This is the secret &mdash; it goes nowhere else.</td></tr>
-              <tr><td><b>App ID</b></td><td>The <b>numeric</b> Apple ID of the app record: App Store Connect &rarr; your app &rarr; <b>App Information</b> &rarr; General Information &rarr; Apple ID. <b>Not</b> the bundle ID.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="lands">
-          <span class="k">Lands in</span>
-          <span>FlutterFlow only. <span class="path">.gitignore</span> already blocks <code>*.p8</code>, so it cannot reach the repo by accident. Send me the Issuer ID and Key ID if useful; never the key itself.</span>
-        </div>
-
         <div class="flag">
-          <span class="k">Seen on your screen</span>
-          <span><b>Build Number is empty.</b> App Version reads 1.0.0 but the build number has no value, and a build without one is rejected on upload. Set it to <code>1</code>, and raise it by one for every upload after that &mdash; App Store Connect refuses a repeated build number even for the same version.</span>
+          <span class="k">If it refuses</span>
+          <span>App Store Connect blocks new apps while an agreement is
+          outstanding. Go to <b>Business</b> (or <b>Agreements, Tax and
+          Banking</b>) and accept anything pending. For a free app you only need
+          the free-apps agreement; you do not need to enter bank details.</span>
         </div>
+      </div>
+    </div>
 
-        <div class="flag">
-          <span class="k">Also on that screen</span>
-          <span><b>Privacy Manifest Configurations</b> is worth opening before the first upload. Apple requires declared reasons for certain APIs, and this app touches the camera, the photo library and local storage. A missing manifest is a rejection after the upload, not before.</span>
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Part 3 of 6</span>
+        <h3>Copy the ten-digit Apple ID</h3>
+        <span class="where">appstoreconnect.apple.com &middot; ~1 min</span>
+      </div>
+      <div class="part-body">
+        <ol class="steps">
+          <li>You should be inside the new app. If not: <b>Apps</b> &rarr; click <b>Use It Fresh</b>.</li>
+          <li>In the left sidebar, under <b>General</b>, click <b>App Information</b>.</li>
+          <li>Scroll to the <b>General Information</b> box on that page.</li>
+          <li>Find the row labelled <b>Apple ID</b> and copy the number.
+            <span class="hint">Ten digits, something like 6478123456. This is the value FlutterFlow's "App ID" field wants.</span></li>
+        </ol>
+        <div class="ok">
+          <span class="k">Safe to send me</span>
+          <span>This number identifies a public App Store listing. It is not a secret.</span>
         </div>
+      </div>
+    </div>
 
-        <div class="lands">
-          <span class="k">Checked</span>
-          <span><b>The permission strings are in place.</b> I flagged this as a
-          risk earlier and was over-cautious: the exported
-          <span class="path">Info.plist</span> in this workspace carries none,
-          but that export is not what ships &mdash; FlutterFlow's cloud build
-          is. Reading the project itself shows all three declared, with real
-          copy: camera ("to photograph food and scan barcodes"), photo library,
-          and notifications. Worth a glance on the first build, but not a
-          blocker.</span>
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Part 4 of 6</span>
+        <h3>Generate the API key</h3>
+        <span class="where">appstoreconnect.apple.com &middot; ~5 min</span>
+      </div>
+      <div class="part-body">
+        <ol class="steps">
+          <li>Top of App Store Connect, click <b>Users and Access</b>.</li>
+          <li>Click the <b>Integrations</b> tab.</li>
+          <li>In the left sidebar choose <b>App Store Connect API</b>, and make sure you are on <b>Team Keys</b> (not Individual Keys).
+            <span class="hint">First time only: a "Request Access" button appears. Click it and accept — it is instant.</span></li>
+          <li><b>Copy the Issuer ID now.</b> It sits above the key table, labelled <b>Issuer ID</b>. A long UUID like <code>a1b2c3d4-...</code>. One per team.
+            <span class="hint">Easy to miss because it is not part of the key row itself.</span></li>
+          <li>Click <b>+</b> to generate a key.</li>
+          <li><b>Name:</b> <span class="val">FlutterFlow deploy</span></li>
+          <li><b>Access:</b> select <b>App Manager</b>.
+            <span class="hint">The least privilege that can upload builds. Admin also works but grants more than needed.</span></li>
+          <li>Click <b>Generate</b>.</li>
+          <li>On the new row, click <b>Download</b> and save the
+            <code>.p8</code> file somewhere you will not lose it.</li>
+          <li>From that same row, copy the <b>Key ID</b> (ten characters, like <code>7ABC123DEF</code>).</li>
+        </ol>
+        <div class="stop">
+          <span class="k">One chance</span>
+          <span>Apple lets you download the <code>.p8</code> <b>once</b>. Miss
+          it and there is no recovery — you revoke the key and generate a new
+          one. Download it before you leave the page.</span>
+        </div>
+        <div class="ok">
+          <span class="k">You now have</span>
+          <span><b>Issuer ID</b> (step 4), <b>Key ID</b> (step 10), the
+          <code>.p8</code> file (step 9), and the <b>Apple ID</b> number from
+          Part 3. That is all four.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Part 5 of 6</span>
+        <h3>Fill FlutterFlow in</h3>
+        <span class="where">FlutterFlow &middot; ~5 min</span>
+      </div>
+      <div class="part-body">
+        <ol class="steps">
+          <li>Open the project, then <b>Settings &amp; Integrations</b> (the gear, bottom left) &rarr; <b>App Settings</b> &rarr; <b>Mobile Deployment</b>.</li>
+          <li>Under <b>Version</b>: leave <b>App Version</b> as <span class="val">1.0.0</span> and set <b>Build Number</b> to <span class="val">1</span>.
+            <span class="hint">Yours is currently EMPTY — I could see that on your screenshot. An upload without a build number is rejected. Raise it by one for every future upload; App Store Connect refuses a repeated build number even within the same version.</span></li>
+          <li>In the <b>App Store</b> section, fill the four fields:</li>
+          <li><b>Issuer ID</b> &rarr; paste from Part 4, step 4.</li>
+          <li><b>Key ID</b> &rarr; paste from Part 4, step 10.</li>
+          <li><b>Private Key</b> &rarr; click <b>Upload Private Key</b> and choose the <code>.p8</code> from Part 4, step 9.</li>
+          <li><b>App ID</b> &rarr; paste the <b>ten-digit number</b> from Part 3.
+            <span class="hint">Not com.useitfresh.app. See the callout at the top of this page.</span></li>
+          <li>Open <b>Deployment Source</b> and confirm it is pointing at the branch you want shipped &mdash; <code>main</code>.</li>
+          <li>Open <b>Privacy Manifest Configurations</b> and work through it.
+            <span class="hint">Apple requires declared reasons for certain APIs. This app uses the camera, the photo library and local storage. A missing manifest is a rejection AFTER a 20-minute upload, so it is worth the two minutes now.</span></li>
+        </ol>
+        <div class="ok">
+          <span class="k">Already done</span>
+          <span>The camera, photo-library and notification permission
+          descriptions are configured in the project &mdash; I checked. You do
+          not need to write those.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Part 6 of 6</span>
+        <h3>Deploy, and install on the phone</h3>
+        <span class="where">FlutterFlow &rarr; TestFlight &middot; ~30 min mostly waiting</span>
+      </div>
+      <div class="part-body">
+        <ol class="steps">
+          <li>On that same Mobile Deployment page, click <b>Deploy to App Store</b>.</li>
+          <li>Wait. FlutterFlow builds in the cloud &mdash; usually 15 to 30 minutes. You can close the tab; it keeps going.
+            <span class="hint">If it fails, the error names the step. Send me the message and I will read it.</span></li>
+          <li>When it finishes, go to App Store Connect &rarr; your app &rarr; the <b>TestFlight</b> tab.</li>
+          <li>The build appears with status <b>Processing</b> for another 5&ndash;15 minutes. Wait for that to clear.</li>
+          <li>Answer the <b>Export Compliance</b> question when prompted.
+            <span class="hint">This app uses only standard HTTPS, which is the exempt case. Answer honestly based on what Apple asks on screen — if unsure, send me the exact question.</span></li>
+          <li>In the left sidebar under TestFlight, open <b>Internal Testing</b>, create a group, and add yourself using your Apple Account email.
+            <span class="hint">Internal testers need no App Review. External testers do — stay internal for now.</span></li>
+          <li>On your iPhone, install <b>TestFlight</b> from the App Store, sign in with the same Apple Account, and Use It Fresh will be waiting.</li>
+        </ol>
+        <div class="ok">
+          <span class="k">This unlocks</span>
+          <span>Barcode <b>scanning</b> with the real camera, push notifications,
+          the native camera, and proper large-text accessibility testing &mdash;
+          the four things I cannot verify in a browser.</span>
         </div>
       </div>
     </div>
@@ -462,27 +565,28 @@
   <!-- ============ TRACK B ============ -->
   <section>
     <h2>Track B &mdash; naming food from a photograph</h2>
-    <div class="track">
-      <div class="track-head">
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Optional &middot; not blocking</span>
         <h3>Gemini API key</h3>
-        <span class="meta">~5 min &middot; free tier</span>
-        <p class="unlocks">Point the camera at food and have it named, instead of typing it.</p>
+        <span class="where">aistudio.google.com &middot; ~5 min &middot; free tier</span>
       </div>
-      <div class="track-body">
+      <div class="part-body">
         <ol class="steps">
-          <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in.</li>
-          <li><b>Create API key</b>, attached to a Google Cloud project. Make a new one rather than reusing an existing project, so the spend is visible on its own.</li>
-          <li>Read the free-tier limits on that page before we build against it. If we exceed them the app should degrade to typing, not fail — I will build it that way.</li>
-          <li>In FlutterFlow: <b>Settings &amp; Integrations</b> &rarr; <b>Integrations</b> &rarr; <b>Gemini</b>, and paste the key.</li>
+          <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with a Google account.</li>
+          <li>Click <b>Create API key</b>.</li>
+          <li>When asked for a project, choose <b>Create API key in new project</b>.
+            <span class="hint">A fresh project keeps this app's usage and spend visible on its own rather than mixed into something else.</span></li>
+          <li>Copy the key. Read the free-tier limits shown on that page.</li>
+          <li>In FlutterFlow: <b>Settings &amp; Integrations</b> &rarr; <b>Integrations</b> &rarr; <b>Gemini</b> &rarr; paste the key &rarr; save.</li>
           <li>Tell me it is in place. I never need the key itself.</li>
         </ol>
-        <div class="lands">
-          <span class="k">Lands in</span>
-          <span>FlutterFlow only.</span>
-        </div>
         <div class="flag">
-          <span class="k">A limit worth knowing</span>
-          <span>Recognition names things; it will not read a printed date reliably, and the guide forbids deriving safety or freshness from a photograph. Dates stay yours to enter, and the screen will keep saying so.</span>
+          <span class="k">What it will and won't do</span>
+          <span>Recognition names things. It will <b>not</b> read a printed date
+          reliably, and the design guide forbids deriving freshness or safety
+          from a photograph. Dates stay yours to enter, and the screen will keep
+          saying so.</span>
         </div>
       </div>
     </div>
@@ -492,50 +596,53 @@
   <section>
     <h2>Track C &mdash; the sign-in buttons that do nothing</h2>
     <p class="lede">Google and Apple sit on the sign-in card as stand-ins today
-    &mdash; they are drawn, not wired. Optional, but Apple requires Sign in with
-    Apple on any app that offers another social login, so these two ship
-    together or not at all.</p>
+    &mdash; drawn, not wired. Optional. Note that Apple requires Sign in with
+    Apple on any app offering another social login, so these two ship together
+    or not at all.</p>
 
-    <div class="track">
-      <div class="track-head">
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Optional</span>
         <h3>Google sign-in</h3>
-        <span class="meta">~20 min &middot; free</span>
+        <span class="where">console.cloud.google.com + Supabase &middot; ~20 min</span>
       </div>
-      <div class="track-body">
+      <div class="part-body">
         <ol class="steps">
-          <li><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a> &rarr; <b>APIs &amp; Services</b> &rarr; <b>Credentials</b>.</li>
-          <li>Configure the <b>OAuth consent screen</b> first, or credential creation is blocked.</li>
-          <li>Create OAuth client IDs: one <b>iOS</b> (bundle <code>com.useitfresh.app</code>) and one <b>Web</b>. The Web one is what Supabase uses.</li>
-          <li>In Supabase: <b>Authentication</b> &rarr; <b>Providers</b> &rarr; <b>Google</b>. Paste the Web <b>client ID</b> and <b>client secret</b>, and enable it.</li>
-          <li>Copy the <b>callback URL</b> Supabase shows there back into the Google credential's authorised redirect URIs.</li>
-          <li>Send me the client <b>IDs</b> only. I will wire the buttons.</li>
+          <li>Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console &rarr; APIs &amp; Services &rarr; Credentials</a>.</li>
+          <li>Configure the <b>OAuth consent screen</b> first &mdash; credential creation is blocked until you do. External user type; fill app name, support email, developer email.</li>
+          <li><b>Create Credentials</b> &rarr; <b>OAuth client ID</b> &rarr; type <b>Web application</b>. Name it <span class="val">Use It Fresh web</span>. Create it, then copy the <b>Client ID</b> and <b>Client secret</b>.</li>
+          <li>In Supabase: <b>Authentication</b> &rarr; <b>Providers</b> &rarr; <b>Google</b>. Enable it, paste the Client ID and Client secret, and save.</li>
+          <li>Supabase shows a <b>Callback URL</b> on that same panel. Copy it.</li>
+          <li>Back in Google Cloud, edit the Web client and paste that URL into <b>Authorised redirect URIs</b>. Save.</li>
+          <li>Create a second OAuth client, type <b>iOS</b>, bundle ID <code>com.useitfresh.app</code>. Copy its Client ID.</li>
+          <li>Send me both <b>Client IDs</b>. I will wire the buttons.</li>
         </ol>
-        <div class="lands">
+        <div class="ok">
           <span class="k">Lands in</span>
-          <span>Supabase only. The client <b>secret</b> stays there.</span>
+          <span>Supabase only. The client <b>secret</b> stays there and never comes to me.</span>
         </div>
       </div>
     </div>
 
-    <div class="track">
-      <div class="track-head">
+    <div class="part">
+      <div class="part-head">
+        <span class="no">Optional</span>
         <h3>Sign in with Apple</h3>
-        <span class="meta">~25 min &middot; needs the developer account</span>
+        <span class="where">developer.apple.com + Supabase &middot; ~25 min</span>
       </div>
-      <div class="track-body">
+      <div class="part-body">
         <ol class="steps">
-          <li><a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">Apple Developer</a> &rarr; <b>Identifiers</b>. On the <code>com.useitfresh.app</code> App ID, enable the <b>Sign in with Apple</b> capability.</li>
-          <li>Create a <b>Services ID</b> (a separate identifier, e.g. <code>com.useitfresh.signin</code>) and enable Sign in with Apple on it. This is the one that carries the web redirect.</li>
-          <li>Under <b>Keys</b>, create a key with <b>Sign in with Apple</b> enabled. It downloads a <code>.p8</code> &mdash; again, once only.</li>
-          <li>Collect your <b>Team ID</b> (top right of the developer portal) and the new <b>Key ID</b>.</li>
-          <li>In Supabase: <b>Authentication</b> &rarr; <b>Providers</b> &rarr; <b>Apple</b>. Enter the Services ID, Team ID, Key ID, and paste the <code>.p8</code> contents into the secret field.</li>
-          <li>Put the callback URL Supabase gives you into the Services ID's <b>Return URLs</b>.</li>
+          <li><a href="https://developer.apple.com/account/resources/identifiers/list" target="_blank" rel="noopener">developer.apple.com &rarr; Identifiers</a> &rarr; click <code>com.useitfresh.app</code> &rarr; tick <b>Sign in with Apple</b> &rarr; Save.</li>
+          <li>Back in Identifiers, click <b>+</b>, choose <b>Services IDs</b> &rarr; Continue.</li>
+          <li>Description <span class="val">Use It Fresh Sign In</span>, Identifier <span class="val">com.useitfresh.signin</span> &rarr; Continue &rarr; Register.
+            <span class="hint">A Services ID is a separate identifier from the app's bundle ID. It carries the web redirect.</span></li>
+          <li>Open the new Services ID, tick <b>Sign in with Apple</b>, click <b>Configure</b>, and set the primary App ID to <code>com.useitfresh.app</code>. Leave the URLs blank for the moment &mdash; you fill them in step 8.</li>
+          <li>In the sidebar go to <b>Keys</b> &rarr; <b>+</b>. Name it <span class="val">Use It Fresh Apple Sign In</span>, tick <b>Sign in with Apple</b>, Configure &rarr; pick the primary App ID &rarr; Save &rarr; Continue &rarr; Register.</li>
+          <li><b>Download the <code>.p8</code></b> &mdash; again, one chance only. Note the <b>Key ID</b> on that page.</li>
+          <li>Find your <b>Team ID</b>: top right of the developer portal, under your account name. Ten characters.</li>
+          <li>In Supabase: <b>Authentication</b> &rarr; <b>Providers</b> &rarr; <b>Apple</b>. Enable it and enter the Services ID, Team ID, Key ID, and paste the <code>.p8</code> contents into the secret field. Save, then copy the Callback URL it shows and paste it into the Services ID's <b>Return URLs</b> back at Apple.</li>
           <li>Send me the <b>Services ID</b>, <b>Team ID</b> and <b>Key ID</b>. Never the <code>.p8</code>.</li>
         </ol>
-        <div class="lands">
-          <span class="k">Lands in</span>
-          <span>Supabase only.</span>
-        </div>
       </div>
     </div>
   </section>
@@ -546,15 +653,15 @@
     <p class="lede">Every credential this project touches, and where it belongs.</p>
     <div class="t-scroll">
       <table>
-        <thead>
-          <tr><th>Credential</th><th>Lives in</th><th class="c">Send to me?</th></tr>
-        </thead>
+        <thead><tr><th>Credential</th><th>Lives in</th><th>Send to me?</th></tr></thead>
         <tbody>
           <tr><td>App Store Connect <code>.p8</code></td><td>FlutterFlow</td><td class="no">Never</td></tr>
-          <tr><td>App Store Key ID &amp; Issuer ID</td><td>FlutterFlow</td><td class="yes">Fine</td></tr>
+          <tr><td>Issuer ID &amp; Key ID</td><td>FlutterFlow</td><td class="yes">Fine</td></tr>
+          <tr><td>The app's ten-digit Apple ID</td><td>FlutterFlow</td><td class="yes">Fine</td></tr>
+          <tr><td>Bundle ID <code>com.useitfresh.app</code></td><td>Already in the project</td><td class="yes">Fine</td></tr>
           <tr><td>Gemini API key</td><td>FlutterFlow</td><td class="no">Never</td></tr>
           <tr><td>Sign in with Apple <code>.p8</code></td><td>Supabase</td><td class="no">Never</td></tr>
-          <tr><td>Apple Services ID / Team ID / Key ID</td><td>Supabase</td><td class="yes">Fine</td></tr>
+          <tr><td>Services ID / Team ID / Key ID</td><td>Supabase</td><td class="yes">Fine</td></tr>
           <tr><td>Google client secret</td><td>Supabase</td><td class="no">Never</td></tr>
           <tr><td>Google client IDs</td><td>Supabase</td><td class="yes">Fine</td></tr>
           <tr><td>Supabase service-role key</td><td>Supabase only, never the app</td><td class="no">Never</td></tr>
@@ -564,13 +671,17 @@
       </table>
     </div>
     <div class="flag">
-      <span class="k">Why this split</span>
-      <span>The "fine" column is everything that already ships inside the app bundle or is public by design &mdash; anyone with the app can read them, so telling me costs nothing. The "never" column is everything that can spend your money, impersonate your app, or read every household's data.</span>
+      <span class="k">Why the split</span>
+      <span>The "fine" column is everything that already ships inside the app
+      bundle or is public by design &mdash; anyone with the app can read them,
+      so telling me costs nothing. The "never" column is everything that can
+      spend your money, impersonate your app, or read every household's
+      data.</span>
     </div>
   </section>
 
   <footer>
-    <span>Nothing here blocks me &mdash; I keep building while you work through it. Everything is backed up to GitHub and FlutterFlow.</span>
+    <span>Stuck on any step? Send me the exact screen text and I will tell you which field it means.</span>
     <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s</span>
   </footer>
 
