@@ -2956,6 +2956,7 @@ abstract final class CustomCode {
   ];
   static const actions = <String>[
     "AddItemToShoppingList",
+    "AddNameToShoppingList",
     "CaptureFoodPhoto",
     "CreateFoodItem",
     "CreateHousehold",

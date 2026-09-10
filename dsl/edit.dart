@@ -153,174 +153,37 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Take the diagnostics out.
+/// Wire the shopping-list row, now the widget exists to point at.
 ///
-/// The probe Text and the print statements did their job: they proved the
-/// values were correct and the position was wrong. Neither belongs in the app.
+/// It reports through the same message box the lookup errors use, rather than
+/// a snackbar, because the person is about to scan another packet and a
+/// snackbar would be gone before they looked up. Success says so plainly —
+/// silence after a tap reads as a tap that missed.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.wasteHistoryPage, (page) {
-    page.ensureRemoved(
-      ff.Pages.wasteHistoryPage.widgets.byKey('Column_i1528br6').single,
-    );
-  });
-
-  app.raw((project) {
-    updateCustomAction(
-      project,
-      name: 'LoadWasteSummary',
-      description:
-          'Reads the settled-item history for this household and works out '
-          'what was used, what was thrown, and what is thrown most. Returns '
-          'an empty string on success, or a message explaining why not.',
-      code: r'''
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-/// Works out the household's use-versus-waste picture over the last 30 days.
-///
-/// Reads events rather than the items table because an item's current status
-/// says what it is now; the event says what happened and when. Only the two
-/// settling events count — 'created' and 'moved' are not outcomes.
-Future<String> loadWasteSummary() async {
-  final household = FFAppState().currentHouseholdId;
-  if (household.isEmpty) {
-    return 'No household yet. Create or join one first.';
-  }
-
-  // Reset first, so a failed reload cannot leave the previous household's
-  // numbers on screen looking like this one's.
-  FFAppState().wasteHeadline = '';
-  FFAppState().wasteDetail = '';
-  FFAppState().wasteWorst = '';
-  FFAppState().wasteTrend = '';
-  FFAppState().wasteUsedCount = 0;
-  FFAppState().wasteBinnedCount = 0;
-  FFAppState().wasteHasData = false;
-
-  final now = DateTime.now().toUtc();
-  final windowStart = now.subtract(const Duration(days: 30));
-  final priorStart = now.subtract(const Duration(days: 60));
-
-  List<dynamic> rows;
-  try {
-    // The embedded food_items select is what scopes this to the household and
-    // brings the category along; row security already limits it to households
-    // this person belongs to, and the filter picks the one they are looking at.
-    rows = await SupaFlow.client
-        .from('food_item_events')
-        .select('event_type, created_at, food_items!inner(category, household_id)')
-        .eq('food_items.household_id', household)
-        .inFilter('event_type', ['consumed', 'discarded'])
-        .gte('created_at', priorStart.toIso8601String());
-  } on PostgrestException catch (error) {
-    return error.message;
-  } catch (error) {
-    return 'Could not read your history. $error';
-  }
-
-  var used = 0;
-  var binned = 0;
-  var priorUsed = 0;
-  var priorBinned = 0;
-  final binnedByCategory = <String, int>{};
-
-  for (final row in rows) {
-    final at = DateTime.tryParse((row['created_at'] ?? '').toString());
-    if (at == null) continue;
-    final recent = at.isAfter(windowStart);
-    final consumed = row['event_type'] == 'consumed';
-
-    if (recent) {
-      if (consumed) {
-        used++;
-      } else {
-        binned++;
-        final item = row['food_items'];
-        final category =
-            (item is Map ? (item['category'] ?? '') : '').toString().trim();
-        if (category.isNotEmpty) {
-          binnedByCategory[category] = (binnedByCategory[category] ?? 0) + 1;
-        }
-      }
-    } else {
-      if (consumed) {
-        priorUsed++;
-      } else {
-        priorBinned++;
-      }
-    }
-  }
-
-  final settled = used + binned;
-  FFAppState().wasteUsedCount = used;
-  FFAppState().wasteBinnedCount = binned;
-  FFAppState().wasteHasData = settled > 0;
-
-  if (settled == 0) {
-    FFAppState().wasteHeadline = 'Nothing finished with yet.';
-    FFAppState().wasteDetail =
-        'When you mark something used up or thrown out, the pattern shows up '
-        'here.';
-    return '';
-  }
-
-  final pct = ((used / settled) * 100).round();
-  FFAppState().wasteHeadline = '$used of $settled used up.';
-  FFAppState().wasteDetail = settled == 1
-      ? 'One thing finished with in the last 30 days.'
-      : '$settled things finished with in the last 30 days. $pct% used, '
-          '${100 - pct}% thrown out.';
-
-  // The worst category, but only when there is enough to mean anything. Two
-  // thrown-out items is not a pattern, and naming one would be inventing a
-  // conclusion the data cannot carry.
-  if (binned >= 3 && binnedByCategory.isNotEmpty) {
-    final ranked = binnedByCategory.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final top = ranked.first;
-    // A tie is not a worst.
-    final tied = ranked.length > 1 && ranked[1].value == top.value;
-    if (!tied && top.value >= 2) {
-      FFAppState().wasteWorst = _label(top.key);
-    }
-  }
-
-  // A comparison needs a previous month with something in it, or the first
-  // month reads as a dramatic improvement over nothing.
-  final priorSettled = priorUsed + priorBinned;
-  if (priorSettled >= 3) {
-    final priorPct = (priorUsed / priorSettled) * 100;
-    final diff = pct - priorPct;
-    if (diff >= 5) {
-      FFAppState().wasteTrend = 'Better than the month before.';
-    } else if (diff <= -5) {
-      FFAppState().wasteTrend = 'Down on the month before.';
-    } else {
-      FFAppState().wasteTrend = 'About the same as the month before.';
-    }
-  }
-
-  return '';
-}
-
-/// The words the picker offered, so this screen never shows a stored code.
-String _label(String code) {
-  const names = <String, String>{
-    'dairy': 'Dairy',
-    'meat_poultry': 'Meat & poultry',
-    'seafood': 'Seafood',
-    'eggs': 'Eggs',
-    'cooked_leftovers': 'Cooked leftovers',
-    'fruit': 'Fruit',
-    'vegetables': 'Vegetables',
-    'bread_bakery': 'Bread & bakery',
-    'pantry_dry': 'Pantry & dry goods',
-    'frozen': 'Frozen food',
-    'condiments_sauces': 'Condiments & sauces',
-    'infant_food': 'Infant food & formula',
-  };
-  return names[code] ?? code.replaceAll('_', ' ');
-}
-''',
+  app.editPage(ff.Pages.barcodeScanPage, (page) {
+    page.ensureActions(
+      ff.Pages.barcodeScanPage.widgets.byKey('Container_d6qcqz43').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        CallCustomAction.named(
+          'AddNameToShoppingList',
+          args: {'name': string},
+          returnType: string,
+          arguments: {'name': AppState(ff.AppState.scanName)},
+          outputAs: 'listedOutcome',
+        ),
+        If(
+          Equals(ActionOutput('listedOutcome'), ''),
+          then: [
+            SetState(ff.Pages.barcodeScanPage.state.message,
+                'Added to your shopping list.'),
+          ],
+          orElse: [
+            SetState(ff.Pages.barcodeScanPage.state.message,
+                ActionOutput('listedOutcome')),
+          ],
+        ),
+      ],
     );
   });
 }

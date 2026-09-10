@@ -186,6 +186,24 @@ abstract final class BarcodeScanPageWidgets {
                               "ON_TAP",
                             ],
                           ),
+                          ffai.ProjectWidgetHandle(
+                            key: "Container_d6qcqz43",
+                            type: "Container",
+                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[6]",
+                            name: "BarcodeToListRow",
+                            triggers: const <String>[
+                              "ON_TAP",
+                            ],
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_m1hh3817",
+                                type: "Text",
+                                path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[6].children[0]",
+                                name: "BarcodeToListLabel",
+                                text: "Out of it? Put it on the shopping list",
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ],
