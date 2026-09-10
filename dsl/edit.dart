@@ -153,12 +153,12 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Remove the chevron that was standing in for the tick.
+/// Remove the location list that had no chosen state.
 /// Its own push: a removal shifts every sibling index as it applies.
 void buildStarterEditFlow(App app) {
-  app.editPage(ff.Pages.shoppingListPage, (page) {
+  app.editPage(ff.Pages.addFoodItemPage, (page) {
     page.ensureRemoved(
-      ff.Pages.shoppingListPage.widgets.byKey('Container_1zdc9hu3').single,
+      ff.Pages.addFoodItemPage.widgets.byKey('ListView_c59glwuj').single,
     );
   });
 }
