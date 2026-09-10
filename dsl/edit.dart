@@ -153,85 +153,77 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Declare the photo argument the action body already takes, and pass it.
+/// Repair reviewLine: a custom function's `code` is the BODY only.
 ///
-/// The body grew a sixth parameter, `imageUrl`, but the declared argument list
-/// stayed at five, so codegen emitted a five-argument call against a
-/// six-argument function and the build stopped.
+/// updateCustomFunction generates the signature from the declared arguments,
+/// so passing a whole function declaration nested one inside the other. The
+/// outer function then fell off its end and returned null, and the review
+/// screen died on a null check before painting anything — a grey screen with
+/// "Null check operator used on a null value" in the console.
 ///
-/// Both halves have to land in the same push: the validator refuses a declared
-/// argument that a call site does not supply, so declaring it alone fails and
-/// wiring it alone has nothing to wire.
-///
-/// The five live arguments are kept EXACTLY as they are — their keys are what
-/// every existing call site's values are filed under, so replacing them
-/// orphans the values. The new one is a deep copy of an existing String
-/// argument, renamed, so its data type is identical in shape to the ones the
-/// project already accepts rather than one reconstructed by hand.
+/// Custom ACTIONS are the opposite: their code is a complete function,
+/// imports and all. That asymmetry is worth remembering.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    final action = findCustomAction(project, name: 'CreateFoodItem');
-    if (action == null) throw StateError('CreateFoodItem is missing.');
-
-    final existing = action.arguments.toList();
-    if (existing.any((p) => p.identifier.name == 'imageUrl')) {
-      print('imageUrl is already declared; leaving the arguments alone.');
-      return;
-    }
-
-    final template =
-        existing.firstWhere((p) => p.identifier.name == 'category');
-    final imageUrl = template.deepCopy();
-    imageUrl.ensureIdentifier()
-      ..name = 'imageUrl'
-      ..key = 'imgurlkey';
-
-    updateCustomAction(
+    updateCustomFunction(
       project,
-      name: 'CreateFoodItem',
-      arguments: [...existing, imageUrl],
-    );
-  });
+      name: 'reviewLine',
+      code: r'''
+  String dateOnly(DateTime? d) {
+    if (d == null) return '';
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
+  }
 
-  // The confirm button hands the photo over with everything else. The output
-  // variable is renamed because ensureActions leaves a chain alone when it
-  // judges it equal to the one already there, and an added argument is not
-  // enough of a difference on its own.
-  app.editPage(ff.Pages.addFoodReviewPage, (page) {
-    page.ensureActions(
-      ff.Pages.addFoodReviewPage.widgets.byKey('Button_sm2avojh').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: [
-        CallCustomAction.named(
-          'CreateFoodItem',
-          args: {
-            'name': string,
-            'category': string,
-            'locationId': string,
-            'printedDate': dateTime,
-            'printedDateType': string,
-            'imageUrl': string,
-          },
-          returnType: string,
-          arguments: {
-            'name': Param('name'),
-            'category': Param('category'),
-            'locationId': Param('locationId'),
-            'printedDate': Param('printedDate'),
-            'printedDateType': Param('printedDateType'),
-            'imageUrl': Param('imageUrl'),
-          },
-          outputAs: 'savedOutcome',
-        ),
-        If(
-          Equals(const ActionOutput('savedOutcome'), ''),
-          then: [
-            Snackbar('Added to your kitchen.'),
-            Navigate(ff.Pages.inventoryPage),
-          ],
-          orElse: [Snackbar(const ActionOutput('savedOutcome'))],
-        ),
-      ],
+  // The same words the picker offered. Anything unrecognised falls back to
+  // the code with its underscores opened up, so a category added to the
+  // schema later reads awkwardly rather than disappearing.
+  const categoryNames = <String, String>{
+    'dairy': 'Dairy',
+    'meat_poultry': 'Meat & poultry',
+    'seafood': 'Seafood',
+    'eggs': 'Eggs',
+    'cooked_leftovers': 'Cooked leftovers',
+    'fruit': 'Fruit',
+    'vegetables': 'Vegetables',
+    'bread_bakery': 'Bread & bakery',
+    'pantry_dry': 'Pantry & dry goods',
+    'frozen': 'Frozen food',
+    'condiments_sauces': 'Condiments & sauces',
+    'infant_food': 'Infant food & formula',
+  };
+
+  switch (field ?? '') {
+    case 'name':
+      final n = (name ?? '').trim();
+      return n.isEmpty ? 'Unnamed' : n;
+    case 'category':
+      final c = (category ?? '').trim();
+      if (c.isEmpty) return 'No category';
+      return categoryNames[c] ?? c.replaceAll('_', ' ');
+    case 'where':
+      final w = (locationLabel ?? '').trim();
+      return w.isEmpty ? 'Not chosen' : w;
+    case 'date':
+      final d = dateOnly(printedDate);
+      if (d.isEmpty) return 'No date on the pack';
+      final type = printedDateType ?? '';
+      if (type == 'use_by') return 'Use by $d';
+      if (type == 'best_before') return 'Best before $d';
+      if (type == 'sell_by') return 'Sell by $d';
+      return 'Printed $d';
+    case 'dateNote':
+      if (printedDate != null) return '';
+      // Being explicit about the consequence, rather than silently estimating.
+      return 'Without a printed date the app estimates from the category, and '
+          'says so wherever it shows the result.';
+    default:
+      return '';
+  }
+''',
     );
   });
 }
