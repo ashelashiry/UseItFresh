@@ -10,6 +10,7 @@ import 'pages/food_item_page.dart' show foodItemPageHandle;
 import 'pages/home_page.dart' show homePageHandle;
 import 'pages/household_setup_page.dart' show householdSetupPageHandle;
 import 'pages/inventory_page.dart' show inventoryPageHandle;
+import 'pages/map_review_page.dart' show mapReviewPageHandle;
 import 'pages/onboarding_page.dart' show onboardingPageHandle;
 import 'pages/profile_page.dart' show profilePageHandle;
 import 'pages/recipes_page.dart' show recipesPageHandle;
@@ -34,6 +35,7 @@ abstract final class Pages {
   static final homePage = homePageHandle;
   static final householdSetupPage = householdSetupPageHandle;
   static final inventoryPage = inventoryPageHandle;
+  static final mapReviewPage = mapReviewPageHandle;
   static final onboardingPage = onboardingPageHandle;
   static final profilePage = profilePageHandle;
   static final recipesPage = recipesPageHandle;
@@ -57,6 +59,7 @@ abstract final class Pages {
     homePage,
     householdSetupPage,
     inventoryPage,
+    mapReviewPage,
     onboardingPage,
     profilePage,
     recipesPage,

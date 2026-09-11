@@ -11,6 +11,20 @@ abstract final class Enums {
 }
 
 abstract final class Structs {
+  static final ffai.StructHandle mapFood = ffai.StructHandle(
+    "MapFood",
+    <String, ffai.DslType>{
+      "box": ffai.string,
+      "category": ffai.string,
+      "decision": ffai.string,
+      "kind": ffai.string,
+      "name": ffai.string,
+      "photo": ffai.string,
+      "place": ffai.string,
+      "quantity": ffai.int_,
+    },
+    description: ffai.generatedProjectStructDescription,
+  );
   static final ffai.StructHandle scannedFood = ffai.StructHandle(
     "ScannedFood",
     <String, ffai.DslType>{
@@ -23,6 +37,7 @@ abstract final class Structs {
     description: ffai.generatedProjectStructDescription,
   );
   static final all = <ffai.StructHandle>[
+    mapFood,
     scannedFood,
   ];
 }
@@ -2962,6 +2977,7 @@ abstract final class CustomCode {
     "kitchenState",
     "listCount",
     "listState",
+    "noMapYes",
     "noScannedFoods",
     "offerHouseholdSetup",
     "profileInitial",
@@ -2980,13 +2996,16 @@ abstract final class CustomCode {
     "AskNotificationPermission",
     "CanReachKitchen",
     "CaptureFoodPhoto",
+    "ClearShelfScan",
     "CreateFoodItem",
     "CreateHousehold",
     "LetTapsThroughVideos",
     "LoadWasteSummary",
     "LookupBarcode",
     "ReadPhotoFoods",
+    "ReadShelfPhoto",
     "RecogniseFood",
+    "SaveMapFoods",
     "SaveScannedFoods",
     "ScheduleExpiryReminders",
     "SettleFoodItem",
@@ -2999,6 +3018,7 @@ abstract final class CustomCode {
     "FridgeEntrance",
     "KitchenIcon",
     "LoopingRemoteImage",
+    "ShelfReview",
     "StatusIcon",
   ];
 }

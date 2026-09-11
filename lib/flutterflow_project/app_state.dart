@@ -41,6 +41,30 @@ abstract final class AppState {
     typeName: "Boolean",
     persisted: false,
   );
+  static const mapFoods = ffai.ProjectAppStateFieldHandle(
+    name: "mapFoods",
+    key: "i3b2e5x2",
+    typeName: "List<DataStruct<MapFood>>",
+    persisted: false,
+  );
+  static const mapPhotos = ffai.ProjectAppStateFieldHandle(
+    name: "mapPhotos",
+    key: "8z3gtg21",
+    typeName: "List<String>",
+    persisted: false,
+  );
+  static const mapPlace = ffai.ProjectAppStateFieldHandle(
+    name: "mapPlace",
+    key: "ewr5wc0w",
+    typeName: "String",
+    persisted: false,
+  );
+  static const mapReading = ffai.ProjectAppStateFieldHandle(
+    name: "mapReading",
+    key: "ab13g4cd",
+    typeName: "Boolean",
+    persisted: false,
+  );
   static const scanBarcode = ffai.ProjectAppStateFieldHandle(
     name: "scanBarcode",
     key: "pne0944b",
@@ -162,6 +186,10 @@ abstract final class AppState {
     expiryAlertDays,
     hasOpenedFridge,
     isMetric,
+    mapFoods,
+    mapPhotos,
+    mapPlace,
+    mapReading,
     scanBarcode,
     scanBrand,
     scanCategory,
