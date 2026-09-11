@@ -109,6 +109,33 @@ lookup and the camera scanner, the shopping list, waste history, replace-what-
 you-finish, expiry reminders (local notifications, see section 10), photo
 naming, and receipt / fridge-shelf reading with a review screen.
 
+**The photo map (11 Sep, after Build 5's offline work).** The owner's brief:
+taking a photo of the fridge or pantry *is* the app; typing things in takes
+too long and nobody will do it. A shelf photo comes back with each food
+outlined and numbered on the photo itself; the person ticks, crosses or fixes
+each one (name, category, and where it is kept), then adds the ticked ones.
+Agreed from a clickable mockup before it was built.
+- `recognise-food`, mode `shelf`, returns `kind` (carton, jar, loose…) and
+  `box` ("ymin,xmin,ymax,xmax" on 0-1000, Gemini's own box_2d scale) per food;
+  a box that is not four ordered numbers is dropped, never drawn wrong.
+  **Needs the owner's paste** into the Supabase editor; until then foods
+  arrive with no outline and the list still works.
+- `ShelfReview` is one custom widget: place chips, each photo with its
+  outlines, the count, "Yes to the rest", and the rows with in-place editing.
+  It reads `mapFoods` / `mapPhotos` / `mapPlace` from app state because
+  FlutterFlow cannot pass a list to a custom widget, and imports `provider`
+  itself so it redraws on every change.
+- `ReadShelfPhoto` keeps the photo (a one-hour signed URL) because the map is
+  drawn on it, and deletes it if nothing was found. `SaveMapFoods` adds every
+  ticked food in one insert, each in its own place or the photo's, as
+  `fridge_scan`, then deletes the photos. `ClearShelfScan` runs when a map
+  starts and on Back, so photos do not pile up.
+- Receipts keep their list review: a receipt has nothing to outline.
+- Verified by a green web build and the generated Dart, not walked (the
+  harness no longer signs in). Gaps: a map abandoned without Back keeps its
+  photos until the next one starts; a photo left open over an hour stops
+  loading (its list still works); Scan does not open the camera directly yet.
+
 1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
    credit running out, not the code. The function also no longer pins a
    model: it tries `gemini-flash-latest`, then the newest stable Flash the
