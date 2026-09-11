@@ -2952,6 +2952,7 @@ abstract final class CustomCode {
     "hasRows",
     "heroImage",
     "hiLine",
+    "hiLineLoaded",
     "householdLine",
     "householdRole",
     "itemField",

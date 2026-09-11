@@ -31,6 +31,18 @@ final class FoodItemPageState {
         key: "mt18fvfi",
         typeName: "List<PostgresRow>",
       );
+  ffai.ProjectStateFieldHandle get loadedOk =>
+      const ffai.ProjectStateFieldHandle(
+        name: "loadedOk",
+        key: "37asiomq",
+        typeName: "Boolean",
+      );
+  ffai.ProjectStateFieldHandle get offline =>
+      const ffai.ProjectStateFieldHandle(
+        name: "offline",
+        key: "xawmk3r7",
+        typeName: "Boolean",
+      );
   ffai.ProjectStateFieldHandle get replace =>
       const ffai.ProjectStateFieldHandle(
         name: "replace",

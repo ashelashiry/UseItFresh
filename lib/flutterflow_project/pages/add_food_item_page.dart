@@ -43,6 +43,12 @@ final class AddFoodItemPageState {
         key: "y2opm8rj",
         typeName: "String",
       );
+  ffai.ProjectStateFieldHandle get loadedOk =>
+      const ffai.ProjectStateFieldHandle(
+        name: "loadedOk",
+        key: "8c1kxygu",
+        typeName: "Boolean",
+      );
   ffai.ProjectStateFieldHandle get locationId =>
       const ffai.ProjectStateFieldHandle(
         name: "locationId",
@@ -60,6 +66,12 @@ final class AddFoodItemPageState {
         name: "locations",
         key: "8sc513y2",
         typeName: "List<PostgresRow>",
+      );
+  ffai.ProjectStateFieldHandle get offline =>
+      const ffai.ProjectStateFieldHandle(
+        name: "offline",
+        key: "cgbbfiin",
+        typeName: "Boolean",
       );
   ffai.ProjectStateFieldHandle get photoUrl =>
       const ffai.ProjectStateFieldHandle(

@@ -153,63 +153,192 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The two lines that still said "empty" offline now say what they know.
+/// Build 5, part A: the item screen, Add food and the greeting stop
+/// pretending when there is no signal.
 ///
-/// Push A re-pointed the kitchen subtitle and Profile's household line at
-/// loaded-aware functions with `bindText`, and the offline walk showed both
-/// still reading "Nothing in here yet" and "No household yet". The generated
-/// code still called kitchenCount and householdRole: `bindText` did not
-/// displace the existing binding. So each text is replaced outright with a
-/// fresh one bound to the new function, matching its look.
+/// The same pattern as the kitchen, Home and Profile in Build 4: a
+/// reachability check first, then either an `offline` flag and nothing else,
+/// or the screen's own page-load reproduced exactly and `loadedOk` at the end.
 ///
-/// The kitchen subtitle's 14pt size is a style override the DSL `Text` cannot
-/// express; it goes back on as a fast-lane fontSize patch after this push.
+///   * Item screen: offline it would show an empty item with live "I used it"
+///     and "Throw it out" buttons that cannot save. The actions now wait for
+///     a load that worked.
+///   * Add food: offline the "where is it kept" picker sat empty with no
+///     reason given. The page-load is gated; its card comes in part B.
+///   * Greeting (hiLineLoaded; the name greetingLine is already taken by an
+///     original function): offline, Home said "Hi, ashraf.elashiry" (the email fallback
+///     for a profile that did not load). It says "Hi" until the profile has
+///     loaded. The text is replaced rather than rebound, because `bindText`
+///     does not displace an existing binding (HANDOVER, section 5).
+///
+/// The "can't reach your kitchen" cards are part B: an insert cannot share a
+/// push with key-addressed edits on the same page.
 void buildStarterEditFlow(App app) {
-  final kitchenLine = CustomFunctionHandle(
-    name: 'kitchenLine',
-    args: {
-      'rows': listOf(ff.Tables.foodItemsStatus),
-      'ok': bool_,
-      'offline': bool_,
-    },
-    returnType: string,
+  final hiLineLoaded = app.customFunction(
+    'hiLineLoaded',
+    args: {'rows': listOf(ff.Tables.profiles), 'email': string, 'ok': bool_},
+    returns: string,
+    description:
+        'The short greeting above the headline, e.g. "Hi, Ash". Just "Hi" '
+        'until the profile has loaded, so an offline start does not greet '
+        'someone by their email address.',
+    code: r"""
+if (ok != true) return 'Hi';
+var who = '';
+if (rows != null && rows.isNotEmpty) {
+  who = rows.first.displayName?.trim() ?? '';
+}
+if (who.isEmpty) {
+  final address = email ?? '';
+  final at = address.indexOf('@');
+  who = at > 0 ? address.substring(0, at) : address;
+}
+return who.isEmpty ? 'Hi' : 'Hi, $who';
+""",
   );
-  final householdLine = CustomFunctionHandle(
-    name: 'householdLine',
-    args: {'rows': listOf(ff.Tables.households), 'uid': string, 'ok': bool_},
+
+  for (final page in [ff.Pages.foodItemPage, ff.Pages.addFoodItemPage]) {
+    app.editPageState(page, (state) {
+      state.ensureField('loadedOk', bool_.withDefault(false));
+      state.ensureField('offline', bool_.withDefault(false));
+    });
+  }
+
+  /// The check, then either "offline" or the screen's own load and "loaded".
+  List<DslAction> gated(String tag, List<DslAction> chain,
+          {List<DslAction> after = const []}) =>
+      [
+        CallCustomAction.named(
+          'CanReachKitchen',
+          args: {},
+          returnType: bool_,
+          arguments: {},
+          outputAs: 'reach$tag',
+        ),
+        If(
+          Equals(ActionOutput('reach$tag'), false),
+          then: [SetState('offline', true)],
+          orElse: [
+            SetState('offline', false),
+            ...chain,
+            SetState('loadedOk', true),
+            ...after,
+          ],
+        ),
+      ];
+
+  final firstHouseholdId = CustomFunctionHandle(
+    name: 'firstHouseholdId',
+    args: {'rows': listOf(ff.Tables.households), 'current': string},
     returnType: string,
   );
 
-  final inv = ff.Pages.inventoryPage;
-  app.editPage(inv, (page) {
-    page.ensureReplaced(
-      inv.widgets.byKey('Text_403jzbco').single,
-      Text(
-        CustomFunction(kitchenLine, args: {
-          'rows': State(inv.state.allItems),
-          'ok': State('loadedOk'),
-          'offline': State('offline'),
-        }),
-        name: 'InventoryLede',
-        style: Styles.bodySmall,
-        color: Colors.secondaryText,
-        maxLines: 3,
+  // -- Item screen: its one query, exactly, inside the check -----------------
+  final item = ff.Pages.foodItemPage;
+  app.editPageOnLoad(
+    item,
+    gated('Item', [
+      PostgresQuery(
+        ff.Tables.foodItemsStatus,
+        outputAs: 'loadedItem',
+        query: PostgresQuerySpec(
+          filters: [
+            PostgresFilter('id',
+                relation: PostgresFilterRelation.equalTo,
+                value: PageParam('itemId')),
+          ],
+        ),
       ),
-    );
+      SetState(item.state.item, const ActionOutput('loadedItem')),
+    ]),
+  );
+  // "I used it", "Throw it out" and the replace toggle only once the item has
+  // actually loaded: offline they would act on an item the screen cannot show.
+  app.editPage(item, (page) {
+    page.bindVisible(
+        item.widgets.byKey('Column_01lid1tp').single, State('loadedOk'));
   });
 
-  final profile = ff.Pages.profilePage;
-  app.editPage(profile, (page) {
+  // -- Add food: bc8's chain, exactly, inside the check ----------------------
+  // "Loaded" goes before the barcode prefill: that If is terminal in this DSL,
+  // so anything written after it would be nested inside it.
+  final add = ff.Pages.addFoodItemPage;
+  app.editPageOnLoad(
+    add,
+    gated(
+      'Add',
+      [
+        PostgresQuery(
+          ff.Tables.households,
+          outputAs: 'householdsForScope',
+          query: PostgresQuerySpec(
+            orderBys: const [PostgresOrderBy('created_at')],
+          ),
+        ),
+        UpdateAppState.set(
+          ff.AppState.currentHouseholdId,
+          CustomFunction(firstHouseholdId, args: {
+            'rows': const ActionOutput('householdsForScope'),
+            'current': AppState(ff.AppState.currentHouseholdId),
+          }),
+        ),
+        PostgresQuery(
+          ff.Tables.storageLocations,
+          outputAs: 'locationsForHousehold',
+          query: PostgresQuerySpec(
+            filters: [
+              PostgresFilter(
+                'household_id',
+                relation: PostgresFilterRelation.equalTo,
+                value: AppState(ff.AppState.currentHouseholdId),
+              ),
+            ],
+            orderBys: const [
+              PostgresOrderBy('location_type'),
+              PostgresOrderBy('name'),
+            ],
+          ),
+        ),
+        SetState(add.state.locations, const ActionOutput('locationsForHousehold')),
+      ],
+      after: [
+        // Start from the barcode find, if there is one (unchanged from bc8).
+        If(
+          Not(Equals(AppState(ff.AppState.scanName), '')),
+          then: [
+            SetState(add.state.itemName, AppState(ff.AppState.scanName)),
+            SetFormField(add.widgets.byKey('TextField_k6exjii3').single,
+                AppState(ff.AppState.scanName)),
+            SetFormField(add.widgets.byKey('DropDown_iefh7jg2').single,
+                AppState(ff.AppState.scanCategory)),
+            SetState(add.state.category, AppState(ff.AppState.scanCategory)),
+            SetState(add.state.photoUrl, AppState(ff.AppState.scanImageUrl)),
+            SetState(add.state.barcode, AppState(ff.AppState.scanBarcode)),
+            UpdateAppState.set(ff.AppState.scanName, ''),
+            UpdateAppState.set(ff.AppState.scanBrand, ''),
+            UpdateAppState.set(ff.AppState.scanCategory, ''),
+            UpdateAppState.set(ff.AppState.scanImageUrl, ''),
+            UpdateAppState.set(ff.AppState.scanQuantity, ''),
+            UpdateAppState.set(ff.AppState.scanBarcode, ''),
+          ],
+        ),
+      ],
+    ),
+  );
+
+  // -- Home: the greeting, replaced to wait for the profile -------------------
+  final home = ff.Pages.homePage;
+  app.editPage(home, (page) {
     page.ensureReplaced(
-      profile.widgets.byKey('Text_qg7xk5rt').single,
+      home.widgets.byKey('Text_kuedjrmm').single,
       Text(
-        CustomFunction(householdLine, args: {
-          'rows': State('households'),
-          'uid': const AuthUser(AuthUserField.userId),
+        CustomFunction(hiLineLoaded, args: {
+          'rows': State(home.state.me),
+          'email': const AuthUser(AuthUserField.email),
           'ok': State('loadedOk'),
         }),
-        name: 'ProfileRole',
-        style: Styles.bodySmall,
+        name: 'HomeHi',
+        style: Styles.bodyLarge,
         color: Colors.secondaryText,
       ),
     );

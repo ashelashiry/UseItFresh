@@ -82,7 +82,7 @@ abstract final class HomePageWidgets {
                     name: "HomeGreetingBlock",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Text_kuedjrmm",
+                        key: "Text_0np1ttgt",
                         type: "Text",
                         path: "HomePage.body[0].children[0].children[0].children[0]",
                         name: "HomeHi",
