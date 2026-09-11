@@ -141,8 +141,8 @@ Agreed from a clickable mockup before it was built.
    model: it tries `gemini-flash-latest`, then the newest stable Flash the
    key can call (`GET /v1beta/models`). A failure returns `detail`
    ("gemini 429 <model>: <Google's message>") for diagnosis. **One paste
-   pending, optional:** the current `supabase/functions/recognise-food/
-   index.ts` (plural shelf names, and "not available right now" instead of
+   pending, and the photo map needs it:** the current `supabase/functions/recognise-food/
+   index.ts` (the photo map's outlines, plural shelf names, and "not available right now" instead of
    "too many photos" when credit runs out) is not yet deployed from the
    Supabase editor. `verify_receipt.py` tests it after a paste.
 2. **Receipt and fridge-shelf reading** — built 11 Sep and walked in the app
