@@ -35,17 +35,47 @@ abstract final class AppState {
     typeName: "Boolean",
     persisted: true,
   );
+  static const ideasLeaveOut = ffai.ProjectAppStateFieldHandle(
+    name: "ideasLeaveOut",
+    key: "96n8z4ty",
+    typeName: "String",
+    persisted: true,
+  );
   static const ideasLoading = ffai.ProjectAppStateFieldHandle(
     name: "ideasLoading",
     key: "mly1u32k",
     typeName: "Boolean",
     persisted: false,
   );
+  static const ideasMeal = ffai.ProjectAppStateFieldHandle(
+    name: "ideasMeal",
+    key: "7osxz9ok",
+    typeName: "String",
+    persisted: true,
+  );
+  static const ideasMinutes = ffai.ProjectAppStateFieldHandle(
+    name: "ideasMinutes",
+    key: "lc0s1vrl",
+    typeName: "Integer",
+    persisted: true,
+  );
+  static const ideasServings = ffai.ProjectAppStateFieldHandle(
+    name: "ideasServings",
+    key: "s1ab0afq",
+    typeName: "Integer",
+    persisted: true,
+  );
   static const isMetric = ffai.ProjectAppStateFieldHandle(
     name: "isMetric",
     key: "isMetric",
     typeName: "Boolean",
     persisted: false,
+  );
+  static const keptIdeas = ffai.ProjectAppStateFieldHandle(
+    name: "keptIdeas",
+    key: "ls7wkxx9",
+    typeName: "List<DataStruct<MealIdea>>",
+    persisted: true,
   );
   static const mapFoods = ffai.ProjectAppStateFieldHandle(
     name: "mapFoods",
@@ -197,8 +227,13 @@ abstract final class AppState {
     currentHouseholdId,
     expiryAlertDays,
     hasOpenedFridge,
+    ideasLeaveOut,
     ideasLoading,
+    ideasMeal,
+    ideasMinutes,
+    ideasServings,
     isMetric,
+    keptIdeas,
     mapFoods,
     mapPhotos,
     mapPlace,

@@ -76,9 +76,15 @@ abstract final class RecipesPageWidgets {
                     text: "Ideas made from the food in your kitchen, with whatever needs using first at the top.",
                   ),
                   ffai.ProjectWidgetHandle(
+                    key: "Container_y4196gur",
+                    type: "Container",
+                    path: "RecipesPage.body[0].children[0].children[2]",
+                    name: "IdeasChoices",
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "Button_1yho9lai",
                     type: "Button",
-                    path: "RecipesPage.body[0].children[0].children[2]",
+                    path: "RecipesPage.body[0].children[0].children[3]",
                     name: "IdeasAsk",
                     text: "Get ideas",
                     triggers: const <String>[
@@ -88,25 +94,25 @@ abstract final class RecipesPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_1cefa6e4",
                     type: "Container",
-                    path: "RecipesPage.body[0].children[0].children[3]",
+                    path: "RecipesPage.body[0].children[0].children[4]",
                     name: "IdeasBusy",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Row_gqnyn4fo",
                         type: "Row",
-                        path: "RecipesPage.body[0].children[0].children[3].children[0]",
+                        path: "RecipesPage.body[0].children[0].children[4].children[0]",
                         name: "Row",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Container_3zgc6g9r",
                             type: "Container",
-                            path: "RecipesPage.body[0].children[0].children[3].children[0].children[0]",
+                            path: "RecipesPage.body[0].children[0].children[4].children[0].children[0]",
                             name: "IdeasBusySpinner",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_fhpguzme",
                             type: "Text",
-                            path: "RecipesPage.body[0].children[0].children[3].children[0].children[1]",
+                            path: "RecipesPage.body[0].children[0].children[4].children[0].children[1]",
                             name: "IdeasBusyText",
                             text: "Looking through your kitchen. This takes a few seconds.",
                           ),
@@ -117,13 +123,13 @@ abstract final class RecipesPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_1acc9yvl",
                     type: "Container",
-                    path: "RecipesPage.body[0].children[0].children[4]",
+                    path: "RecipesPage.body[0].children[0].children[5]",
                     name: "IdeasCardList",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Text_gm5ki8ub",
                     type: "Text",
-                    path: "RecipesPage.body[0].children[0].children[5]",
+                    path: "RecipesPage.body[0].children[0].children[6]",
                     name: "IdeasSmallPrint",
                     text: "Ideas leave out anything past its date. Look over each food before you cook with it. Ideas do not check for allergies or diets.",
                   ),

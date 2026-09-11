@@ -1,0 +1,656 @@
+<title>Use It Fresh Test Round</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --ground:#F3F6F1; --surface:#FFFFFF; --sunk:#E9EFE7; --line:#D5DED2; --line-soft:#E4EAE1;
+    --ink:#15241B; --ink-2:#405147; --ink-3:#67786E;
+    --brand:#07533A; --brand-ink:#FFFFFF; --brand-wash:#DCEBE1;
+    --works:#1C7447; --works-wash:#DAF0E2;
+    --problem:#B3261E; --problem-wash:#F9E0DC;
+    --skip:#86660F; --skip-wash:#F3EBD2;
+    --shadow:0 1px 2px rgba(21,36,27,.06), 0 6px 18px rgba(21,36,27,.06);
+    --f-display:"Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body:"Nunito Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0E1611; --surface:#152019; --sunk:#1B2920; --line:#2A3B30; --line-soft:#223127;
+      --ink:#E3ECE5; --ink-2:#B2C1B7; --ink-3:#86998C;
+      --brand:#6DC597; --brand-ink:#0B1A12; --brand-wash:#17311F;
+      --works:#72D39C; --works-wash:#163323;
+      --problem:#F29A8F; --problem-wash:#3A1C19;
+      --skip:#E2C265; --skip-wash:#322910;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0E1611; --surface:#152019; --sunk:#1B2920; --line:#2A3B30; --line-soft:#223127;
+    --ink:#E3ECE5; --ink-2:#B2C1B7; --ink-3:#86998C;
+    --brand:#6DC597; --brand-ink:#0B1A12; --brand-wash:#17311F;
+    --works:#72D39C; --works-wash:#163323;
+    --problem:#F29A8F; --problem-wash:#3A1C19;
+    --skip:#E2C265; --skip-wash:#322910;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--f-body);
+         font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:760px; margin:0 auto; padding:28px 18px 80px; }
+  button, input, textarea { font:inherit; color:inherit; }
+  :focus-visible { outline:3px solid var(--brand); outline-offset:2px; border-radius:6px; }
+
+  /* ---- masthead ---- */
+  .eyebrow { font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--brand); margin:0 0 10px; }
+  h1 { font-family:var(--f-display); font-weight:800; font-size:clamp(28px,6.4vw,40px);
+       line-height:1.06; letter-spacing:-.02em; margin:0; text-wrap:balance; }
+  .intro { margin:14px 0 0; color:var(--ink-2); max-width:62ch; }
+  .intro b { color:var(--ink); }
+  .meta { margin-top:20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .meta label { display:grid; gap:4px; font-size:12.5px; font-weight:700; color:var(--ink-3);
+                font-family:var(--f-mono); letter-spacing:.06em; text-transform:uppercase; }
+  .meta input { font-family:var(--f-body); font-size:16px; font-weight:600; text-transform:none; letter-spacing:0;
+                color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px;
+                padding:10px 12px; min-height:46px; }
+
+  /* ---- sticky progress ---- */
+  .progress { position:sticky; top:0; z-index:5; margin:22px -18px 0; padding:12px 18px 10px;
+              background:color-mix(in srgb, var(--ground) 92%, transparent);
+              backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+              border-bottom:1px solid var(--line-soft); }
+  .prow { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 12px; }
+  .count { font-family:var(--f-display); font-weight:700; font-size:17px; }
+  .count span { font-variant-numeric:tabular-nums; }
+  .saved { font-size:12.5px; color:var(--ink-3); }
+  .saved.warn { color:var(--problem); font-weight:700; }
+  .bar { display:flex; height:8px; border-radius:99px; overflow:hidden; background:var(--sunk); margin:8px 0 10px; }
+  .bar i { display:block; height:100%; transition:width .25s ease; }
+  .bar .w { background:var(--works); } .bar .p { background:var(--problem); } .bar .s { background:var(--skip); }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--line); background:var(--surface); border-radius:99px; padding:7px 13px;
+          font-size:14px; font-weight:700; cursor:pointer; min-height:38px; }
+  .chip[aria-pressed="true"] { background:var(--brand); border-color:var(--brand); color:var(--brand-ink); }
+
+  /* ---- journey index ---- */
+  .index { margin-top:26px; }
+  .index h2, .j-head h2 { font-family:var(--f-display); letter-spacing:-.012em; text-wrap:balance; }
+  .index h2 { font-size:15px; font-weight:700; margin:0 0 10px; color:var(--ink-2); }
+  .index ol { list-style:none; margin:0; padding:0; display:grid; gap:6px;
+              grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
+  .index a { display:flex; justify-content:space-between; gap:10px; align-items:center; text-decoration:none;
+             color:var(--ink); background:var(--surface); border:1px solid var(--line-soft); border-radius:10px;
+             padding:9px 12px; font-weight:600; font-size:14.5px; }
+  .index a .n { font-family:var(--f-mono); font-size:12px; color:var(--ink-3); margin-right:8px; }
+  .index a .tally { font-family:var(--f-mono); font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .index a .tally.has-p { color:var(--problem); font-weight:600; }
+  .index a .tally.all { color:var(--works); font-weight:600; }
+
+  /* ---- journeys ---- */
+  .journey { margin-top:40px; scroll-margin-top:130px; }
+  .j-head { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; align-items:baseline; }
+  .j-num { font-family:var(--f-mono); font-weight:600; font-size:13px; color:var(--brand);
+           background:var(--brand-wash); border-radius:8px; padding:3px 8px; align-self:center; }
+  .j-head h2 { margin:0; font-size:22px; font-weight:800; }
+  .j-sub { grid-column:2; display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin-top:4px;
+           color:var(--ink-2); font-size:14.5px; }
+  .where { font-family:var(--f-mono); font-size:12px; color:var(--ink-3); }
+  .tag { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+         border-radius:99px; padding:3px 8px; white-space:nowrap; }
+  .tag.core { background:var(--brand-wash); color:var(--brand); }
+  .tag.also { background:var(--sunk); color:var(--ink-3); }
+  .tag.new  { background:var(--skip-wash); color:var(--skip); }
+  .why { grid-column:2; margin:6px 0 0; color:var(--ink-2); font-size:14.5px; max-width:62ch; }
+
+  .steps { list-style:none; margin:14px 0 0; padding:0; display:grid; gap:10px; }
+  .step { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 14px 12px;
+          display:grid; grid-template-columns:46px 1fr; gap:0 10px; scroll-margin-top:130px; }
+  .step.st-works { border-color:color-mix(in srgb, var(--works) 45%, var(--line)); }
+  .step.st-problem { border-color:var(--problem); box-shadow:0 0 0 1px var(--problem) inset; }
+  .step.st-skipped { opacity:.72; }
+  .sn { font-family:var(--f-mono); font-size:13px; font-weight:600; color:var(--ink-3); padding-top:2px;
+        font-variant-numeric:tabular-nums; }
+  .body { min-width:0; }
+  .do { margin:0; font-weight:600; }
+  .expect { margin:6px 0 0; color:var(--ink-2); font-size:15px; }
+  .expect .lbl { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.09em;
+                 text-transform:uppercase; color:var(--brand); margin-right:6px; }
+  .ui { font-weight:700; color:var(--brand); white-space:normal; }
+  .ui::before { content:"\201C"; } .ui::after { content:"\201D"; }
+  .newflag { display:inline-block; margin-left:6px; vertical-align:1px; }
+
+  .result { grid-column:1 / -1; margin-top:12px; display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .rb { border:1px solid var(--line); background:var(--surface); border-radius:10px; min-height:44px;
+        font-weight:700; font-size:14.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .rb .g { font-size:15px; }
+  .rb.works[aria-pressed="true"]   { background:var(--works-wash); border-color:var(--works); color:var(--works); }
+  .rb.problem[aria-pressed="true"] { background:var(--problem-wash); border-color:var(--problem); color:var(--problem); }
+  .rb.skipped[aria-pressed="true"] { background:var(--skip-wash); border-color:var(--skip); color:var(--skip); }
+  .note { grid-column:1 / -1; margin-top:8px; display:grid; gap:6px; }
+  .note[hidden] { display:none !important; }
+  .note textarea { width:100%; min-height:74px; resize:vertical; border:1px solid var(--line); border-radius:10px;
+                   background:var(--ground); padding:10px 12px; font-size:15px; line-height:1.45; }
+  .note .shot { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink-2); cursor:pointer; }
+  .note .shot input { width:20px; height:20px; accent-color:var(--brand); }
+  .addnote { grid-column:1 / -1; justify-self:start; margin-top:6px; background:none; border:none; padding:6px 0;
+             color:var(--ink-3); font-size:13.5px; font-weight:700; cursor:pointer; text-decoration:underline;
+             text-underline-offset:3px; }
+  .hide { display:none !important; }
+
+  .foot { margin-top:48px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink-2); font-size:14.5px; }
+  .foot h2 { font-family:var(--f-display); font-size:18px; margin:0 0 6px; color:var(--ink); }
+  .foot p { margin:0 0 10px; max-width:62ch; }
+  .reset { border:1px solid var(--line); background:var(--surface); border-radius:10px; padding:10px 14px;
+           font-weight:700; cursor:pointer; min-height:44px; color:var(--ink-2); }
+  .reset.armed { border-color:var(--problem); color:var(--problem); background:var(--problem-wash); }
+  @media (prefers-reduced-motion: reduce) { .bar i { transition:none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Use It Fresh · test round on your phone</p>
+    <h1>Test the whole app, start to finish</h1>
+    <p class="intro">Go in order: later steps use food you add in earlier ones. Each step says
+      <b>what to do</b> and <b>what you should see</b>. Mark it <b>Works</b>, <b>Problem</b> or
+      <b>Skip</b>. For a problem, say what happened and take a screenshot. Your marks save as you go,
+      so you can stop and come back. When you finish, tell me <b>“done”</b> and I’ll read them.</p>
+    <div class="meta">
+      <label>Build number you’re testing<input id="build" inputmode="numeric" autocomplete="off" placeholder="e.g. 7"></label>
+      <label>Phone<input id="phone" autocomplete="off" placeholder="e.g. iPhone 15"></label>
+    </div>
+  </header>
+
+  <div class="progress" role="region" aria-label="Progress">
+    <div class="prow">
+      <div class="count"><span id="done">0</span> of <span id="total">0</span> checked · <span id="probs">0</span> problems</div>
+      <div class="saved" id="saved">Connecting to your test record…</div>
+    </div>
+    <div class="bar" aria-hidden="true"><i class="w" id="bw"></i><i class="p" id="bp"></i><i class="s" id="bs"></i></div>
+    <div class="filters" role="group" aria-label="Show">
+      <button class="chip" data-f="all" aria-pressed="true">All steps</button>
+      <button class="chip" data-f="left" aria-pressed="false">Still to check</button>
+      <button class="chip" data-f="problem" aria-pressed="false">Problems</button>
+    </div>
+  </div>
+
+  <nav class="index" aria-label="Journeys">
+    <h2>The journeys</h2>
+    <ol id="index"></ol>
+  </nav>
+
+  <main id="journeys"></main>
+
+  <footer class="foot">
+    <h2>Screenshots</h2>
+    <p>Side button + volume up takes one. If your phone uploads screenshots to OneDrive, I’ll find
+      them there and match them to the step by time: just tick <b>Screenshot taken</b> on that step.
+      Otherwise send them whichever way is easiest.</p>
+    <h2>Another round later</h2>
+    <p>After fixes, clear the marks and go again. This clears every mark and note on this page.</p>
+    <button class="reset" id="reset" type="button">Clear all marks</button>
+  </footer>
+</div>
+
+<script>
+// Each step: [number, what to do, what you should see, new since Build 5?]
+// «…» marks words exactly as they appear on the phone's screen.
+const JOURNEYS = [
+  { n:0, t:"Before you start", w:"Setup", tag:"core",
+    why:"Five minutes of setup, so every later step has what it needs.",
+    s:[
+      ["0.1","In TestFlight, install the newest build: the one made after I say it’s ready to test. Type its number in the box at the top of this page.","TestFlight shows that build installed."],
+      ["0.2","Have to hand: a fridge shelf with four or more foods you can see, a shop receipt, a packet with a barcode, and a food with a use-by date printed on it.","All four are ready."],
+      ["0.3","With signal on (Wi-Fi or mobile data), open the app.","It opens without a crash."],
+    ]},
+  { n:1, t:"Getting in", w:"Welcome · Sign in", tag:"also",
+    why:"The front door, including coming back after signing out.",
+    s:[
+      ["1.1","Swipe the app away, then open it again from its icon.","The fridge opening, then Home. No blank white screen."],
+      ["1.2","Profile tab → «Sign out».","The Welcome screen: «Use It Fresh» and «Get started»."],
+      ["1.3","Tap «I already have an account» and sign in with your email and password.","Home opens and greets you by name, not by your email address."],
+      ["1.4","Sign out once more. On the sign-in screen tap «Forgot password?», look, then go back without sending, and sign in again.","A «Reset password» screen with «Send reset link»."],
+    ]},
+  { n:2, t:"Home", w:"Home tab", tag:"core",
+    why:"The first thing you see each day.",
+    s:[
+      ["2.1","Look at Home.","«Fresh today.» under your greeting. A «Use these next» card only when something is close to its date, with a count that matches."],
+      ["2.2","Tap one of the food cards.","That food’s own screen, with its name and date."],
+      ["2.3","Go back to Home and tap «Add food» at the bottom.","The camera opens straight away.",1],
+      ["2.4","Close the camera without taking a photo.","You’re back on Home. No error message.",1],
+    ]},
+  { n:3, t:"The photo map", w:"Scan tab", tag:"core",
+    why:"The heart of the app: one photo of a shelf, every food outlined, you tick or fix each. The most useful feedback you can give is here.",
+    s:[
+      ["3.1","Tap the Scan tab.","The camera opens straight away, with no extra tap.",1],
+      ["3.2","Photograph one fridge shelf with four or more foods on it.","«Reading your photo. This takes a few seconds.» with a ring that spins.",1],
+      ["3.3","Wait for the photo map.","«Check what we found.»: your photo with a numbered outline round each food, and a numbered list below."],
+      ["3.4","Compare each outline with the food under it.","Each outline sits on the food it names, and the names are right. Note any that are off, even slightly."],
+      ["3.5","Tap an outline on the photo.","Its row in the list is highlighted."],
+      ["3.6","Tap ✓ on one food and ✕ on another.","✓ turns its outline green with a tick. ✕ darkens it and strikes the name through. «… of … checked» counts up."],
+      ["3.7","Tap a food’s name.","An editor opens under it: Name, Category, Kept in, and «Add use-by date (optional)».",1],
+      ["3.8","Change the name, then the category.","The row changes straight away and is ticked."],
+      ["3.9","Tap «Add use-by date (optional)» and pick the date printed on that food’s pack.","The button reads «Use by» and your date, and the row’s grey line ends with «use by» and the date.",1],
+      ["3.10","Tap the × next to the date, then add the date again.","The date comes off, then goes back on.",1],
+      ["3.11","At the top, tap «Freezer», then «Fridge» again.","The chosen chip fills in, and each row’s grey line says where it will be kept."],
+      ["3.12","Tap «+ Add another photo» and photograph a second shelf.","The second photo appears below the first, with its own outlines, and the list grows."],
+      ["3.13","Tap «Yes to the rest».","Every food not yet checked is ticked. Crossed ones stay crossed."],
+      ["3.14","Tap «Add the ticked foods to your kitchen».","«Added to your kitchen.» and the Inventory screen opens with them in it."],
+      ["3.15","Swipe back from the left edge of the screen.","You do not land on an empty photo map.",1],
+      ["3.16","Open the food you gave a use-by date.","«THE DATE» shows your date, and «WHERE THAT CAME FROM» says it’s the printed use-by.",1],
+      ["3.17","Open a food you added without a date.","A typical keep time for its category, worded as an estimate, not a fact."],
+      ["3.18","Scan tab → take a photo → on the map, tap the ← arrow at the top.","You leave the map and nothing is added to your kitchen."],
+      ["3.19","Scan tab → close the camera without taking a photo.","«What are we adding?» with the other ways in: a receipt, a barcode, or typing.",1],
+      ["3.20","Scan tab → photograph something with no food in it, like a wall.","A plain message such as «No food I could name in that photo.», then back to Scan. No crash."],
+    ]},
+  { n:4, t:"A receipt", w:"Scan → receipt", tag:"core",
+    why:"The quick way to add a whole shop.",
+    s:[
+      ["4.1","Scan tab → close the camera → choose the receipt option → photograph a receipt, flat and in good light.","A spinning ring, then «Check what we found.» with one line per food, in plain names (“Semi-skimmed milk”, not “SEMI SKMD MLK”)."],
+      ["4.2","Read down the list.","Bags, cleaning products, offers and totals are left out."],
+      ["4.3","Tap a line, change its name, tap «Save this line».","«Fix this line.» with the name filled in, then the list shows the new name on that same line."],
+      ["4.4","Tap ✕ on one line.","That line goes; the others stay in order."],
+      ["4.5","Tap «Add them to your kitchen».","«Added to your kitchen.» They’re in Inventory."],
+    ]},
+  { n:5, t:"A barcode", w:"Scan → barcode", tag:"also",
+    why:"For a single packet, or something you’ve just run out of.",
+    s:[
+      ["5.1","Scan tab → close the camera → choose the barcode option → «Scan a barcode» → point it at a packet.","It reads the barcode and shows the product."],
+      ["5.2","Tap «Add this».","The Add food form, already filled in."],
+      ["5.3","Go back. Type the number printed under the barcode and tap «Look it up».","The same product."],
+      ["5.4","On the product, tap «Out of it? Put it on the shopping list».","A confirmation. It’s on your shopping list (you’ll check in journey 12)."],
+    ]},
+  { n:6, t:"Typing it in", w:"Scan → type", tag:"also",
+    why:"The fallback. It also adds the test food that journey 8 uses.",
+    s:[
+      ["6.1","Scan tab → close the camera → choose the typing option.","The «Add food» form."],
+      ["6.2","Tap «Review and add» without a name.","«Give it a name first.»"],
+      ["6.3","Name: Test yoghurt. Category: Dairy. Kept in: Fridge. «Pick the date on the pack»: tomorrow, «Use by». Tap «Review and add».","«Ready to add?» showing «WHAT IT IS», «CATEGORY», «WHERE IT GOES» and «THE DATE», all as you set them."],
+      ["6.4","Tap «Add to my kitchen».","«Added to your kitchen.» Test yoghurt is in Inventory, near the top because it’s due tomorrow."],
+    ]},
+  { n:7, t:"Your kitchen", w:"Inventory tab", tag:"core",
+    why:"Everything you have, soonest-to-use first.",
+    s:[
+      ["7.1","Open the Inventory tab.","A spinning ring for a moment, then «Your kitchen.» with a count that matches the cards.",1],
+      ["7.2","Tap «Fridge», «Freezer», «Pantry», then «All».","Only that place’s food each time, and the count follows."],
+      ["7.3","Search for a food you have.","Only the matching cards."],
+      ["7.4","Search for zzz.","«No matching items» and «Clear filters». Tapping it brings everything back."],
+      ["7.5","Look at the order of the cards.","What needs using soonest comes first."],
+    ]},
+  { n:8, t:"One food’s own screen", w:"Inventory → a food", tag:"core",
+    why:"The detail behind each card, and saying what happened to it.",
+    s:[
+      ["8.1","Open Test yoghurt.","«THE DATE», «WHERE THAT CAME FROM», «HOW THIS WAS WORKED OUT», «HOW MUCH», «WHERE IT IS KEPT», «CATEGORY» and «ADDED» all make sense."],
+      ["8.2","Tap «Put it on the shopping list».","A confirmation. It’s on your shopping list."],
+      ["8.3","Tap «I used it».","«Good. Nothing wasted.» and it leaves your kitchen."],
+      ["8.4","Add one more test food by typing (as in 6.3), open it, tap «Throw it out».","«Thrown out and recorded.» and it leaves your kitchen."],
+    ]},
+  { n:9, t:"What can I make?", w:"Recipes tab", tag:"core", isNew:1,
+    why:"Meal ideas built only from food you have, whatever needs using first at the top. Text only; it never says whether food is safe.",
+    s:[
+      ["9.1","Open the Recipes tab.","«What can I make?», a «Get ideas» button, and small print about dates and allergies at the bottom."],
+      ["9.2","Tap «Get ideas».","«Looking through your kitchen. This takes a few seconds.» with a spinning ring, then up to four idea cards within about 15 seconds."],
+      ["9.3","Look at the first cards.","When something is close to its date, the first cards say «Uses what needs using first»."],
+      ["9.4","Read «From your kitchen» on each card.","Every food listed there really is in your kitchen. Nothing past its date is used."],
+      ["9.5","Read the cards through.","None says whether a food is safe, fresh or off, and none claims to suit a diet."],
+      ["9.6","Tap «Show steps» on a card.","Numbered steps. «Hide steps» folds them away."],
+      ["9.7","On a card with «You would also need», tap «Add these to your shopping list».","«Added to your shopping list.» and the button reads «On your shopping list ✓»."],
+      ["9.8","Go to another tab, then back to Recipes.","The same ideas are still there; it doesn’t ask again."],
+      ["9.9","Tap «Get ideas» again.","A new set of ideas."],
+      ["9.10","Tap «Get ideas» twice, quickly.","One set of ideas. No error."],
+    ]},
+  { n:10, t:"Shape the ideas", w:"Recipes tab", tag:"core", isNew:1,
+    why:"Arrives in this build: choose the meal, the time, how many people, and foods to leave out.",
+    s:[
+      ["10.1","Open the Recipes tab.","Above «Get ideas»: Meal (Any, Breakfast, Lunch, Dinner, Snack), Time (Any, 15 min, 30 min, 1 hour), «For» a number of people with − and +, and a «Leave out» box."],
+      ["10.2","Choose Dinner and 30 min, then «Get ideas».","Dinner ideas, each 30 minutes or less."],
+      ["10.3","Set «For» to 4, then «Get ideas».","Each card says «Serves 4»."],
+      ["10.4","In «Leave out», type a food that is in your kitchen (eggs, say), then «Get ideas».","No card uses it: not in its name, not under «From your kitchen», not under «You would also need»."],
+      ["10.5","Swipe the app away, open it again, go to Recipes.","Your choices are still set."],
+      ["10.6","Set Meal and Time back to Any, clear «Leave out», «Get ideas».","Ideas of any kind again."],
+    ]},
+  { n:11, t:"Keep an idea", w:"Recipes tab", tag:"core", isNew:1,
+    why:"Arrives in this build: keep the ideas you liked, so they’re there next week.",
+    s:[
+      ["11.1","On an idea card, tap «Keep this idea».","The button reads «Kept ✓», and the idea appears under «Kept ideas»."],
+      ["11.2","Tap «Get ideas» for a new set.","Your kept ideas stay where they are."],
+      ["11.3","Swipe the app away, open it again, go to Recipes.","Your kept ideas are still there, steps and all."],
+      ["11.4","On a kept idea, tap «Remove».","It leaves «Kept ideas»."],
+    ]},
+  { n:12, t:"Shopping list", w:"Profile → Shopping list", tag:"also",
+    why:"Everything the other journeys put on the list should be here.",
+    s:[
+      ["12.1","Profile tab → Shopping list.","«Shopping list.» with what you added in 5.4, 8.2 and 9.7."],
+      ["12.2","Type Test bread and tap «Add to the list».","It appears on the list."],
+      ["12.3","Tick Test bread.","It moves down to «In the basket»."],
+    ]},
+  { n:13, t:"What you used", w:"Profile → waste history", tag:"also",
+    why:"The last thirty days of what was used up and what was thrown out.",
+    s:[
+      ["13.1","Profile tab → the row that says «Used up and thrown out, over the last thirty days».","«What you used.» includes Test yoghurt (used) and the food you threw out in 8.4."],
+      ["13.2","Look for «MOST OFTEN THROWN OUT».","A short list of what you throw out most. With little history it may be short or empty."],
+    ]},
+  { n:14, t:"Reminders", w:"Profile → Reminders", tag:"also",
+    why:"A nudge on the phone before food needs using. It works without signal.",
+    s:[
+      ["14.1","Profile tab → Reminders. Turn on «Remind me before food goes off».","The first time, the phone asks to allow notifications. Allow."],
+      ["14.2","Choose «HOW LONG BEFORE», then tap «Save reminders».","«Reminders saved.»"],
+      ["14.3","Leave a food with a use-by date tomorrow and wait (overnight is fine). Mark this one later.","A reminder on the lock screen that mentions its date."],
+    ]},
+  { n:15, t:"Two people, one kitchen", w:"Profile → Household", tag:"core", isNew:1,
+    why:"Arrives in this build: someone else joins your kitchen with its invite code, and you both see the same food. Needs a second account: someone in your family, or you with a second email address on another phone.",
+    s:[
+      ["15.1","Profile tab → the household row.","«Your household.» with «YOUR HOUSEHOLD», its name and an invite code. Write the code down."],
+      ["15.2","Second person, on their phone: open the app, «Get started», create an account with their email, and set up their profile.","They reach the household screen, with «Create a household» and «Join with an invite code»."],
+      ["15.3","Second person: type a wrong code, then «Join household».","A plain message that the code didn’t match. Nothing is joined."],
+      ["15.4","Second person: type your real code, then «Join household».","They’re in. Their Home and Inventory show your kitchen’s food."],
+      ["15.5","You: type in a food, Test apples. Second person: open Inventory (leave the tab and come back if needed).","Test apples appear on their phone too."],
+      ["15.6","Second person: put something on the shopping list.","It’s on your shopping list too."],
+      ["15.7","Second person: open Test apples and tap «I used it».","It leaves both kitchens, and shows in «What you used.» for you both."],
+      ["15.8","Second person: Recipes → «Get ideas».","Ideas built from the shared kitchen’s food."],
+      ["15.9","You: Profile → the household row again.","The household now shows two members."],
+      ["15.10","Profile tab → Storage locations.","Fridge, Freezer and Pantry listed. Don’t add one unless you want to keep it."],
+    ]},
+  { n:16, t:"No signal", w:"Airplane mode", tag:"core",
+    why:"With no signal the app should say it can’t reach your kitchen, never that your kitchen is empty.",
+    s:[
+      ["16.1","Turn on Airplane mode, then open Home.","«Can’t reach your kitchen.» with «Try again». Never «Set up your kitchen»."],
+      ["16.2","Open the Inventory tab.","The same card. Not «Your fresh start.»"],
+      ["16.3","Recipes tab → «Get ideas».","«Could not reach your kitchen. Check your signal and try again.»",1],
+      ["16.4","Scan tab → take a photo.","A plain message saying it couldn’t read the photo. No crash."],
+      ["16.5","Turn Airplane mode off. On Home, tap «Try again».","Your food comes back without restarting the app."],
+    ]},
+  { n:17, t:"Look and feel", w:"Whole app", tag:"also",
+    why:"Things only a real phone can show.",
+    s:[
+      ["17.1","iPhone Settings → Accessibility → Display & Text Size → Larger Text: two steps bigger. Open Home, Inventory, the photo map and Recipes. Put it back afterwards.","Bigger text, and nothing cut off or overlapping."],
+      ["17.2","Think back over the round.","Every loading ring you saw was spinning, never a still grey circle.",1],
+      ["17.3","Look at the tab bar.","Home, Inventory, Scan, Recipes and Profile, each labelled, clear of the bar at the bottom of the screen."],
+    ]},
+];
+
+const STATES = [["works","✓","Works"],["problem","✕","Problem"],["skipped","–","Skip"]];
+const marks = {};           // step number -> {status, note, shot}
+let db = null;              // the page's own record, when this view has it
+let filter = "all";
+const LOCAL = "uif-test-round-v1";
+
+const esc = (s) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const ui = (s) => esc(s).replace(/«(.+?)»/g, '<span class="ui">$1</span>');
+const docId = (n) => "s" + n.replace(".", "-");
+const fromDocId = (id) => id.slice(1).replace("-", ".");
+const allSteps = JOURNEYS.flatMap((j) => j.s.map((s) => s[0]));
+
+// ---- build the page once ---------------------------------------------------
+function build() {
+  const index = document.getElementById("index");
+  const main = document.getElementById("journeys");
+  for (const j of JOURNEYS) {
+    const li = document.createElement("li");
+    li.innerHTML = `<a href="#j${j.n}"><span><span class="n">${j.n}</span>${esc(j.t)}</span><span class="tally" id="tally${j.n}"></span></a>`;
+    index.appendChild(li);
+
+    const sec = document.createElement("section");
+    sec.className = "journey";
+    sec.id = "j" + j.n;
+    sec.innerHTML = `
+      <div class="j-head">
+        <span class="j-num">${j.n}</span>
+        <h2>${esc(j.t)}</h2>
+        <div class="j-sub"><span class="where">${esc(j.w)}</span>
+          <span class="tag ${j.tag}">${j.tag === "core" ? "Must work" : "Worth checking"}</span>
+          ${j.isNew ? '<span class="tag new">New</span>' : ""}</div>
+        <p class="why">${esc(j.why)}</p>
+      </div>
+      <ol class="steps"></ol>`;
+    const ol = sec.querySelector(".steps");
+    for (const [n, act, exp, isNew] of j.s) {
+      const st = document.createElement("li");
+      st.className = "step";
+      st.id = "step-" + docId(n);
+      st.dataset.n = n;
+      st.innerHTML = `
+        <div class="sn">${n}</div>
+        <div class="body">
+          <p class="do">${ui(act)}${isNew && !j.isNew ? '<span class="tag new newflag">New</span>' : ""}</p>
+          <p class="expect"><span class="lbl">You should see</span>${ui(exp)}</p>
+        </div>
+        <div class="result" role="group" aria-label="Result for step ${n}">
+          ${STATES.map(([k, g, l]) => `<button type="button" class="rb ${k}" data-k="${k}" aria-pressed="false"><span class="g" aria-hidden="true">${g}</span>${l}</button>`).join("")}
+        </div>
+        <button type="button" class="addnote">Add a note</button>
+        <div class="note" hidden>
+          <textarea aria-label="Note for step ${n}" placeholder="What happened, and what did you expect?"></textarea>
+          <label class="shot"><input type="checkbox"> Screenshot taken</label>
+        </div>`;
+      ol.appendChild(st);
+    }
+    main.appendChild(sec);
+  }
+  document.getElementById("total").textContent = allSteps.length;
+
+  main.addEventListener("click", (e) => {
+    const step = e.target.closest(".step");
+    if (!step) return;
+    const n = step.dataset.n;
+    const rb = e.target.closest(".rb");
+    if (rb) {
+      const m = marks[n] || (marks[n] = {status:"", note:"", shot:false});
+      m.status = m.status === rb.dataset.k ? "" : rb.dataset.k;
+      paint(n, true);
+      summary();
+      save(n);
+      if (m.status === "problem") step.querySelector("textarea").focus();
+      return;
+    }
+    if (e.target.closest(".addnote")) {
+      step.querySelector(".note").hidden = false;
+      e.target.closest(".addnote").classList.add("hide");
+      step.querySelector("textarea").focus();
+    }
+  });
+  const timers = {};
+  main.addEventListener("input", (e) => {
+    const step = e.target.closest(".step");
+    if (!step) return;
+    const n = step.dataset.n;
+    const m = marks[n] || (marks[n] = {status:"", note:"", shot:false});
+    if (e.target.matches("textarea")) m.note = e.target.value;
+    if (e.target.matches("input[type=checkbox]")) m.shot = e.target.checked;
+    clearTimeout(timers[n]);
+    timers[n] = setTimeout(() => save(n), 700);
+  });
+
+  document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+    filter = c.dataset.f;
+    document.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", String(x === c)));
+    applyFilter();
+  }));
+}
+
+// ---- show one step's mark ---------------------------------------------------
+function paint(n, fromClick) {
+  const step = document.getElementById("step-" + docId(n));
+  if (!step) return;
+  const m = marks[n] || {status:"", note:"", shot:false};
+  step.classList.remove("st-works", "st-problem", "st-skipped");
+  if (m.status) step.classList.add("st-" + m.status);
+  step.querySelectorAll(".rb").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === m.status)));
+  const note = step.querySelector(".note");
+  const ta = step.querySelector("textarea");
+  const box = step.querySelector("input[type=checkbox]");
+  if (document.activeElement !== ta && ta.value !== (m.note || "")) ta.value = m.note || "";
+  box.checked = !!m.shot;
+  const open = m.status === "problem" || !!m.note || !!m.shot || (fromClick && !note.hidden);
+  note.hidden = !open;
+  step.querySelector(".addnote").classList.toggle("hide", open);
+}
+
+function summary() {
+  let w = 0, p = 0, s = 0;
+  for (const n of allSteps) {
+    const st = marks[n] && marks[n].status;
+    if (st === "works") w++; else if (st === "problem") p++; else if (st === "skipped") s++;
+  }
+  const t = allSteps.length;
+  document.getElementById("done").textContent = w + p + s;
+  document.getElementById("probs").textContent = p;
+  document.getElementById("bw").style.width = (w / t * 100) + "%";
+  document.getElementById("bp").style.width = (p / t * 100) + "%";
+  document.getElementById("bs").style.width = (s / t * 100) + "%";
+  for (const j of JOURNEYS) {
+    const ns = j.s.map((x) => x[0]);
+    const done = ns.filter((n) => marks[n] && marks[n].status).length;
+    const probs = ns.filter((n) => marks[n] && marks[n].status === "problem").length;
+    const el = document.getElementById("tally" + j.n);
+    el.textContent = probs ? `${done}/${ns.length} · ${probs} ✕` : `${done}/${ns.length}`;
+    el.className = "tally" + (probs ? " has-p" : done === ns.length ? " all" : "");
+  }
+  applyFilter();
+}
+
+function applyFilter() {
+  document.querySelectorAll(".journey").forEach((sec) => {
+    let shown = 0;
+    sec.querySelectorAll(".step").forEach((st) => {
+      const m = marks[st.dataset.n];
+      const status = m && m.status;
+      const show = filter === "all" || (filter === "left" && !status) || (filter === "problem" && status === "problem");
+      st.classList.toggle("hide", !show);
+      if (show) shown++;
+    });
+    sec.classList.toggle("hide", shown === 0);
+  });
+}
+
+// ---- saving ------------------------------------------------------------------
+function setSaved(text, warn) {
+  const el = document.getElementById("saved");
+  el.textContent = text;
+  el.classList.toggle("warn", !!warn);
+}
+const clock = () => new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+
+async function save(n) {
+  const m = marks[n] || {status:"", note:"", shot:false};
+  if (!db) { saveLocal(); return; }
+  try {
+    await db.doc("results/" + docId(n)).set({
+      step: n, status: m.status || "", note: m.note || "", shot: !!m.shot, at: new Date().toISOString(),
+    });
+    setSaved("Saved to your test record · " + clock());
+  } catch (e) {
+    saveLocal();
+    setSaved(e && e.code === "quota_exceeded"
+      ? "The test record is full. Your marks are kept on this phone for now."
+      : "Couldn’t save that mark to your test record. It’s kept on this phone; I’ll try again with your next one.", true);
+  }
+}
+
+function saveLocal() {
+  try { localStorage.setItem(LOCAL, JSON.stringify({marks, build: val("build"), phone: val("phone")})); } catch (_) {}
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LOCAL);
+    if (!raw) return;
+    const got = JSON.parse(raw);
+    Object.assign(marks, got.marks || {});
+    if (got.build) document.getElementById("build").value = got.build;
+    if (got.phone) document.getElementById("phone").value = got.phone;
+  } catch (_) {}
+}
+const val = (id) => document.getElementById(id).value.trim();
+
+let metaTimer;
+function watchMeta() {
+  for (const id of ["build", "phone"]) {
+    document.getElementById(id).addEventListener("input", () => {
+      clearTimeout(metaTimer);
+      metaTimer = setTimeout(async () => {
+        saveLocal();
+        if (!db) return;
+        try {
+          await db.doc("run/current").set({build: val("build"), phone: val("phone"), at: new Date().toISOString()});
+          setSaved("Saved to your test record · " + clock());
+        } catch (_) {}
+      }, 700);
+    });
+  }
+}
+
+// Two taps to clear, so a stray one cannot wipe a round.
+function watchReset() {
+  const btn = document.getElementById("reset");
+  let armed = null;
+  btn.addEventListener("click", async () => {
+    if (!armed) {
+      btn.classList.add("armed");
+      btn.textContent = "Tap again to clear every mark";
+      armed = setTimeout(() => { armed = null; btn.classList.remove("armed"); btn.textContent = "Clear all marks"; }, 4000);
+      return;
+    }
+    clearTimeout(armed); armed = null;
+    btn.classList.remove("armed");
+    btn.textContent = "Clear all marks";
+    const had = Object.keys(marks);
+    for (const n of had) delete marks[n];
+    allSteps.forEach((n) => paint(n));
+    summary();
+    saveLocal();
+    if (db) {
+      for (const n of had) { try { await db.doc("results/" + docId(n)).delete(); } catch (_) {} }
+      setSaved("Marks cleared · " + clock());
+    }
+  });
+}
+
+// ---- start -------------------------------------------------------------------
+build();
+loadLocal();
+allSteps.forEach((n) => paint(n));
+summary();
+watchMeta();
+watchReset();
+setSaved("Saving on this phone only for now.");
+
+(async () => {
+  try {
+    db = window.claude && typeof window.claude.use === "function" ? await window.claude.use("db") : null;
+  } catch (_) { db = null; }
+  if (!db) {
+    setSaved("Saving on this phone only: I won’t see these marks, so tell me the results in chat.", true);
+    return;
+  }
+  setSaved("Connected to your test record.");
+  try {
+    const meta = await db.doc("run/current").get();
+    if (meta.exists) {
+      const d = meta.data();
+      if (d.build && !val("build")) document.getElementById("build").value = d.build;
+      if (d.phone && !val("phone")) document.getElementById("phone").value = d.phone;
+    }
+  } catch (_) {}
+  db.collection("results").onSnapshot((snap) => {
+    for (const d of snap.docs) {
+      const body = d.data() || {};
+      const n = body.step || fromDocId(d.id);
+      marks[n] = {status: body.status || "", note: body.note || "", shot: !!body.shot};
+    }
+    for (const ch of snap.docChanges()) {
+      if (ch.type === "removed") {
+        const body = ch.doc.data() || {};
+        delete marks[body.step || fromDocId(ch.doc.id)];
+      }
+    }
+    allSteps.forEach((n) => paint(n));
+    summary();
+  }, () => {
+    setSaved("Lost the link to your test record. Marks are kept on this phone; reload to reconnect.", true);
+    db = null;
+  });
+})();
+</script>

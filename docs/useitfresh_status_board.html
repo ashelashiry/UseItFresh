@@ -153,9 +153,8 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Build 6 is ready: the camera opens from Scan, the Recipes
-      tab suggests meals from your own food, and the photo map takes
-      use-by dates.</p>
+      <p class="sub">A, B and C are built: two people in one kitchen, ideas
+      shaped to the meal you want, and ideas you can keep. Then the big test.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
@@ -168,10 +167,10 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Deploy Build 6, then test.</p>
-      <p>The photo function is pasted and live, so &ldquo;Get ideas&rdquo;
-      works as soon as Build 6 is on your phone. Builds 4 and 5 are kept
-      as fallbacks.</p>
+      <p>Paste the photo function, make a new build, then run the test round.</p>
+      <p>The test round is a page of its own, with every step to follow and a
+      Works / Problem / Skip mark that saves as you go. Tell me &ldquo;done&rdquo;
+      and I&rsquo;ll read your marks from it. Builds 4 and 5 are kept as fallbacks.</p>
     </div>
   </div>
 
@@ -180,11 +179,25 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Deploy Build 6</h3>
-          <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
-          <b>Build Number</b> by one &rarr; Deploy to TestFlight.</p>
+          <h3>Paste the photo function into Supabase</h3>
+          <p>Open <code>supabase/functions/recognise-food/index.ts</code>,
+          select all and copy. In Supabase: <b>Edge Functions &rarr;
+          recognise-food &rarr; Code</b>, select all, paste, <b>Deploy</b>.
+          Leave &ldquo;Verify JWT&rdquo; off. It makes the ideas follow your
+          meal, time, servings and leave-out choices.</p>
         </div>
-        <span class="how">Now</span>
+        <span class="how">5 min</span>
+      </li>
+      <li class="ask">
+        <div>
+          <h3>Make a new build, then run the test round</h3>
+          <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
+          <b>Build Number</b> by one &rarr; Deploy to TestFlight. Then follow
+          the <a href="https://claude.ai/code/artifact/3107b4f3-3365-4b3b-aa95-6a7e7d7736e9">test round</a>
+          on your phone. Journey 15 needs a second account: someone in your
+          family, or you with a second email address.</p>
+        </div>
+        <span class="how">After the paste</span>
       </li>
       <li class="ask">
         <div>
@@ -326,28 +339,45 @@
             <td><span class="state phone">Build 4</span></td>
           </tr>
           <tr>
+            <td><b>Two people, one kitchen</b></td>
+            <td>Join a household with its invite code; the card says who is in it.
+            Food, the shopping list and what was used are shared.</td>
+            <td><span class="state wait">Next build</span></td>
+          </tr>
+          <tr>
+            <td><b>Shape the ideas</b></td>
+            <td>Meal, time, how many people, and foods to leave out. Checked on
+            the answer, not just asked for.</td>
+            <td><span class="state wait">Next build</span></td>
+          </tr>
+          <tr>
+            <td><b>Keep an idea</b></td>
+            <td>Keep the ideas you liked; they stay on your phone until removed.</td>
+            <td><span class="state wait">Next build</span></td>
+          </tr>
+          <tr>
             <td><b>What can I make?</b></td>
             <td>Meal ideas from your own food, soonest-to-go first. Text only;
             leaves out anything past its date and never judges safety.</td>
-            <td><span class="state wait">Build 6</span></td>
+            <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
             <td><b>Use-by dates on the photo map</b></td>
             <td>Optional date per food, saved as its use-by, so reminders are
             exact.</td>
-            <td><span class="state wait">Build 6</span></td>
+            <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
             <td><b>Loading rings that turn</b></td>
             <td>Every &ldquo;loading&rdquo; and &ldquo;reading&rdquo; ring was a
             still grey circle. Now they spin.</td>
-            <td><span class="state wait">Build 6</span></td>
+            <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
             <td><b>The camera is the way in</b></td>
             <td>Tap Scan or &ldquo;Add food&rdquo; and the camera opens. Close it for
             the other ways to add. &ldquo;Add food&rdquo; did nothing before.</td>
-            <td><span class="state wait">Build 6</span></td>
+            <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
             <td><b>The photo map</b></td>
@@ -382,18 +412,18 @@
 
   <section>
     <h2>What next? You choose</h2>
-    <p class="lede">Meal ideas and dates are in. These are the candidates for
-    after your test round. Tell me which to start with.</p>
+    <p class="lede">A, B and C are in. After your test round, the fixes it turns
+    up come first; these are the candidates after that.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Idea</th><th>Size</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="rank">A</td><td><b>Shared household, tested properly</b></td><td><span class="size s">S</span></td>
-              <td>Built but never tried with two people. Needs a second account that you create.</td></tr>
-          <tr><td class="rank">B</td><td><b>Shape the ideas</b></td><td><span class="size m">M</span></td>
-              <td>Choose meal type, time and servings, and foods to leave out (spec 8.9).</td></tr>
-          <tr><td class="rank">C</td><td><b>Keep a favourite idea</b></td><td><span class="size s">S</span></td>
-              <td>Save an idea you liked so it is there next week.</td></tr>
+          <tr><td class="rank">A</td><td><b>Kept ideas shared with the household</b></td><td><span class="size m">M</span></td>
+              <td>Kept ideas live on one phone today. Sharing them needs a small database change you paste.</td></tr>
+          <tr><td class="rank">B</td><td><b>Sign in with Apple and Google</b></td><td><span class="size m">M</span></td>
+              <td>The buttons are stand-ins. Needs keys you add in Supabase and Apple.</td></tr>
+          <tr><td class="rank">C</td><td><b>Choose which household to show</b></td><td><span class="size s">S</span></td>
+              <td>For someone in two households; today the app keeps the one it was showing.</td></tr>
         </tbody>
       </table>
     </div>

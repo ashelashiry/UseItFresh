@@ -133,6 +133,12 @@ abstract final class HouseholdSetupPageWidgets {
                             path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[3]",
                             name: "CurrentHouseholdCode",
                           ),
+                          ffai.ProjectWidgetHandle(
+                            key: "Container_xgkkyx6o",
+                            type: "Container",
+                            path: "HouseholdSetupPage.body[0].children[0].children[2].children[0].children[4]",
+                            name: "HouseholdMemberLine",
+                          ),
                         ],
                       ),
                     ],

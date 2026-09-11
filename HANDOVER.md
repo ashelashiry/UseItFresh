@@ -169,6 +169,33 @@ Agreed from a clickable mockup before it was built.
   padding; `page.update(... patch.padding ...)` on a Container did not reach
   the generated code, and the fast lane has no padding op, so the Recipes
   container was rebuilt with `Container(padding:)`, which works.
+- **The next round: A, B and C** (11 Sep, one build, then the owner's big
+  test from `docs/useitfresh_test_round.html`, published with a `db` record
+  of their marks; read it back with the Artifact tool's `read_db`, collection
+  `results`, plus `run/current` for the build number and phone).
+  - **B. Shape the ideas.** `IdeaChoices` (custom widget above "Get ideas"):
+    meal, time, "For" 1-8 people, "Leave out". Persisted app state
+    `ideasMeal` / `ideasMinutes` / `ideasServings` / `ideasLeaveOut`.
+    `GetMealIdeas` sends them; `recognise-food` asks for them and then checks
+    the answer: an idea mentioning a left-out food anywhere (title, uses,
+    extras, steps) or over the time is dropped, and kitchen foods on the
+    leave-out list are never sent. Matching is by containment on a plural
+    stem, so it errs towards leaving more out. No diet switch on purpose: the
+    app must not claim a dish suits a diet. **Needs the owner's paste.**
+  - **C. Keep an idea.** "Keep this idea" on each card; `keptIdeas`
+    (persisted, this phone only, 30 at most) shown under the new ideas with
+    "Remove". A kept card says "Uses", not "From your kitchen": the food
+    may have gone since.
+  - **A. Two people, one kitchen.** The Join button showed "Invite joining
+    unlocks in the next update". Now `JoinHousehold(code)` calls
+    `join_household_by_code` (security definer, in the first migration) and
+    sets `currentHouseholdId`; `firstHouseholdId` keeps a current id that is
+    still in the list, so every screen stays on the joined kitchen.
+    `HouseholdMembers` on the household card: "Just you so far." or
+    "2 members: Ash and you". Known edge: someone who creates a household
+    and then joins another has two; inserts that omit `household_id` fall
+    back to the server default (oldest membership). The app's own inserts
+    pass it, but the second person is told to join without creating one.
 
 1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
    credit running out, not the code. The function also no longer pins a
