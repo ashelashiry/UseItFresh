@@ -153,8 +153,8 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">The photo map is built: photograph a shelf, and each
-      food is outlined on your own photo to tick, cross or fix.</p>
+      <p class="sub">The photo map is on your phone in Build 5. Build 6 makes
+      the camera the way in: tap Scan and it opens.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
@@ -167,11 +167,11 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Paste the photo function once more, then deploy your next build.</p>
-      <p>The next build you deploy has the photo map and the no-signal
-      fixes. The paste is what makes the outlines appear: without it the
-      foods still arrive as a list you can tick. Build 4 is still kept
-      safe as your fallback.</p>
+      <p>Try the photo map on Build 5, then deploy Build 6 when it suits you.</p>
+      <p>Build 6 opens the camera as soon as you tap Scan or &ldquo;Add
+      food&rdquo;; close it for a receipt, a barcode or typing. It also
+      fixes Home&rsquo;s &ldquo;Add food&rdquo;, which did nothing in Build 5.
+      Builds 4 and 5 are both kept as fallbacks.</p>
     </div>
   </div>
 
@@ -180,22 +180,20 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Paste the photo function into Supabase</h3>
-          <p>Open <code>supabase/functions/recognise-food/index.ts</code>,
-          select all and copy. In Supabase: <b>Edge Functions &rarr;
-          recognise-food &rarr; Code</b>, select all, paste, <b>Deploy</b>.
-          Leave &ldquo;Verify JWT&rdquo; off. It adds the outlines, plural
-          names, and a clearer message when Gemini is out of credit.</p>
+          <h3>Try the photo map on Build 5</h3>
+          <p>Scan &rarr; Fridge photo, on a real shelf. Tell me whether the
+          outlines land on the right foods, and anything that looks off.
+          Screenshots to your usual folder are easiest.</p>
         </div>
-        <span class="how">5 min</span>
+        <span class="how">Now</span>
       </li>
       <li class="ask">
         <div>
-          <h3>Deploy your next build</h3>
+          <h3>Deploy Build 6, when it suits you</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
           <b>Build Number</b> by one &rarr; Deploy to TestFlight.</p>
         </div>
-        <span class="how">After the paste</span>
+        <span class="how">When convenient</span>
       </li>
       <li class="ask">
         <div>
@@ -232,6 +230,11 @@
     <p class="lede">The new things, in the order I&rsquo;d try them. Each photo
     costs a little of your Gemini credit.</p>
     <ul class="tries">
+      <li><span class="where">Scan</span>
+          <span class="what"><b>Build 6.</b> The camera opens straight away:
+          photograph a shelf and check it on the photo map. Close the camera
+          for a receipt, a barcode or typing. Home&rsquo;s &ldquo;Add food&rdquo;
+          does the same.</span></li>
       <li><span class="where">Scan &rarr; Fridge photo</span>
           <span class="what"><b>New.</b> Photograph a shelf. Say whether it is
           the fridge, freezer or pantry. Each food is outlined on your photo:
@@ -320,21 +323,27 @@
             set up a new household, and Profile said &ldquo;No household
             yet&rdquo;. Now they say they can&rsquo;t reach your kitchen, with Try
             again.</td>
-            <td><span class="state wait">Build 4</span></td>
+            <td><span class="state phone">Build 4</span></td>
+          </tr>
+          <tr>
+            <td><b>The camera is the way in</b></td>
+            <td>Tap Scan or &ldquo;Add food&rdquo; and the camera opens. Close it for
+            the other ways to add. &ldquo;Add food&rdquo; did nothing before.</td>
+            <td><span class="state wait">Build 6</span></td>
           </tr>
           <tr>
             <td><b>The photo map</b></td>
             <td>Your shelf photo with each food outlined and numbered. Tick,
             cross or fix each one, add more photos, then add the ticked foods,
             each in its place. The photos are deleted once saved.</td>
-            <td><span class="state wait">Next build</span></td>
+            <td><span class="state phone">Build 5</span></td>
           </tr>
           <tr>
             <td><b>No signal: item, Add food, greeting</b></td>
             <td>The rest of the no-signal work. Checked in the code and in a
             clean build; the Airplane-mode test on your phone is the real
             check, since I no longer sign in as you.</td>
-            <td><span class="state wait">Build 5</span></td>
+            <td><span class="state phone">Build 5</span></td>
           </tr>
           <tr>
             <td><b>Reminders in a browser</b></td>
@@ -355,19 +364,17 @@
 
   <section>
     <h2>What next? You choose</h2>
-    <p class="lede">With the photo map in, these are the candidates. Tell me
-    which to start with.</p>
+    <p class="lede">The camera is now the way in. These are the candidates for
+    what comes after it. Tell me which to start with.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Idea</th><th>Size</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="rank">A</td><td><b>Scan opens the camera</b></td><td><span class="size s">S</span></td>
-              <td>The photo map as the front door: one tap from anywhere to a shelf photo, with typing as a small fallback.</td></tr>
-          <tr><td class="rank">B</td><td><b>&ldquo;What can I make?&rdquo;</b></td><td><span class="size m">M</span></td>
+          <tr><td class="rank">A</td><td><b>&ldquo;What can I make?&rdquo;</b></td><td><span class="size m">M</span></td>
               <td>Ideas from the food actually in your kitchen, soonest-to-go first. Text only, and never a word on whether something is safe. Needs your OK against the design guide.</td></tr>
-          <tr><td class="rank">C</td><td><b>Add dates while reviewing</b></td><td><span class="size m">M</span></td>
+          <tr><td class="rank">B</td><td><b>Add dates while reviewing</b></td><td><span class="size m">M</span></td>
               <td>Optional use-by dates on the map, for exact reminders. The typical keep time already works without them.</td></tr>
-          <tr><td class="rank">D</td><td><b>Shared household, tested properly</b></td><td><span class="size s">S</span></td>
+          <tr><td class="rank">C</td><td><b>Shared household, tested properly</b></td><td><span class="size s">S</span></td>
               <td>Built but never tried with two people. Needs a second account that you create.</td></tr>
         </tbody>
       </table>

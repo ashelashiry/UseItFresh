@@ -134,7 +134,17 @@ Agreed from a clickable mockup before it was built.
 - Verified by a green web build and the generated Dart, not walked (the
   harness no longer signs in). Gaps: a map abandoned without Back keeps its
   photos until the next one starts; a photo left open over an hour stops
-  loading (its list still works); Scan does not open the camera directly yet.
+  loading (its list still works).
+- **The camera is the way in** (same day, after Build 5). The tabs are
+  FlutterFlow's generated `NavBarPage`; the nav bar only reports which tab
+  was tapped. The Scan tab's page-load clears any unfinished map and opens
+  `MapReviewPage`, whose page-load opens the camera when the map is empty.
+  Closing the camera pops back to the Scan tab, still mounted underneath so
+  its page-load does not re-run: that is the chooser for receipts, barcodes
+  and typing. Home's "Add food" had still shown the Phase 2 placeholder in
+  every build up to 5; it and the Fridge photo tile now open the review
+  screen too. After saving, the kitchen replaces the review screen
+  (`replaceRoute`), so Back does not land on an empty map.
 
 1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
    credit running out, not the code. The function also no longer pins a
