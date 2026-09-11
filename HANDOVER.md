@@ -159,6 +159,23 @@ naming, and receipt / fridge-shelf reading with a review screen.
    (only `ApiCall` takes `onFailure`, see `lib/src/dsl/actions.dart` in the
    SDK), so a failed query can only be detected by what did not happen after
    it: the `loaded` flag at the end of the chain staying false.
+   **Written and validated, not pushed (11 Sep)** — waiting for the owner to
+   say their test build is deployed:
+   - `dsl/_pending_offline_a.dart.txt` — `CanReachKitchen` (a custom action
+     that catches its own failure), four loaded-aware functions
+     (`kitchenState`, `kitchenLine`, `householdLine`, `offerHouseholdSetup`;
+     the old ones are untouched so no call site can break), `loadedOk` /
+     `offline` on Inventory, Home and Profile, their page-loads reproduced
+     exactly inside the "reachable" branch, and the rebinds. `flutterflow ai
+     validate` dry run passed; the four functions pass 18 local cases.
+   - `dsl/_pending_offline_b.dart.txt` — the "Can't reach your kitchen" cards
+     with Try again (reruns the screen's own load in place). Validate only
+     after A is live: it uses A's flags and functions.
+   - `dsl/_pending_offline_walk.py.txt` — `offwalk.py`, the walk that found it.
+   To ship: A → build → offline walk (the kitchen subtitle should say it
+   cannot reach the kitchen, with no empty panel and no household prompt) →
+   B → build → offline walk again (cards, and Try again once back online) →
+   the receipt walk, to check nothing changed online.
 6. **Recipes.** Still the old empty state, **deliberately** — the guide forbids
    claiming a recipe's ingredients or nutrition from an illustrative photo, so
    it waits on real recipe data.

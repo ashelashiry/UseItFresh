@@ -1,0 +1,236 @@
+"""What each screen does when the signal drops.
+
+Kitchens and shops are where signal goes. This walk opens the app online, in a
+household of its own with a few foods in it, then cuts the browser's network
+(CDP Network.emulateNetworkConditions) and visits the screens that load from
+the database. Each screenshot is what a person would see; each error the page
+logs is recorded against the screen it came from. Then it goes back online to
+see whether the app recovers without a restart.
+
+Same safety as every walk since 11 Sep: its own household, found by diffing
+ids, seeded through the API and deleted at the end by id AND temp name.
+Nothing is written while offline.
+"""
+import base64, io, json, os, shutil, subprocess, sys, time, urllib.parse, urllib.request
+import websocket
+from PIL import Image
+from db import call, signin, URL, ANON
+
+CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "offframes")
+W, H = 430, 880
+PORT = 9254
+EMAIL, PASSWORD = "ashraf.elashiry@gmail.com", "Test123!"
+TEMP_NAME = "zz offwalk temp"
+APP_URL = os.environ.get("APP_URL", "http://localhost:8080").rstrip("/")
+# Bottom navigation, measured from the walk screenshots.
+TABS = {"home": 44, "kitchen": 130, "profile": 384}
+
+problems = []
+STEP = ["setup"]
+
+
+def step(label):
+    STEP[0] = label
+    print(label)
+
+
+def send(ws, m, p=None, _i=[0]):
+    _i[0] += 1
+    ws.send(json.dumps({"id": _i[0], "method": m, "params": p or {}}))
+    return _i[0]
+
+
+def pump(ws, seconds):
+    end = time.time() + seconds
+    ws.settimeout(0.4)
+    while time.time() < end:
+        try:
+            msg = json.loads(ws.recv())
+        except Exception:
+            continue
+        m, p = msg.get("method", ""), msg.get("params", {})
+        if m == "Runtime.exceptionThrown":
+            d = p["exceptionDetails"]
+            problems.append("[%s] EXCEPTION: %s %s" % (
+                STEP[0], d.get("text") or "",
+                ((d.get("exception") or {}).get("description") or "")[:200]))
+        elif m == "Runtime.consoleAPICalled" and p.get("type") in ("error", "warning"):
+            txt = " ".join(str(a.get("value", a.get("description", "")))
+                           for a in p.get("args", []))
+            if "app-icon-512" not in txt:
+                problems.append("[%s] CONSOLE[%s]: %s" % (STEP[0], p.get("type"), txt[:300]))
+        elif m == "Network.loadingFailed":
+            problems.append("[%s] NETWORK FAILED: %s" % (STEP[0], p.get("errorText")))
+
+
+def shot(ws, name=None, tries=2):
+    for attempt in range(tries):
+        rid = send(ws, "Page.captureScreenshot", {"format": "png"})
+        ws.settimeout(30)
+        try:
+            while True:
+                msg = json.loads(ws.recv())
+                if msg.get("id") == rid:
+                    im = Image.open(io.BytesIO(base64.b64decode(
+                        msg["result"]["data"]))).convert("RGB")
+                    if name:
+                        im.save(os.path.join(OUT, name))
+                        print("   saved", name)
+                    return im
+        except websocket.WebSocketTimeoutException:
+            print("   (screenshot timed out, attempt %d)" % (attempt + 1))
+    raise RuntimeError("no screenshot after %d tries" % tries)
+
+
+def click(ws, x, y, settle=1.2):
+    for k in ("mousePressed", "mouseReleased"):
+        send(ws, "Input.dispatchMouseEvent",
+             {"type": k, "x": int(x), "y": int(y), "button": "left",
+              "clickCount": 1, "buttons": 1 if k == "mousePressed" else 0})
+    pump(ws, settle)
+
+
+def type_text(ws, text):
+    for ch in text:
+        send(ws, "Input.dispatchKeyEvent", {"type": "keyDown", "key": ch})
+        send(ws, "Input.dispatchKeyEvent", {"type": "char", "text": ch, "key": ch})
+        send(ws, "Input.dispatchKeyEvent", {"type": "keyUp", "key": ch})
+        pump(ws, 0.03)
+
+
+def green_rows(im, lo, colour=(37, 102, 81), tol=22, xs=range(120, 320, 5), need=28):
+    px = im.load()
+    rows = [y for y in range(lo, im.size[1])
+            if sum(1 for x in xs
+                   if abs(px[x, y][0] - colour[0]) < tol
+                   and abs(px[x, y][1] - colour[1]) < tol
+                   and abs(px[x, y][2] - colour[2]) < tol) > need]
+    if not rows:
+        return None
+    runs, run = [], [rows[0]]
+    for y in rows[1:]:
+        if y - run[-1] > 2:
+            runs.append(run)
+            run = []
+        run.append(y)
+    runs.append(run)
+    best = max(runs, key=len)
+    return (best[0] + best[-1]) // 2
+
+
+def offline(ws, on):
+    send(ws, "Network.emulateNetworkConditions",
+         {"offline": on, "latency": 0, "downloadThroughput": -1,
+          "uploadThroughput": -1})
+    pump(ws, 1.0)
+
+
+# -- a household of our own, with something in it -----------------------------
+tok, uid = signin()
+s, before = call("/rest/v1/households?select=id", tok)
+before_ids = {h["id"] for h in before}
+call("/rest/v1/households", tok, "POST", {"name": TEMP_NAME})
+s, after = call("/rest/v1/households?select=id,name", tok)
+created = [h for h in after if h["id"] not in before_ids]
+if len(created) != 1 or created[0]["name"] != TEMP_NAME:
+    raise SystemExit("could not identify the household this walk created - "
+                     "stopping before touching anything")
+hid = created[0]["id"]
+print("temp household", hid)
+
+s, locs = call("/rest/v1/storage_locations?household_id=eq.%s&select=id,location_type" % hid, tok)
+fridge = next((l["id"] for l in locs if l["location_type"] == "fridge"), locs[0]["id"])
+for name, cat in [("Semi-skimmed milk", "dairy"), ("Chicken thighs", "meat_poultry"),
+                  ("Spinach", "vegetables")]:
+    call("/rest/v1/food_items", tok, "POST",
+         {"household_id": hid, "storage_location_id": fridge, "created_by": uid,
+          "name": name, "category": cat, "source_type": "manual"})
+
+shutil.rmtree(OUT, ignore_errors=True)
+os.makedirs(OUT, exist_ok=True)
+proc = subprocess.Popen(
+    [CHROME, "--headless=new", "--disable-gpu", "--enable-unsafe-swiftshader",
+     "--hide-scrollbars", "--remote-debugging-port=%d" % PORT,
+     "--remote-allow-origins=*", "--window-size=%d,%d" % (W, H),
+     "--user-data-dir=" + os.path.join(OUT, "p"), "about:blank"],
+    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+ws = None
+try:
+    for _ in range(80):
+        try:
+            pages = json.load(urllib.request.urlopen("http://127.0.0.1:%d/json" % PORT))
+            t = [p for p in pages if p["type"] == "page"]
+            if t:
+                break
+        except Exception:
+            pass
+        time.sleep(0.5)
+    ws = websocket.create_connection(t[0]["webSocketDebuggerUrl"], timeout=90)
+    for m in ("Page.enable", "Runtime.enable", "Network.enable", "DOM.enable"):
+        send(ws, m)
+    send(ws, "Emulation.setDeviceMetricsOverride",
+         {"width": W, "height": H, "deviceScaleFactor": 1, "mobile": True})
+    send(ws, "Page.navigate", {"url": APP_URL})
+    pump(ws, 32)
+
+    step("1. online: sign in")
+    click(ws, W // 2, H // 2, 8.0)
+    SY = green_rows(shot(ws), 0)
+    click(ws, W // 2, SY - 125, 0.8)
+    type_text(ws, EMAIL)
+    click(ws, W // 2, SY - 59, 0.8)
+    type_text(ws, PASSWORD)
+    click(ws, W // 2, SY, 10.0)
+    send(ws, "Runtime.evaluate", {"expression":
+         "localStorage.setItem('flutter.ff_currentHouseholdId', %s)"
+         % json.dumps(json.dumps(hid))})
+    pump(ws, 1.0)
+    send(ws, "Page.navigate", {"url": APP_URL + "/"})
+    pump(ws, 28)
+
+    step("2. online: kitchen")
+    click(ws, TABS["kitchen"], H - 40, 5.0)
+    shot(ws, "01-kitchen-online.png")
+
+    step("3. signal drops")
+    offline(ws, True)
+
+    n = 2
+    for label in ("home", "kitchen", "profile"):
+        step("4. offline: " + label)
+        click(ws, TABS[label], H - 40, 8.0)
+        shot(ws, "%02d-%s-offline.png" % (n, label))
+        n += 1
+
+    step("5. offline: open an item from the kitchen")
+    click(ws, TABS["kitchen"], H - 40, 6.0)
+    click(ws, 110, 300, 8.0)
+    shot(ws, "%02d-item-offline.png" % n)
+    n += 1
+
+    step("6. signal back")
+    offline(ws, False)
+    click(ws, TABS["home"], H - 40, 6.0)
+    click(ws, TABS["kitchen"], H - 40, 8.0)
+    shot(ws, "%02d-kitchen-back-online.png" % n)
+finally:
+    try:
+        send(ws, "Page.navigate", {"url": "about:blank"})
+    except Exception:
+        pass
+    time.sleep(1)
+    proc.terminate()
+    # Deleting the household takes its food with it (cascade).
+    call("/rest/v1/households?id=eq.%s&name=eq.%s" % (hid, urllib.parse.quote(TEMP_NAME)),
+         tok, "DELETE")
+    s, left = call("/rest/v1/households?select=name", tok)
+    print("cleaned up; households left:", [h["name"] for h in left])
+
+print("--- problems (%d) ---" % len(problems))
+seen = set()
+for p in problems:
+    if p[:110] not in seen:
+        seen.add(p[:110])
+        print("  ", p)
