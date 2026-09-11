@@ -153,66 +153,25 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Offline, the main screens stop saying something false.
+/// "Can't reach your kitchen", with Try again.
 ///
-/// Walked with the network cut (offwalk.py, 11 Sep): a kitchen with three
-/// foods said "Nothing in here yet", Home offered to set up a new household,
-/// and Profile said "No household yet". Every on-load query throws when there
-/// is no signal, nothing catches it, the chain stops, and the page keeps its
-/// starting state — an empty list, which is exactly what the empty states are
-/// keyed on. The kitchen's own listState was built to tell "not back yet" from
-/// "empty", but FlutterFlow starts list state as [] rather than null, so its
-/// "loading" branch could never fire.
+/// Push A (off1) made the kitchen, Home and Profile stop claiming they are
+/// empty when there is no signal. This adds what they say instead: a card on
+/// the kitchen and on Home, and a Try again button that reruns that screen's
+/// own load in place (the same check, the same queries) rather than
+/// navigating anywhere and stacking a second copy of the screen.
 ///
-/// The fix, per screen:
-///   * a reachability check first (CanReachKitchen, a custom action that
-///     catches its own failure — PostgresQuery has no failure branch);
-///   * if unreachable, an `offline` flag and nothing else;
-///   * otherwise the existing on-load, reproduced exactly, then `loadedOk`;
-///   * everything that says "empty" or "no household" now also needs
-///     `loadedOk`, through NEW functions that take it. The old functions are
-///     left as they are, so no call site anywhere else can break.
-///
-/// Conditionals are terminal in this DSL (anything after an If is nested into
-/// it), so each whole existing chain lives in the reachable branch.
-///
-/// The "can't reach your kitchen" cards with a Try again button are the next
-/// push: an insert cannot share a push with key-addressed rebinds.
+/// Every action output on a page needs its own name, so the retry chains
+/// carry a Retry suffix. This is its own push because an insert cannot share a
+/// push with key-addressed rebinds on the same page.
 void buildStarterEditFlow(App app) {
-  // -- the check --------------------------------------------------------------
-  app.customAction(
-    'CanReachKitchen',
-    args: {},
-    returns: bool_,
-    description:
-        'Whether the database can be reached right now. Returns true or '
-        'false and never throws, so a screen can say it is offline instead of '
-        'stopping half way through loading.',
-    code: r'''
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-/// Whether the database answers right now.
-///
-/// One row from a table every signed-in person can read. Any failure (no
-/// signal, a timeout, the server down) is "no", never an exception.
-Future<bool> canReachKitchen() async {
-  try {
-    await SupaFlow.client
-        .from('households')
-        .select('id')
-        .limit(1)
-        .timeout(const Duration(seconds: 8));
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-''',
+  final firstHouseholdId = CustomFunctionHandle(
+    name: 'firstHouseholdId',
+    args: {'rows': listOf(ff.Tables.households), 'current': string},
+    returnType: string,
   );
-
-  // -- functions that know whether the load worked -----------------------------
-  final kitchenState = app.customFunction(
-    'kitchenState',
+  final kitchenState = CustomFunctionHandle(
+    name: 'kitchenState',
     args: {
       'ok': bool_,
       'offline': bool_,
@@ -221,94 +180,8 @@ Future<bool> canReachKitchen() async {
       'query': string,
       'filter': string,
     },
-    returns: string,
-    description:
-        'Which state the kitchen list is in: offline, loading, empty, '
-        'filtered or items. Says "empty" only after a load that worked.',
-    code: r"""
-if (offline == true) return 'offline';
-if (ok != true) return 'loading';
-final everything = all ?? [];
-if (everything.isEmpty) return 'empty';
-if (shown != null && shown.isNotEmpty) return 'items';
-final searching = (query ?? '').trim().isNotEmpty;
-final narrowed = (filter ?? 'all').trim().toLowerCase() != 'all';
-return (searching || narrowed) ? 'filtered' : 'items';
-""",
+    returnType: string,
   );
-
-  final kitchenLine = app.customFunction(
-    'kitchenLine',
-    args: {
-      'rows': listOf(ff.Tables.foodItemsStatus),
-      'ok': bool_,
-      'offline': bool_,
-    },
-    returns: string,
-    description:
-        'The line under the Inventory heading. Says the kitchen is empty only '
-        'after a load that worked.',
-    code: r"""
-if (offline == true) return 'Can’t reach your kitchen right now';
-if (ok != true) return 'Checking your kitchen…';
-final all = rows ?? [];
-if (all.isEmpty) return 'Nothing in here yet';
-final n = all.length;
-final places = all
-    .map((r) => (r.locationName ?? '').trim())
-    .where((p) => p.isNotEmpty)
-    .toSet()
-    .toList()
-  ..sort();
-final count = n == 1 ? '1 item' : '$n items';
-if (places.isEmpty) return count;
-if (places.length == 1) return '$count · ${places.first.toLowerCase()}';
-final last = places.removeLast();
-return '$count · ${places.map((p) => p.toLowerCase()).join(', ')} & '
-    '${last.toLowerCase()}';
-""",
-  );
-
-  final householdLine = app.customFunction(
-    'householdLine',
-    args: {'rows': listOf(ff.Tables.households), 'uid': string, 'ok': bool_},
-    returns: string,
-    description:
-        'The line under the name on Profile. Says "No household yet" only '
-        'after a load that worked; blank while it has not.',
-    code: r"""
-if (ok != true) return '';
-if (rows == null || rows.isEmpty) return 'No household yet';
-final h = rows.first;
-final owns = (h.ownerId ?? '') == (uid ?? '');
-final name = (h.name ?? '').trim();
-final where = name.isEmpty ? 'Your household' : name;
-return owns ? '$where · Owner' : '$where · Member';
-""",
-  );
-
-  final offerSetup = app.customFunction(
-    'offerHouseholdSetup',
-    args: {'rows': listOf(ff.Tables.households), 'ok': bool_},
-    returns: bool_,
-    description:
-        'Whether Home should offer to set up a household: only when a load '
-        'that worked found none. Offline it must not, or it invites a second '
-        'household.',
-    code: 'return ok == true && (rows == null || rows.isEmpty);',
-  );
-
-  // -- the flags ----------------------------------------------------------------
-  for (final page in [
-    ff.Pages.inventoryPage,
-    ff.Pages.homePage,
-    ff.Pages.profilePage,
-  ]) {
-    app.editPageState(page, (state) {
-      state.ensureField('loadedOk', bool_.withDefault(false));
-      state.ensureField('offline', bool_.withDefault(false));
-    });
-  }
 
   /// The check, then either "offline" or the screen's own load and "loaded".
   List<DslAction> gated(String tag, List<DslAction> chain,
@@ -333,22 +206,13 @@ return owns ? '$where · Owner' : '$where · Member';
         ),
       ];
 
-  final firstHouseholdId = CustomFunctionHandle(
-    name: 'firstHouseholdId',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returnType: string,
-  );
-
-  // -- Inventory: notif5's chain, exactly, inside the check ---------------------
   final inv = ff.Pages.inventoryPage;
-  app.editPageOnLoad(
-    inv,
-    gated(
-      'Inv',
-      [
+  final home = ff.Pages.homePage;
+
+  List<DslAction> inventoryLoad(String tag) => [
         PostgresQuery(
           ff.Tables.households,
-          outputAs: 'invHouseholds',
+          outputAs: 'invHouseholds$tag',
           query: PostgresQuerySpec(
             orderBys: const [PostgresOrderBy('created_at')],
           ),
@@ -356,13 +220,13 @@ return owns ? '$where · Owner' : '$where · Member';
         UpdateAppState.set(
           ff.AppState.currentHouseholdId,
           CustomFunction(firstHouseholdId, args: {
-            'rows': const ActionOutput('invHouseholds'),
+            'rows': ActionOutput('invHouseholds$tag'),
             'current': AppState(ff.AppState.currentHouseholdId),
           }),
         ),
         PostgresQuery(
           ff.Tables.foodItemsStatus,
-          outputAs: 'invItems',
+          outputAs: 'invItems$tag',
           query: PostgresQuerySpec(
             filters: [
               PostgresFilter(
@@ -377,150 +241,137 @@ return owns ? '$where · Owner' : '$where · Member';
             ],
           ),
         ),
-        // BOTH lists: allItems backs search and the filter chips, items is
-        // what the grid draws. Setting only one silently breaks filtering.
-        SetState(inv.state.allItems, const ActionOutput('invItems')),
-        SetState(inv.state.items, const ActionOutput('invItems')),
-      ],
-      // After "loaded": a reminder hiccup must never hide the kitchen.
-      after: [
-        CallCustomAction.named(
-          'ScheduleExpiryReminders',
-          args: {},
-          returnType: string,
-          arguments: {},
-          outputAs: 'invReschedule',
-        ),
-      ],
-    ),
-  );
+        SetState(inv.state.allItems, ActionOutput('invItems$tag')),
+        SetState(inv.state.items, ActionOutput('invItems$tag')),
+      ];
 
-  // -- Home: prompt.dart's chain, exactly, inside the check ---------------------
-  app.editPageOnLoad(
-    ff.Pages.homePage,
-    gated('Home', [
-      PostgresQuery(
-        ff.Tables.households,
-        outputAs: 'householdsForHome',
-        query:
-            PostgresQuerySpec(orderBys: const [PostgresOrderBy('created_at')]),
-      ),
-      SetState('households', const ActionOutput('householdsForHome')),
-      UpdateAppState.set(
-        ff.AppState.currentHouseholdId,
-        CustomFunction(firstHouseholdId, args: {
-          'rows': const ActionOutput('householdsForHome'),
-          'current': AppState(ff.AppState.currentHouseholdId),
-        }),
-      ),
-      PostgresQuery(
-        ff.Tables.profiles,
-        outputAs: 'profileForHome',
-        query: PostgresQuerySpec(
-          filters: [
-            PostgresFilter('id',
-                relation: PostgresFilterRelation.equalTo,
-                value: const AuthUser(AuthUserField.userId)),
-          ],
+  List<DslAction> homeLoad(String tag) => [
+        PostgresQuery(
+          ff.Tables.households,
+          outputAs: 'householdsForHome$tag',
+          query: PostgresQuerySpec(
+              orderBys: const [PostgresOrderBy('created_at')]),
         ),
-      ),
-      SetState(ff.Pages.homePage.state.me, const ActionOutput('profileForHome')),
-      PostgresQuery(
-        ff.Tables.foodItemsStatus,
-        outputAs: 'urgentForHome',
-        query: PostgresQuerySpec(
-          filters: [
-            PostgresFilter('household_id',
-                relation: PostgresFilterRelation.equalTo,
-                value: AppState(ff.AppState.currentHouseholdId)),
-          ],
-          orderBys: const [
-            PostgresOrderBy('urgency_rank'),
-            PostgresOrderBy('days_left'),
-          ],
+        SetState('households', ActionOutput('householdsForHome$tag')),
+        UpdateAppState.set(
+          ff.AppState.currentHouseholdId,
+          CustomFunction(firstHouseholdId, args: {
+            'rows': ActionOutput('householdsForHome$tag'),
+            'current': AppState(ff.AppState.currentHouseholdId),
+          }),
         ),
-      ),
-      SetState(ff.Pages.homePage.state.useFirst,
-          const ActionOutput('urgentForHome')),
-    ]),
-  );
+        PostgresQuery(
+          ff.Tables.profiles,
+          outputAs: 'profileForHome$tag',
+          query: PostgresQuerySpec(
+            filters: [
+              PostgresFilter('id',
+                  relation: PostgresFilterRelation.equalTo,
+                  value: const AuthUser(AuthUserField.userId)),
+            ],
+          ),
+        ),
+        SetState(home.state.me, ActionOutput('profileForHome$tag')),
+        PostgresQuery(
+          ff.Tables.foodItemsStatus,
+          outputAs: 'urgentForHome$tag',
+          query: PostgresQuerySpec(
+            filters: [
+              PostgresFilter('household_id',
+                  relation: PostgresFilterRelation.equalTo,
+                  value: AppState(ff.AppState.currentHouseholdId)),
+            ],
+            orderBys: const [
+              PostgresOrderBy('urgency_rank'),
+              PostgresOrderBy('days_left'),
+            ],
+          ),
+        ),
+        SetState(home.state.useFirst, ActionOutput('urgentForHome$tag')),
+      ];
 
-  // -- Profile: profile.dart's chain, exactly, inside the check -----------------
-  app.editPageOnLoad(
-    ff.Pages.profilePage,
-    gated('Profile', [
-      PostgresQuery(
-        ff.Tables.profiles,
-        outputAs: 'myProfile',
-        query: PostgresQuerySpec(
-          filters: [
-            PostgresFilter('id',
-                relation: PostgresFilterRelation.equalTo,
-                value: const AuthUser(AuthUserField.userId)),
+  /// The card both screens show. Says what happened and what will happen,
+  /// and does not guess at anything it cannot see.
+  Container offlineCard(String name, Object visible, List<DslAction> retry) =>
+      Container(
+        name: name,
+        visible: visible,
+        color: Colors.accent1,
+        borderRadius: 24,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxis: CrossAxis.center,
+          spacing: 10,
+          children: [
+            Icon('wifi_off', size: 30, color: Colors.primary),
+            Text(
+              'Can’t reach your kitchen.',
+              name: '${name}Title',
+              style: Styles.titleMedium,
+              color: Colors.primary,
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              'No signal, or the connection dropped. Your food will show '
+              'again as soon as you are back online.',
+              name: '${name}Body',
+              style: Styles.bodySmall,
+              color: Colors.secondaryText,
+              textAlign: TextAlign.center,
+            ),
+            Button(
+              'Try again',
+              name: '${name}Retry',
+              width: double.infinity,
+              height: 48,
+              borderRadius: 14,
+              color: Colors.primary,
+              textColor: Colors.secondaryBackground,
+              onTap: retry,
+            ),
           ],
         ),
-      ),
-      SetState('me', const ActionOutput('myProfile')),
-      PostgresQuery(
-        ff.Tables.households,
-        outputAs: 'myHouseholds',
-        query:
-            PostgresQuerySpec(orderBys: const [PostgresOrderBy('created_at')]),
-      ),
-      SetState('households', const ActionOutput('myHouseholds')),
-    ]),
-  );
-
-  // -- what each screen says, now told whether the load worked -----------------
-  DslExpression kitchenIs(String which) => Equals(
-        CustomFunction(kitchenState, args: {
-          'ok': State('loadedOk'),
-          'offline': State('offline'),
-          'all': State(inv.state.allItems),
-          'shown': State(inv.state.items),
-          'query': State(inv.state.query),
-          'filter': State(inv.state.filter),
-        }),
-        which,
       );
 
+  // Kitchen: first in the states column, shown only in the offline state.
   app.editPage(inv, (page) {
-    page.bindVisible(
-        inv.widgets.byKey('GridView_elxnrddg').single, kitchenIs('items'));
-    page.bindVisible(
-        inv.widgets.byKey('Container_dfajl791').single, kitchenIs('loading'));
-    page.bindVisible(
-        inv.widgets.byKey('Container_4l0ewk2n').single, kitchenIs('empty'));
-    page.bindVisible(
-        inv.widgets.byKey('Container_h8k9k2yy').single, kitchenIs('filtered'));
-    page.bindText(
-      inv.widgets.byKey('Text_403jzbco').single,
-      CustomFunction(kitchenLine, args: {
-        'rows': State(inv.state.allItems),
-        'ok': State('loadedOk'),
-        'offline': State('offline'),
-      }),
+    page.ensureInsertedBefore(
+      inv.widgets.byKey('Container_dfajl791').single,
+      offlineCard(
+        'InventoryOffline',
+        Equals(
+          CustomFunction(kitchenState, args: {
+            'ok': State('loadedOk'),
+            'offline': State('offline'),
+            'all': State(inv.state.allItems),
+            'shown': State(inv.state.items),
+            'query': State(inv.state.query),
+            'filter': State(inv.state.filter),
+          }),
+          'offline',
+        ),
+        gated('InvRetry', inventoryLoad('Retry'), after: [
+          CallCustomAction.named(
+            'ScheduleExpiryReminders',
+            args: {},
+            returnType: string,
+            arguments: {},
+            outputAs: 'invRescheduleRetry',
+          ),
+        ]),
+      ),
     );
   });
 
-  app.editPage(ff.Pages.homePage, (page) {
-    page.bindVisible(
-      ff.Pages.homePage.widgets.byKey('Container_y8xn4win').single,
-      CustomFunction(offerSetup, args: {
-        'rows': State('households'),
-        'ok': State('loadedOk'),
-      }),
-    );
-  });
-
-  app.editPage(ff.Pages.profilePage, (page) {
-    page.bindText(
-      ff.Pages.profilePage.widgets.byKey('Text_qg7xk5rt').single,
-      CustomFunction(householdLine, args: {
-        'rows': State('households'),
-        'uid': const AuthUser(AuthUserField.userId),
-        'ok': State('loadedOk'),
-      }),
+  // Home: right under the greeting.
+  app.editPage(home, (page) {
+    page.ensureInsertedAfter(
+      home.widgets.byKey('Column_8bi8tamu').single,
+      offlineCard(
+        'HomeOffline',
+        State('offline'),
+        gated('HomeRetry', homeLoad('Retry')),
+      ),
     );
   });
 }

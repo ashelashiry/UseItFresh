@@ -412,15 +412,61 @@ abstract final class InventoryPageWidgets {
                     name: "InventoryStates",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
-                        key: "Container_dfajl791",
+                        key: "Container_k0lv8uta",
                         type: "Container",
                         path: "InventoryPage.body[0].children[0].children[5].children[0]",
+                        name: "InventoryOffline",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Column_du9igfju",
+                            type: "Column",
+                            path: "InventoryPage.body[0].children[0].children[5].children[0].children[0]",
+                            name: "Column",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Icon_6c1ocbwz",
+                                type: "Icon",
+                                path: "InventoryPage.body[0].children[0].children[5].children[0].children[0].children[0]",
+                                name: "Icon",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_tgcmvfav",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[5].children[0].children[0].children[1]",
+                                name: "InventoryOfflineTitle",
+                                text: "Can’t reach your kitchen.",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_laaa54b2",
+                                type: "Text",
+                                path: "InventoryPage.body[0].children[0].children[5].children[0].children[0].children[2]",
+                                name: "InventoryOfflineBody",
+                                text: "No signal, or the connection dropped. Your food will show again as soon as you are back online.",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Button_1sq96ljg",
+                                type: "Button",
+                                path: "InventoryPage.body[0].children[0].children[5].children[0].children[0].children[3]",
+                                name: "InventoryOfflineRetry",
+                                text: "Try again",
+                                triggers: const <String>[
+                                  "ON_TAP",
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_dfajl791",
+                        type: "Container",
+                        path: "InventoryPage.body[0].children[0].children[5].children[1]",
                         name: "InventoryLoading",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "ProgressBar_1h6m3foq",
                             type: "ProgressBar",
-                            path: "InventoryPage.body[0].children[0].children[5].children[0].children[0]",
+                            path: "InventoryPage.body[0].children[0].children[5].children[1].children[0]",
                             name: "InventorySpinner",
                           ),
                         ],
@@ -428,25 +474,25 @@ abstract final class InventoryPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_4l0ewk2n",
                         type: "Container",
-                        path: "InventoryPage.body[0].children[0].children[5].children[1]",
+                        path: "InventoryPage.body[0].children[0].children[5].children[2]",
                         name: "InventoryEmptyKitchen",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_cv33qief",
                             type: "Column",
-                            path: "InventoryPage.body[0].children[0].children[5].children[1].children[0]",
+                            path: "InventoryPage.body[0].children[0].children[5].children[2].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Container_4fme33x8",
                                 type: "Container",
-                                path: "InventoryPage.body[0].children[0].children[5].children[1].children[0].children[0]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[0]",
                                 name: "InventoryEmptyTile",
                                 children: <ffai.ProjectWidgetHandle>[
                                   ffai.ProjectWidgetHandle(
                                     key: "Container_8fdbv52b",
                                     type: "Container",
-                                    path: "InventoryPage.body[0].children[0].children[5].children[1].children[0].children[0].children[0]",
+                                    path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[0].children[0]",
                                     name: "InventoryEmptyIcon",
                                   ),
                                 ],
@@ -454,21 +500,21 @@ abstract final class InventoryPageWidgets {
                               ffai.ProjectWidgetHandle(
                                 key: "Text_xonowixw",
                                 type: "Text",
-                                path: "InventoryPage.body[0].children[0].children[5].children[1].children[0].children[1]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[1]",
                                 name: "InventoryEmptyTitle",
                                 text: "Your fresh start.",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_4re19ngo",
                                 type: "Text",
-                                path: "InventoryPage.body[0].children[0].children[5].children[1].children[0].children[2]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[2]",
                                 name: "InventoryEmptyBody",
                                 text: "Add a few things you already have and this is where they will live.",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Button_d423zwm0",
                                 type: "Button",
-                                path: "InventoryPage.body[0].children[0].children[5].children[1].children[0].children[3]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[3]",
                                 name: "InventoryEmptyAdd",
                                 text: "Add your first item",
                                 triggers: const <String>[
@@ -482,33 +528,33 @@ abstract final class InventoryPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_h8k9k2yy",
                         type: "Container",
-                        path: "InventoryPage.body[0].children[0].children[5].children[2]",
+                        path: "InventoryPage.body[0].children[0].children[5].children[3]",
                         name: "InventoryNoMatches",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_c941as6y",
                             type: "Column",
-                            path: "InventoryPage.body[0].children[0].children[5].children[2].children[0]",
+                            path: "InventoryPage.body[0].children[0].children[5].children[3].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_l32z39cj",
                                 type: "Text",
-                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[0]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[3].children[0].children[0]",
                                 name: "InventoryNoMatchesTitle",
                                 text: "No matching items",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_dcdlerjz",
                                 type: "Text",
-                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[1]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[3].children[0].children[1]",
                                 name: "InventoryNoMatchesBody",
                                 text: "Nothing here matches that search or filter.",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Button_3nuogwb1",
                                 type: "Button",
-                                path: "InventoryPage.body[0].children[0].children[5].children[2].children[0].children[2]",
+                                path: "InventoryPage.body[0].children[0].children[5].children[3].children[0].children[2]",
                                 name: "InventoryClearFilters",
                                 text: "Clear filters",
                                 triggers: const <String>[
