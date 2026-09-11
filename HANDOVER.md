@@ -104,27 +104,38 @@ second-guess it in the UI; read `computed_status`, `status_label`,
 
 ## 4. Outstanding, in the order I would take it
 
-1. **Photo capture is verified** (10 Sep) — camera, upload, signed URL,
-   review, item, card and details hero. The **one-year signed URL** is still a
-   compromise worth revisiting: storing the path and signing on read is the
-   stricter answer.
-2. **Barcode → product lookup.** Open Food Facts is free and needs no key.
-   `BarcodeScanner` exists in the DSL but is **native-only**, so scanning needs
-   a device build; the lookup itself can be built and tested with typed-in
-   barcodes.
-3. **Expiry reminders.** `notification_preferences` exists in the schema and
-   nothing uses it. Needs push, so needs a device build.
-4. **AI recognition.** Gemini has a first-class FlutterFlow integration. Needs
-   an API key from the owner. Phase 3 in the spec.
-5. **Shopping list.** Table exists, no UI. Cheap, self-contained.
+Done since the first version of this list (10–11 Sep): photo capture, barcode
+lookup and the camera scanner, the shopping list, waste history, replace-what-
+you-finish, expiry reminders (local notifications, see section 10), photo
+naming, and receipt / fridge-shelf reading with a review screen.
+
+1. **Photo naming answered 502 on 11 Sep** — the Gemini call failed, not the
+   auth. `gemini-2.0-flash` was shut down in June 2026 and `gemini-2.5-flash`
+   shuts down 16 Oct 2026, so the function no longer pins a model: it tries
+   `gemini-flash-latest`, then asks the key which Flash models it can call
+   (`GET /v1beta/models`) and takes the newest stable one. A failure now
+   returns `detail` ("gemini 404 <model>: <Google's message>") for diagnosis.
+   **Needs the owner to paste and deploy** `supabase/functions/recognise-food/
+   index.ts` from the Supabase editor, then re-run `verify_ai.py`.
+2. **Receipt and fridge-shelf reading** — built 11 Sep, untested against the
+   live function until item 1 is deployed. One photo → `ReadPhotoFoods`
+   (`mode: receipt | shelf`) → `ScanReviewPage` → `SaveScannedFoods`, one
+   insert for the lot. The photo is deleted from storage straight after it is
+   read. Each food's location comes from its category (`homes` map in the
+   action) using the household's own locations. No editing of a line on the
+   review screen yet — remove only; edit after adding.
+3. **Keep Open Food Facts photos in our own storage.** Scanned products store
+   OFF's image URL; if OFF moves it, the item loses its picture.
+4. **Home screen refresh**, "use these first" at the top, now there is data.
+5. **No-signal states** on the screens that load from the network.
 6. **Recipes.** Still the old empty state, **deliberately** — the guide forbids
    claiming a recipe's ingredients or nutrition from an illustrative photo, so
    it waits on real recipe data.
-7. **Two validator warnings.** The review screen's back button is under the
-   recommended tap size; the project's loading indicator is too small.
-8. **Large-text accessibility is unverified.** Flutter's text scaling comes from
+7. **Large-text accessibility is unverified.** Flutter's text scaling comes from
    the platform, not CSS, so it cannot be emulated against a CanvasKit build in
    headless Chrome. Needs a real device.
+8. The **one-year signed URL** on photos is still a compromise: storing the path
+   and signing on read is the stricter answer.
 
 ---
 
@@ -266,9 +277,22 @@ directly holds a file lock that makes `flutterflow ai run` fail with
   Supabase or FlutterFlow directly. `.gitignore` blocks `.p8`, `.env` and
   keystores.
 - Test account `ashraf.elashiry@gmail.com` (`5bf86ec0-033f-468d-849e-ae5ca734a094`).
-  Its profile is kept; all households, food, locations and shopping lists were
-  deleted on 9 Sep at the owner's request, so it starts at "signed in, no
-  household".
+  **It is also the owner's real account, on their phone.** Since 11 Sep its one
+  household is "Ash's kitchen" (`3769cab3…`).
+- **A test script deleted the owner's real household on 11 Sep** — its food,
+  shopping list and locations went with the cascade. `verify_ai.py` created a
+  temporary household and then deleted "the first household in the list",
+  which was theirs. Rules since:
+  - **A test deletes only rows it created**, identified by diffing ids before
+    and after, and stops if it cannot tell which ones are its own.
+  - `cleanup.py` and `seed_waste.py` are renamed `.DISABLED`; both delete in
+    bulk.
+  - **No write-test against this account without telling the owner first.**
+  - Before real users: a separate test project, and point-in-time recovery on
+    (Pro already takes daily backups; a restore rolls back the whole database).
+- The **`receipts` bucket is unused.** Receipt photos go to `food-images` under
+  the household folder, because the function accepts signed `food-images`
+  links only, and they are deleted as soon as they have been read.
 - **Migration 6 is not needed** (confirmed 10 Sep). A household insert as the
   signed-in user succeeds against the existing policy, and the SECURITY
   DEFINER trigger seeds the member, three locations and the shopping list. It also contains a diagnostic query worth running to learn why
