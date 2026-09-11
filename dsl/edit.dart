@@ -153,184 +153,142 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Food names from a photo in sentence case.
+/// Food with no photo gets a plain plate, never a blank or a borrowed picture.
 ///
-/// The receipt read came back as "Semi-skimmed milk"; the shelf read came
-/// back as "brown mushrooms". Everything else in the app writes food names in
-/// sentence case, so the first letter is raised before the review list.
+/// Three photo functions could hand the image widget an empty address — for
+/// meat, fish, bread, frozen food and anything unrecognised. That widget
+/// throws on an empty address: the kitchen showed a blank white block on
+/// those cards, and the browser logged an uncaught error. Receipts made it
+/// common, because nothing added from a receipt has a photo of its own.
+///
+/// Two borrowed pictures went too: fruit used the tomatoes (so Bananas showed
+/// tomatoes), and the "Use these next" card fell back to spinach for
+/// everything (so chicken showed spinach). A picture that passes for a
+/// different food is worse than a plain one.
+///
+/// A custom function's code is the BODY only; the signature comes from the
+/// declared arguments (see HANDOVER, section 5).
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomAction(
+    updateCustomFunction(
       project,
-      name: 'ReadPhotoFoods',
+      name: 'foodImage',
       code: r'''
-import 'dart:typed_data';
+const root =
+    'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
 
-import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
+final own = (imageUrl ?? '').trim();
+if (own.isNotEmpty) return own;
 
-/// Reads several foods from one photo: a till receipt, or a fridge shelf.
-///
-/// Returns 'ok' when there is something to review, '' when the person backed
-/// out of the camera (not an error, so nothing is said), and otherwise a
-/// sentence saying why not.
-///
-/// The photo is deleted as soon as it has been read. A receipt carries the
-/// shop, the time and part of a card number, and none of it is needed.
-///
-/// Each food is given a place from its category (milk to the fridge, peas to
-/// the freezer, pasta to the cupboard) using this household's own locations,
-/// so the review screen can say where it will go.
-Future<String> readPhotoFoods(String? mode) async {
-  final kind = mode == 'shelf' ? 'shelf' : 'receipt';
-  final sorry = kind == 'receipt'
-      ? 'Could not read that receipt. Try a flatter, brighter photo.'
-      : 'Could not read that photo. Try again closer up.';
+// Named ingredients the guide gives specific photography for.
+final n = (name ?? '').toLowerCase();
+for (final entry in {
+  'spinach': 'spinach',
+  'mushroom': 'mushrooms',
+  'tomato': 'tomatoes',
+  'egg': 'eggs',
+  'yogurt': 'yogurt',
+  'yoghurt': 'yogurt',
+  'pasta': 'pasta',
+}.entries) {
+  if (n.contains(entry.key)) return '$root/${entry.value}.webp';
+}
 
-  final household = FFAppState().currentHouseholdId;
-  if (household.isEmpty) {
-    return 'No household yet. Create or join one before adding food.';
-  }
-
-  final shot = await ImagePicker().pickImage(
-    source: ImageSource.camera,
-    // Receipts are long and the print is small, so they get more pixels.
-    maxWidth: kind == 'receipt' ? 2000 : 1600,
-    maxHeight: kind == 'receipt' ? 3200 : 1600,
-    imageQuality: 85,
-  );
-  if (shot == null) return '';
-
-  FFAppState().update(() => FFAppState().scanReading = true);
-  final client = SupaFlow.client;
-  final storage = client.storage.from('food-images');
-  final path = '$household/scan-${const Uuid().v4()}.jpg';
-  var uploaded = false;
-  try {
-    final Uint8List bytes = await shot.readAsBytes();
-    await storage.uploadBinary(
-      path,
-      bytes,
-      fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+// Otherwise the category's illustrative image, where one is honest. Fruit
+// has none: it borrowed the tomatoes, which put tomatoes on a card for
+// bananas. Never empty — the image widget throws on an empty address.
+switch (category ?? '') {
+  case 'vegetables':
+    return '$root/spinach.webp';
+  case 'eggs':
+    return '$root/eggs.webp';
+  case 'dairy':
+    return '$root/yogurt.webp';
+  case 'pantry_dry':
+  case 'cooked_leftovers':
+    return '$root/pasta.webp';
+  default:
+    return '$root/placeholder.webp';
+}
+''',
     );
-    uploaded = true;
-    // Ten minutes: it is read once, straight away, and then deleted.
-    final url = await storage.createSignedUrl(path, 600);
 
-    final res = await client.functions
-        .invoke('recognise-food', body: {'imageUrl': url, 'mode': kind});
-    final data = res.data;
-    if (data is! Map) return sorry;
-    if (data['error'] != null) return data['error'].toString();
-    final raw = data['items'] is List ? data['items'] as List : const [];
-    if (raw.isEmpty) {
-      final note = (data['note'] ?? '').toString();
-      return note.isNotEmpty ? note : sorry;
-    }
+    updateCustomFunction(
+      project,
+      name: 'itemPhoto',
+      code: r'''
+const root =
+    'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
+// Never empty: the item screen's photo widget throws on an empty address.
+const plain = '$root/placeholder.webp';
+if (rows == null || rows.isEmpty) return plain;
+final r = rows.first;
+final own = (r.imageUrl ?? '').trim();
+if (own.isNotEmpty) return own;
+final n = (r.name ?? '').toLowerCase();
+for (final e in {
+  'spinach': 'spinach',
+  'mushroom': 'mushrooms',
+  'tomato': 'tomatoes',
+  'egg': 'eggs',
+  'yogurt': 'yogurt',
+  'yoghurt': 'yogurt',
+  'pasta': 'pasta',
+}.entries) {
+  if (n.contains(e.key)) return '$root/${e.value}.webp';
+}
+switch (r.category ?? '') {
+  case 'vegetables':
+    return '$root/spinach.webp';
+  case 'eggs':
+    return '$root/eggs.webp';
+  case 'dairy':
+    return '$root/yogurt.webp';
+  case 'pantry_dry':
+  case 'cooked_leftovers':
+    return '$root/pasta.webp';
+  default:
+    return plain;
+}
+''',
+    );
 
-    // The same words the category picker uses.
-    const labels = <String, String>{
-      'dairy': 'Dairy',
-      'meat_poultry': 'Meat & poultry',
-      'seafood': 'Seafood',
-      'eggs': 'Eggs',
-      'cooked_leftovers': 'Cooked leftovers',
-      'fruit': 'Fruit',
-      'vegetables': 'Vegetables',
-      'bread_bakery': 'Bread & bakery',
-      'pantry_dry': 'Pantry & dry goods',
-      'frozen': 'Frozen food',
-      'condiments_sauces': 'Condiments & sauces',
-      'infant_food': 'Infant food & formula',
-    };
-    // Where each kind of food usually lives. Unknown goes to the default.
-    const homes = <String, String>{
-      'dairy': 'fridge',
-      'meat_poultry': 'fridge',
-      'seafood': 'fridge',
-      'eggs': 'fridge',
-      'cooked_leftovers': 'fridge',
-      'fruit': 'fridge',
-      'vegetables': 'fridge',
-      'frozen': 'freezer',
-      'bread_bakery': 'pantry',
-      'pantry_dry': 'pantry',
-      'condiments_sauces': 'pantry',
-      'infant_food': 'pantry',
-    };
-
-    final rows = await client
-        .from('storage_locations')
-        .select('id, name, location_type, is_default')
-        .eq('household_id', household);
-    final places = List<Map<String, dynamic>>.from(rows as List);
-    Map<String, dynamic>? fallback;
-    for (final p in places) {
-      if (p['is_default'] == true) {
-        fallback = p;
-        break;
-      }
-    }
-    fallback ??= places.isNotEmpty ? places.first : null;
-    Map<String, dynamic>? placeFor(String category) {
-      final type = homes[category];
-      if (type != null) {
-        for (final p in places) {
-          if (p['location_type'] == type) return p;
-        }
-      }
-      return fallback;
-    }
-
-    final foods = <ScannedFoodStruct>[];
-    for (final r in raw) {
-      if (r is! Map) continue;
-      final said = (r['name'] ?? '').toString().trim();
-      if (said.isEmpty) continue;
-      // Sentence case, as the rest of the app writes food names. A shelf
-      // photo sometimes comes back in lower case ("brown mushrooms").
-      final name = said[0].toUpperCase() + said.substring(1);
-      final category = (r['category'] ?? '').toString();
-      final counted = r['quantity'] is num ? (r['quantity'] as num).round() : 1;
-      final quantity = counted < 1 ? 1 : counted;
-      final place = placeFor(category);
-      final detail = <String>[
-        if (quantity > 1) '$quantity of them',
-        labels[category] ?? 'No category',
-        if (place != null) (place['name'] ?? '').toString(),
-      ].where((s) => s.isNotEmpty).join(' · ');
-      foods.add(ScannedFoodStruct(
-        name: name,
-        category: labels.containsKey(category) ? category : '',
-        quantity: quantity,
-        place: place == null ? '' : place['id'].toString(),
-        detail: detail,
-      ));
-    }
-    if (foods.isEmpty) return sorry;
-
-    FFAppState().update(() {
-      FFAppState().scannedFoods = foods;
-      FFAppState().scannedFrom = kind;
-    });
-    return 'ok';
-  } on FunctionException catch (error) {
-    final details = error.details;
-    if (details is Map && details['error'] != null) {
-      return details['error'].toString();
-    }
-    return sorry;
-  } catch (_) {
-    return sorry;
-  } finally {
-    FFAppState().update(() => FFAppState().scanReading = false);
-    if (uploaded) {
-      try {
-        await storage.remove([path]);
-      } catch (_) {}
-    }
-  }
+    updateCustomFunction(
+      project,
+      name: 'heroImage',
+      code: r'''
+const root =
+    'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
+if (rows == null || rows.isEmpty) return '$root/spinach.webp';
+final first = rows.first;
+final own = (first.imageUrl ?? '').trim();
+if (own.isNotEmpty) return own;
+final n = (first.name ?? '').toLowerCase();
+for (final e in {
+  'spinach': 'spinach',
+  'mushroom': 'mushrooms',
+  'tomato': 'tomatoes',
+  'egg': 'eggs',
+  'yogurt': 'yogurt',
+  'yoghurt': 'yogurt',
+  'pasta': 'pasta',
+}.entries) {
+  if (n.contains(e.key)) return '$root/${e.value}.webp';
+}
+// The same category pictures as the cards, and the plain plate otherwise.
+// It used to fall back to spinach for everything, so chicken showed spinach.
+switch (first.category ?? '') {
+  case 'vegetables':
+    return '$root/spinach.webp';
+  case 'eggs':
+    return '$root/eggs.webp';
+  case 'dairy':
+    return '$root/yogurt.webp';
+  case 'pantry_dry':
+  case 'cooked_leftovers':
+    return '$root/pasta.webp';
+  default:
+    return '$root/placeholder.webp';
 }
 ''',
     );

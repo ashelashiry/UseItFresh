@@ -246,7 +246,35 @@ Every one of these produced a **successful push and a wrong app**.
 
 ---
 
+### An empty image address crashes the image widget, silently
+
+FlutterFlow's network `Image` is `CachedNetworkImage`, and it throws on an
+empty URL. There is no error widget, so the card shows a blank white block and
+the browser logs an "Uncaught Error" with no message. `foodImage`, `itemPhoto`
+and `heroImage` all returned `''` for meat, fish, bread, frozen and anything
+unrecognised; receipts made it common, because nothing read from a receipt has
+a photo of its own. Since 11 Sep they return `design/v3/food/placeholder.webp`
+(a plain plate, fork and knife) instead — **never return an empty string from
+a function that feeds an image.** The same pass removed two borrowed pictures:
+fruit used the tomatoes photo, and the "Use these next" card fell back to
+spinach for everything.
+
+The food pictures are served from this repo through jsDelivr at a **pinned
+commit hash**. A new picture needs its own commit pushed first, and the
+functions then point at that hash.
+
+---
+
 ## 6. The verification harness
+
+- **Walks that write data use their own household.** `rcwalk.py` creates a
+  temporary household through the API (found by diffing ids), then points the
+  headless browser at it with
+  `localStorage['flutter.ff_currentHouseholdId'] = JSON.stringify(id)` and a
+  navigation back to `/`. The owner's kitchen and phone are never involved,
+  and the walk deletes only that household (by id and temp name) at the end.
+- Navigate to `/` rather than reloading: a reload asks the server for the
+  current route (e.g. `/home`), which only `serve.py` answers.
 
 `<scratchpad>/walk.py` drives the built app in headless Chrome: signs in, taps
 through, saves screenshots to `walkframes/`, and prints console errors, uncaught
