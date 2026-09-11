@@ -21,7 +21,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "offframes")
 W, H = 430, 880
 PORT = 9254
-EMAIL, PASSWORD = "ashraf.elashiry@gmail.com", "Test123!"
+# Never in the source: this repo is public. Set UIF_TEST_EMAIL and
+# UIF_TEST_PASSWORD in the environment before running the walk.
+EMAIL = os.environ["UIF_TEST_EMAIL"]
+PASSWORD = os.environ["UIF_TEST_PASSWORD"]
 TEMP_NAME = "zz offwalk temp"
 APP_URL = os.environ.get("APP_URL", "http://localhost:8080").rstrip("/")
 # Bottom navigation, measured from the walk screenshots.
