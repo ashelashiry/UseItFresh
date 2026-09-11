@@ -153,8 +153,8 @@ Agreed from a clickable mockup before it was built.
   need". `GetMealIdeas` keeps the ideas in app state (`mealIdeas`,
   `ideasLoading`) so a tab switch does not ask, and pay, again.
   `MealIdeaCards` draws them, with "Add these to your shopping list" reusing
-  `AddNameToShoppingList`. Runs only on the "Get ideas" tap. **Needs the
-  owner's paste**; until then the tap says "That photo is not from this app."
+  `AddNameToShoppingList`. Runs only on the "Get ideas" tap. Pasted and
+  live on 11 Sep (an unauthenticated probe answers "Sign in first.").
 - **Use-by dates on the photo map** (same day). `MapFood.useBy`
   (yyyy-mm-dd, added with `ensureDataStructField` inside `app.raw`, since the
   struct exists); ShelfReview and SaveMapFoods replaced whole with
