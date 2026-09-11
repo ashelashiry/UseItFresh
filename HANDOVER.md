@@ -181,7 +181,8 @@ Agreed from a clickable mockup before it was built.
     extras, steps) or over the time is dropped, and kitchen foods on the
     leave-out list are never sent. Matching is by containment on a plural
     stem, so it errs towards leaving more out. No diet switch on purpose: the
-    app must not claim a dish suits a diet. **Needs the owner's paste.**
+    app must not claim a dish suits a diet. Pasted 12 Sep (the first paste
+    was cut short at line 502; the full file went via the clipboard).
   - **C. Keep an idea.** "Keep this idea" on each card; `keptIdeas`
     (persisted, this phone only, 30 at most) shown under the new ideas with
     "Remove". A kept card says "Uses", not "From your kitchen": the food
