@@ -122,8 +122,14 @@ naming, and receipt / fridge-shelf reading with a review screen.
    (`mode: receipt | shelf`) → `ScanReviewPage` → `SaveScannedFoods`, one
    insert for the lot. The photo is deleted from storage straight after it is
    read. Each food's location comes from its category (`homes` map in the
-   action) using the household's own locations. No editing of a line on the
-   review screen yet — remove only; edit after adding.
+   action) using the household's own locations. Tapping a line opens
+   `ScanLinePage`, which gets the line's position and fields as page
+   parameters, prefills the name (`SetFormField` by widget name, in its own
+   on-load) and writes the line back with `updateItemAtIndex`, only the name
+   changed. A screen of its own, not an editable row: rows are built by
+   position, and a text field in a row can stay tied to the wrong line after
+   a removal above it. The row's position in an edit flow is
+   `const ItemRef().index` (see `lib/src/dsl/references.dart` in the SDK).
 3. **Keep Open Food Facts photos in our own storage.** Scanned products store
    OFF's image URL; if OFF moves it, the item loses its picture.
 4. **Home screen refresh**, "use these first" at the top, now there is data.

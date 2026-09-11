@@ -153,209 +153,143 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Reminders do nothing in a browser, instead of throwing.
+/// Fix a line on the review list before adding it.
 ///
-/// The Inventory page reschedules reminders every time it loads. The
-/// notifications plugin has no web implementation, so in a browser its first
-/// call reads a platform instance that was never set, and the page logged an
-/// uncaught LateInitializationError on every visit to the kitchen at
-/// localhost:8080. Reminders only exist on the phone, so on the web there is
-/// nothing to schedule.
+/// A receipt read can get a name wrong, or say more than the person wants
+/// ("Medium white bread" for a plain loaf). Until now the only choice was to
+/// remove the line and add the food by hand afterwards. Tapping a line now
+/// opens a small screen for that one line: its name, editable, and what else
+/// is known about it. Saving writes the line back in place, by position, with
+/// only the name changed.
 ///
-/// A custom ACTION's code is the complete function, imports and all.
+/// Why a screen of its own rather than an editable row: the rows are built
+/// from the list by position, and a text field inside a row can stay tied to
+/// the wrong line once a line above it is removed. One field on its own screen
+/// has nothing to fall out of step with.
 void buildStarterEditFlow(App app) {
-  app.raw((project) {
-    updateCustomAction(
-      project,
-      name: 'ScheduleExpiryReminders',
-      code: r'''
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:timezone/timezone.dart' as tz;
-
-/// Rebuilds every pending reminder from what is in the kitchen now.
-Future<String> scheduleExpiryReminders() async {
-  // Reminders live on the phone. The notifications plugin has no web
-  // implementation, and calling it in a browser throws.
-  if (kIsWeb) return '';
-
-  final household = FFAppState().currentHouseholdId;
-  if (household.isEmpty) return '';
-
-  final user = SupaFlow.client.auth.currentUser?.id;
-  if (user == null) return '';
-
-  final plugin = FlutterLocalNotificationsPlugin();
-  const settings = InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-    iOS: DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    ),
-  );
-  await plugin.initialize(settings);
-  tzdata.initializeTimeZones();
-
-  // Whatever is pending is about to be wrong. Clear first, always.
-  await plugin.cancelAll();
-
-  // Preferences are per person, and absent means the schema's defaults.
-  var enabled = true;
-  var daysBefore = 2;
-  try {
-    final prefs = await SupaFlow.client
-        .from('notification_preferences')
-        .select('expiry_enabled, expiry_days_before')
-        .eq('profile_id', user)
-        .maybeSingle();
-    if (prefs != null) {
-      enabled = prefs['expiry_enabled'] as bool? ?? true;
-      daysBefore = prefs['expiry_days_before'] as int? ?? 2;
-    }
-  } catch (_) {
-    // No preferences row yet is not a failure; the defaults are sound.
-  }
-
-  if (!enabled) return '';
-
-  List<dynamic> rows;
-  try {
-    rows = await SupaFlow.client
-        .from('food_items_status')
-        .select('id, name, estimated_expiry_at, printed_date, status')
-        .eq('household_id', household);
-  } on PostgrestException catch (error) {
-    return error.message;
-  } catch (error) {
-    return 'Could not read your kitchen. $error';
-  }
-
-  final now = tz.TZDateTime.now(tz.local);
-  var scheduled = 0;
-
-  for (final row in rows) {
-    // Settled items are finished with. Nothing to warn about.
-    final status = (row['status'] ?? '').toString();
-    if (status == 'consumed' || status == 'discarded') continue;
-
-    final printed = DateTime.tryParse((row['printed_date'] ?? '').toString());
-    final estimated =
-        DateTime.tryParse((row['estimated_expiry_at'] ?? '').toString());
-    final expiry = printed ?? estimated;
-    // No date and no estimate means nothing to be right about.
-    if (expiry == null) continue;
-
-    final name = (row['name'] ?? '').toString().trim();
-    if (name.isEmpty) continue;
-
-    // Late morning: past the breakfast rush, early enough to change what you
-    // cook tonight or what you buy on the way home.
-    final target = tz.TZDateTime(
-      tz.local,
-      expiry.year,
-      expiry.month,
-      expiry.day,
-      10,
-    ).subtract(Duration(days: daysBefore));
-
-    if (!target.isAfter(now)) continue;
-
-    // iOS caps pending local notifications at 64 and silently drops the rest.
-    // Stopping deliberately at 60 keeps room for anything added later in the
-    // session, and the nearest dates are the ones worth keeping.
-    if (scheduled >= 60) break;
-
-    // A printed date is a fact; an estimate is the app's guess. They must not
-    // read the same on a lock screen.
-    final body = printed != null
-        ? 'Its date is in $daysBefore ${daysBefore == 1 ? "day" : "days"}.'
-        : 'Around $daysBefore ${daysBefore == 1 ? "day" : "days"} left, going '
-            'by a typical shelf life. Worth checking.';
-
-    await plugin.zonedSchedule(
-      // The row id keeps this stable if the same item is rescheduled.
-      row['id'].hashCode & 0x7FFFFFFF,
-      'Use $name soon',
-      body,
-      target,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'expiry',
-          'Food going off',
-          channelDescription: 'Reminders before food needs using.',
-          importance: Importance.defaultImportance,
+  app.ensurePage(
+    'ScanLinePage',
+    description:
+        'Correct the name of one line on the receipt or fridge-photo review '
+        'list, before anything is added.',
+    route: 'scan-line',
+    // Defaults on every parameter, so a cold deep link cannot crash the page.
+    params: {
+      'index': int_.withDefault(-1),
+      'name': string.withDefault(''),
+      'category': string.withDefault(''),
+      'quantity': int_.withDefault(1),
+      'place': string.withDefault(''),
+      'detail': string.withDefault(''),
+    },
+    onLoad: [SetFormField('ScanLineName', PageParam('name'))],
+    body: Scaffold(
+      body: Container(
+        name: 'ScanLineBody',
+        padding:
+            const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 20),
+        child: Column(
+          scrollable: true,
+          crossAxis: CrossAxis.stretch,
+          spacing: 14,
+          children: [
+            Row(
+              name: 'ScanLineBackRow',
+              mainAxis: MainAxis.start,
+              children: [
+                Container(
+                  name: 'ScanLineBack',
+                  onTap: [NavigateBack()],
+                  width: 44,
+                  height: 44,
+                  color: Colors.secondaryBackground,
+                  borderColor: Colors.alternate,
+                  borderWidth: 1,
+                  borderRadius: 999,
+                  child:
+                      Icon('arrow_back', size: 20, color: Colors.primaryText),
+                ),
+              ],
+            ),
+            Text('Fix this line.',
+                name: 'ScanLineHeadline',
+                style: Styles.headlineMedium,
+                color: Colors.primary),
+            Text(
+              PageParam('detail'),
+              name: 'ScanLineDetail',
+              style: Styles.bodyMedium,
+              color: Colors.secondaryText,
+            ),
+            TextField(
+              name: 'ScanLineName',
+              label: 'Name',
+              hint: 'What it is, in plain words',
+            ),
+            Button(
+              'Save this line',
+              name: 'ScanLineSave',
+              width: double.infinity,
+              height: 50,
+              borderRadius: 14,
+              color: Colors.primary,
+              textColor: Colors.secondaryBackground,
+              onTap: [
+                If(
+                  // Read from the field itself, not a page-state copy: a new
+                  // field's change handler is debounced, and a tap straight
+                  // after typing would save the previous value.
+                  Equals(WidgetState('ScanLineName', WidgetStateProperty.text),
+                      ''),
+                  then: [Snackbar('Give it a name first.')],
+                  orElse: [
+                    UpdateAppState.updateItemAtIndex(
+                      'scannedFoods',
+                      PageParam('index'),
+                      Struct(ff.Structs.scannedFood, {
+                        'name': WidgetState(
+                            'ScanLineName', WidgetStateProperty.text),
+                        'category': PageParam('category'),
+                        'quantity': PageParam('quantity'),
+                        'place': PageParam('place'),
+                        'detail': PageParam('detail'),
+                      }),
+                    ),
+                    NavigateBack(),
+                  ],
+                ),
+              ],
+            ),
+            Text(
+              'Only the name changes here. Where it goes and its category stay '
+              'as they were, and nothing is added until you tap Add on the list.',
+              name: 'ScanLineNote',
+              style: Styles.bodySmall,
+              color: Colors.secondaryText,
+            ),
+          ],
         ),
-        iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    scheduled++;
-  }
-
-  return '';
-}
-''',
-    );
-
-    // The permission request had the same fault: it meant to answer "no" on
-    // the web, but called initialize() first, which throws in a browser
-    // before that line is reached.
-    updateCustomAction(
-      project,
-      name: 'AskNotificationPermission',
-      code: r'''
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-/// Asks for notification permission, and says whether we have it.
-///
-/// Safe to call more than once: the system only shows its prompt the first
-/// time, and returns the standing answer after that.
-Future<bool> askNotificationPermission() async {
-  // Web: no local notifications, and the plugin throws if it is touched.
-  if (kIsWeb) return false;
-
-  final plugin = FlutterLocalNotificationsPlugin();
-
-  const settings = InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-    iOS: DarwinInitializationSettings(
-      // Asked for explicitly below instead, so the prompt appears when the
-      // person has just turned reminders on and knows why.
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
     ),
   );
-  await plugin.initialize(settings);
 
-  final ios = plugin.resolvePlatformSpecificImplementation<
-      IOSFlutterLocalNotificationsPlugin>();
-  if (ios != null) {
-    final granted = await ios.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    return granted ?? false;
-  }
-
-  final android = plugin.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>();
-  if (android != null) {
-    final granted = await android.requestNotificationsPermission();
-    return granted ?? false;
-  }
-
-  // Desktop: no local notifications, and nothing to apologise for.
-  return false;
-}
-''',
+  // Tapping a line opens it. The remove button sits inside the row, and the
+  // innermost tap target wins, so removing still works.
+  final review = ff.Pages.scanReviewPage;
+  app.editPage(review, (page) {
+    page.ensureActions(
+      review.widgets.byKey('Container_1gma093s').single,
+      triggerType: FFActionTriggerType.ON_TAP,
+      actions: [
+        Navigate('ScanLinePage', params: {
+          'index': const ItemRef().index,
+          'name': const ItemRef()['name'],
+          'category': const ItemRef()['category'],
+          'quantity': const ItemRef()['quantity'],
+          'place': const ItemRef()['place'],
+          'detail': const ItemRef()['detail'],
+        }),
+      ],
     );
   });
 }
