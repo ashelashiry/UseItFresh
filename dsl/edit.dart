@@ -153,142 +153,207 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Food with no photo gets a plain plate, never a blank or a borrowed picture.
+/// Reminders do nothing in a browser, instead of throwing.
 ///
-/// Three photo functions could hand the image widget an empty address — for
-/// meat, fish, bread, frozen food and anything unrecognised. That widget
-/// throws on an empty address: the kitchen showed a blank white block on
-/// those cards, and the browser logged an uncaught error. Receipts made it
-/// common, because nothing added from a receipt has a photo of its own.
+/// The Inventory page reschedules reminders every time it loads. The
+/// notifications plugin has no web implementation, so in a browser its first
+/// call reads a platform instance that was never set, and the page logged an
+/// uncaught LateInitializationError on every visit to the kitchen at
+/// localhost:8080. Reminders only exist on the phone, so on the web there is
+/// nothing to schedule.
 ///
-/// Two borrowed pictures went too: fruit used the tomatoes (so Bananas showed
-/// tomatoes), and the "Use these next" card fell back to spinach for
-/// everything (so chicken showed spinach). A picture that passes for a
-/// different food is worse than a plain one.
-///
-/// A custom function's code is the BODY only; the signature comes from the
-/// declared arguments (see HANDOVER, section 5).
+/// A custom ACTION's code is the complete function, imports and all.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomFunction(
+    updateCustomAction(
       project,
-      name: 'foodImage',
+      name: 'ScheduleExpiryReminders',
       code: r'''
-const root =
-    'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
-final own = (imageUrl ?? '').trim();
-if (own.isNotEmpty) return own;
+/// Rebuilds every pending reminder from what is in the kitchen now.
+Future<String> scheduleExpiryReminders() async {
+  // Reminders live on the phone. The notifications plugin has no web
+  // implementation, and calling it in a browser throws.
+  if (kIsWeb) return '';
 
-// Named ingredients the guide gives specific photography for.
-final n = (name ?? '').toLowerCase();
-for (final entry in {
-  'spinach': 'spinach',
-  'mushroom': 'mushrooms',
-  'tomato': 'tomatoes',
-  'egg': 'eggs',
-  'yogurt': 'yogurt',
-  'yoghurt': 'yogurt',
-  'pasta': 'pasta',
-}.entries) {
-  if (n.contains(entry.key)) return '$root/${entry.value}.webp';
-}
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) return '';
 
-// Otherwise the category's illustrative image, where one is honest. Fruit
-// has none: it borrowed the tomatoes, which put tomatoes on a card for
-// bananas. Never empty — the image widget throws on an empty address.
-switch (category ?? '') {
-  case 'vegetables':
-    return '$root/spinach.webp';
-  case 'eggs':
-    return '$root/eggs.webp';
-  case 'dairy':
-    return '$root/yogurt.webp';
-  case 'pantry_dry':
-  case 'cooked_leftovers':
-    return '$root/pasta.webp';
-  default:
-    return '$root/placeholder.webp';
+  final user = SupaFlow.client.auth.currentUser?.id;
+  if (user == null) return '';
+
+  final plugin = FlutterLocalNotificationsPlugin();
+  const settings = InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    iOS: DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    ),
+  );
+  await plugin.initialize(settings);
+  tzdata.initializeTimeZones();
+
+  // Whatever is pending is about to be wrong. Clear first, always.
+  await plugin.cancelAll();
+
+  // Preferences are per person, and absent means the schema's defaults.
+  var enabled = true;
+  var daysBefore = 2;
+  try {
+    final prefs = await SupaFlow.client
+        .from('notification_preferences')
+        .select('expiry_enabled, expiry_days_before')
+        .eq('profile_id', user)
+        .maybeSingle();
+    if (prefs != null) {
+      enabled = prefs['expiry_enabled'] as bool? ?? true;
+      daysBefore = prefs['expiry_days_before'] as int? ?? 2;
+    }
+  } catch (_) {
+    // No preferences row yet is not a failure; the defaults are sound.
+  }
+
+  if (!enabled) return '';
+
+  List<dynamic> rows;
+  try {
+    rows = await SupaFlow.client
+        .from('food_items_status')
+        .select('id, name, estimated_expiry_at, printed_date, status')
+        .eq('household_id', household);
+  } on PostgrestException catch (error) {
+    return error.message;
+  } catch (error) {
+    return 'Could not read your kitchen. $error';
+  }
+
+  final now = tz.TZDateTime.now(tz.local);
+  var scheduled = 0;
+
+  for (final row in rows) {
+    // Settled items are finished with. Nothing to warn about.
+    final status = (row['status'] ?? '').toString();
+    if (status == 'consumed' || status == 'discarded') continue;
+
+    final printed = DateTime.tryParse((row['printed_date'] ?? '').toString());
+    final estimated =
+        DateTime.tryParse((row['estimated_expiry_at'] ?? '').toString());
+    final expiry = printed ?? estimated;
+    // No date and no estimate means nothing to be right about.
+    if (expiry == null) continue;
+
+    final name = (row['name'] ?? '').toString().trim();
+    if (name.isEmpty) continue;
+
+    // Late morning: past the breakfast rush, early enough to change what you
+    // cook tonight or what you buy on the way home.
+    final target = tz.TZDateTime(
+      tz.local,
+      expiry.year,
+      expiry.month,
+      expiry.day,
+      10,
+    ).subtract(Duration(days: daysBefore));
+
+    if (!target.isAfter(now)) continue;
+
+    // iOS caps pending local notifications at 64 and silently drops the rest.
+    // Stopping deliberately at 60 keeps room for anything added later in the
+    // session, and the nearest dates are the ones worth keeping.
+    if (scheduled >= 60) break;
+
+    // A printed date is a fact; an estimate is the app's guess. They must not
+    // read the same on a lock screen.
+    final body = printed != null
+        ? 'Its date is in $daysBefore ${daysBefore == 1 ? "day" : "days"}.'
+        : 'Around $daysBefore ${daysBefore == 1 ? "day" : "days"} left, going '
+            'by a typical shelf life. Worth checking.';
+
+    await plugin.zonedSchedule(
+      // The row id keeps this stable if the same item is rescheduled.
+      row['id'].hashCode & 0x7FFFFFFF,
+      'Use $name soon',
+      body,
+      target,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'expiry',
+          'Food going off',
+          channelDescription: 'Reminders before food needs using.',
+          importance: Importance.defaultImportance,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+    scheduled++;
+  }
+
+  return '';
 }
 ''',
     );
 
-    updateCustomFunction(
+    // The permission request had the same fault: it meant to answer "no" on
+    // the web, but called initialize() first, which throws in a browser
+    // before that line is reached.
+    updateCustomAction(
       project,
-      name: 'itemPhoto',
+      name: 'AskNotificationPermission',
       code: r'''
-const root =
-    'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
-// Never empty: the item screen's photo widget throws on an empty address.
-const plain = '$root/placeholder.webp';
-if (rows == null || rows.isEmpty) return plain;
-final r = rows.first;
-final own = (r.imageUrl ?? '').trim();
-if (own.isNotEmpty) return own;
-final n = (r.name ?? '').toLowerCase();
-for (final e in {
-  'spinach': 'spinach',
-  'mushroom': 'mushrooms',
-  'tomato': 'tomatoes',
-  'egg': 'eggs',
-  'yogurt': 'yogurt',
-  'yoghurt': 'yogurt',
-  'pasta': 'pasta',
-}.entries) {
-  if (n.contains(e.key)) return '$root/${e.value}.webp';
-}
-switch (r.category ?? '') {
-  case 'vegetables':
-    return '$root/spinach.webp';
-  case 'eggs':
-    return '$root/eggs.webp';
-  case 'dairy':
-    return '$root/yogurt.webp';
-  case 'pantry_dry':
-  case 'cooked_leftovers':
-    return '$root/pasta.webp';
-  default:
-    return plain;
-}
-''',
-    );
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-    updateCustomFunction(
-      project,
-      name: 'heroImage',
-      code: r'''
-const root =
-    'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
-if (rows == null || rows.isEmpty) return '$root/spinach.webp';
-final first = rows.first;
-final own = (first.imageUrl ?? '').trim();
-if (own.isNotEmpty) return own;
-final n = (first.name ?? '').toLowerCase();
-for (final e in {
-  'spinach': 'spinach',
-  'mushroom': 'mushrooms',
-  'tomato': 'tomatoes',
-  'egg': 'eggs',
-  'yogurt': 'yogurt',
-  'yoghurt': 'yogurt',
-  'pasta': 'pasta',
-}.entries) {
-  if (n.contains(e.key)) return '$root/${e.value}.webp';
-}
-// The same category pictures as the cards, and the plain plate otherwise.
-// It used to fall back to spinach for everything, so chicken showed spinach.
-switch (first.category ?? '') {
-  case 'vegetables':
-    return '$root/spinach.webp';
-  case 'eggs':
-    return '$root/eggs.webp';
-  case 'dairy':
-    return '$root/yogurt.webp';
-  case 'pantry_dry':
-  case 'cooked_leftovers':
-    return '$root/pasta.webp';
-  default:
-    return '$root/placeholder.webp';
+/// Asks for notification permission, and says whether we have it.
+///
+/// Safe to call more than once: the system only shows its prompt the first
+/// time, and returns the standing answer after that.
+Future<bool> askNotificationPermission() async {
+  // Web: no local notifications, and the plugin throws if it is touched.
+  if (kIsWeb) return false;
+
+  final plugin = FlutterLocalNotificationsPlugin();
+
+  const settings = InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    iOS: DarwinInitializationSettings(
+      // Asked for explicitly below instead, so the prompt appears when the
+      // person has just turned reminders on and knows why.
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    ),
+  );
+  await plugin.initialize(settings);
+
+  final ios = plugin.resolvePlatformSpecificImplementation<
+      IOSFlutterLocalNotificationsPlugin>();
+  if (ios != null) {
+    final granted = await ios.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    return granted ?? false;
+  }
+
+  final android = plugin.resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>();
+  if (android != null) {
+    final granted = await android.requestNotificationsPermission();
+    return granted ?? false;
+  }
+
+  // Desktop: no local notifications, and nothing to apologise for.
+  return false;
 }
 ''',
     );

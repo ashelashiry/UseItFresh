@@ -248,9 +248,10 @@ Every one of these produced a **successful push and a wrong app**.
 
 ### An empty image address crashes the image widget, silently
 
-FlutterFlow's network `Image` is `CachedNetworkImage`, and it throws on an
-empty URL. There is no error widget, so the card shows a blank white block and
-the browser logs an "Uncaught Error" with no message. `foodImage`, `itemPhoto`
+FlutterFlow's network `Image` is `CachedNetworkImage`, and it cannot draw an
+empty URL. There is no error widget, so the card shows a blank white block.
+(An uncaught error seen at the same moment turned out to be the notifications
+plugin, below — not this.) `foodImage`, `itemPhoto`
 and `heroImage` all returned `''` for meat, fish, bread, frozen and anything
 unrecognised; receipts made it common, because nothing read from a receipt has
 a photo of its own. Since 11 Sep they return `design/v3/food/placeholder.webp`
@@ -262,6 +263,20 @@ spinach for everything.
 The food pictures are served from this repo through jsDelivr at a **pinned
 commit hash**. A new picture needs its own commit pushed first, and the
 functions then point at that hash.
+
+### The notifications plugin throws in a browser
+
+`flutter_local_notifications` has no web implementation. Any call to it, even
+`initialize()`, reads a platform instance that was never set and throws an
+uncaught `LateInitializationError` with no message. The Inventory page
+reschedules reminders on every load, so every visit to the kitchen at
+localhost:8080 logged one. Since 11 Sep `ScheduleExpiryReminders` and
+`AskNotificationPermission` return straight away when `kIsWeb`. **Guard a
+phone-only plugin before its first call, not after.**
+
+The minified stack was enough to find it: the failing function was an
+`async` whose first line read a `late` static (`$.x.bU()`, the "not
+initialized" getter) and whose next called `"cancelAll"` on a method channel.
 
 ---
 
