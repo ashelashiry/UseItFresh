@@ -167,8 +167,16 @@ naming, and receipt / fridge-shelf reading with a review screen.
    uncaught errors, and Try again brings the food back once online. The
    receipt walk still passes online. The subtitle and Profile line then had
    to be replaced rather than rebound (see the `bindText` trap in section 5).
-   Not yet covered: opening an item or adding food offline, and the greeting,
-   which falls back to the email name. Sources kept for reference:
+   **Build 5 (11 Sep)** extends it: the item screen (its actions wait for a
+   load that worked; card above the name), Add food (card: the form can be
+   filled in but not saved; its retry also applies a barcode find that
+   arrived offline), and Home's greeting (`hiLineLoaded` says "Hi" until
+   the profile loads; `greetingLine` was already taken by the original
+   time-of-day greeting, which nothing calls). Verified in the generated
+   Dart and by a green web build, not walked: the harness no longer signs
+   in (section 6). The owner tests it with Airplane mode. Build 4 is kept
+   as a fallback: FlutterFlow branch `build-4-ios`, git tag `build-4-ios`,
+   and a full copy in the owner's OneDrive. Sources kept for reference:
    - `dsl/_archive_offline_a.dart.txt` — `CanReachKitchen` (a custom action
      that catches its own failure), four loaded-aware functions
      (`kitchenState`, `kitchenLine`, `householdLine`, `offerHouseholdSetup`;

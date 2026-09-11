@@ -153,9 +153,8 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Receipts, fridge photos and photo naming work end to end,
-      and the app now says so honestly when it can&rsquo;t reach your
-      kitchen.</p>
+      <p class="sub">Build 4 is saved as a fallback. Build 5 finishes the
+      no-signal work: the item screen, Add food and the greeting.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
@@ -168,12 +167,13 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Build 4 is ready whenever you want it. No rush.</p>
-      <p>It adds one thing to Build 3. With no signal, the app now says it
-      can&rsquo;t reach your kitchen and offers Try again, instead of
-      claiming your kitchen is empty. Tested in the app with the connection
-      cut and again online: no errors, and your &ldquo;Ash&rsquo;s
-      kitchen&rdquo; was never touched.</p>
+      <p>Build 5 is ready whenever you want it. No rush.</p>
+      <p>With no signal, an item now says it can&rsquo;t reach your kitchen
+      and hides &ldquo;I used it&rdquo; and &ldquo;Throw it out&rdquo; until it
+      can. Add food says the form can&rsquo;t be saved yet. Home just says
+      &ldquo;Hi&rdquo; instead of greeting you by your email address.
+      Build 4 is kept safe: a FlutterFlow branch and a GitHub tag both
+      called <b>build-4-ios</b>, and a full copy in your OneDrive.</p>
     </div>
   </div>
 
@@ -182,12 +182,21 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Deploy Build 4, when it suits you</h3>
+          <h3>Deploy Build 5, when it suits you</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
-          <b>Build Number</b> by one &rarr; Deploy to TestFlight. If you are
-          part way through testing Build 3, finish that first.</p>
+          <b>Build Number</b> by one &rarr; Deploy to TestFlight.</p>
         </div>
         <span class="how">When convenient</span>
+      </li>
+      <li class="ask">
+        <div>
+          <h3>Change your app password</h3>
+          <p>My test scripts saved it in a file on GitHub, and your GitHub
+          project is public, so anyone could find it. Change it in the app:
+          <b>Profile &rarr; Security</b>. Keep the new one to yourself;
+          don&rsquo;t send it to me. I no longer sign in as you to test.</p>
+        </div>
+        <span class="how">Soon</span>
       </li>
       <li class="ask">
         <div>
@@ -244,9 +253,10 @@
           something dated <b>two days from now</b>. The reminder arrives
           tomorrow at 10am.</span></li>
       <li><span class="where">Airplane mode</span>
-          <span class="what">Open the kitchen with no signal. It says it
-          can&rsquo;t reach your kitchen instead of &ldquo;empty&rdquo;. Turn
-          the signal back on and tap <b>Try again</b>. (Build 4.)</span></li>
+          <span class="what">With no signal, open the kitchen, then an item,
+          then Add food. Each says it can&rsquo;t reach your kitchen instead of
+          pretending. Turn the signal back on and tap <b>Try again</b>.
+          (Kitchen: Build 4. Item and Add food: Build 5.)</span></li>
       <li><span class="where">Home</span>
           <span class="what">&ldquo;Use these next&rdquo; appears once something
           is close to its date. Until then Home shows your food, and a plain
@@ -312,6 +322,13 @@
             <td><span class="state wait">Build 4</span></td>
           </tr>
           <tr>
+            <td><b>No signal: item, Add food, greeting</b></td>
+            <td>The rest of the no-signal work. Checked in the code and in a
+            clean build; the Airplane-mode test on your phone is the real
+            check, since I no longer sign in as you.</td>
+            <td><span class="state wait">Build 5</span></td>
+          </tr>
+          <tr>
             <td><b>Reminders in a browser</b></td>
             <td>They threw an error on every kitchen visit at localhost. Reminders
             only exist on the phone, so the browser now skips them.</td>
@@ -329,17 +346,21 @@
   </section>
 
   <section>
-    <h2>My priorities</h2>
+    <h2>What next? You choose</h2>
+    <p class="lede">The no-signal work is done. These are the candidates for
+    Build 6. Tell me which to start with.</p>
     <div class="t-scroll">
       <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
+        <thead><tr><th>&nbsp;</th><th>Idea</th><th>Size</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="rank">1</td><td><b>No signal: the item screen and Add food</b></td><td><span class="size s">S</span></td>
-              <td>The kitchen, Home and Profile are covered. Opening an item or adding food without signal is not tested yet.</td></tr>
-          <tr><td class="rank">2</td><td><b>The greeting when offline</b></td><td><span class="size s">S</span></td>
-              <td>Home says &ldquo;Hi, ashraf.elashiry&rdquo; when it can&rsquo;t load your name. Minor, but it looks broken.</td></tr>
-          <tr><td class="rank">3</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
-              <td>Held on purpose until there&rsquo;s real recipe data. The design guide rules out suggesting ingredients from a stock photo.</td></tr>
+          <tr><td class="rank">A</td><td><b>Fix a line&rsquo;s category and place too</b></td><td><span class="size s">S</span></td>
+              <td>On the receipt list you can fix a name, but not move milk from the pantry to the fridge.</td></tr>
+          <tr><td class="rank">B</td><td><b>Add dates while reviewing</b></td><td><span class="size m">M</span></td>
+              <td>A use-by for each line before adding, so reminders work for a whole shop at once.</td></tr>
+          <tr><td class="rank">C</td><td><b>Shared household, tested properly</b></td><td><span class="size s">S</span></td>
+              <td>Built but never tried with two people. Needs a second account that you create.</td></tr>
+          <tr><td class="rank">D</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
+              <td>Held until there&rsquo;s real recipe data. The design guide rules out suggesting ingredients from a stock photo.</td></tr>
         </tbody>
       </table>
     </div>
