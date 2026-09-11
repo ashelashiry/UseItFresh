@@ -327,6 +327,10 @@ status or safety from a photograph**.
 - Test results may arrive as a Word document in `test/` with **screenshots and
   no text**; extract `word/media/*` from the .docx and diagnose from the images.
 - Keep them running on `localhost:8080` and re-copy the build after every push.
+  Serve it with the scratchpad's `serve.py`, not `python -m http.server`: the
+  plain server answers 404 for `/home` and every other app route, so a browser
+  refresh on any screen but the first broke. `serve.py` hands `index.html` to
+  any path without a file extension.
 - Status board: <https://claude.ai/code/artifact/b5a7bfe7-b7ac-446e-a846-679f567c21ab>
 - Screen kit: <https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1>
 

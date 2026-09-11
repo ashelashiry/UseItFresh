@@ -275,8 +275,16 @@ Deno.serve(async (req) => {
       why = String((await res?.json())?.error?.message ?? "").slice(0, 200);
     } catch { /* not JSON */ }
     console.error("gemini", model, status, why);
+    // A 429 is two different things. Too many calls at once passes in a
+    // minute; an account with no credit left does not, and telling someone to
+    // "try again in a minute" then is a promise the app cannot keep.
+    const unfunded = status === 429 && /credit|billing|prepay/i.test(why);
     return reply({
-      error: status === 429 ? "Too many photos just now. Try again in a minute." : sorry,
+      error: unfunded
+        ? "Photo reading is not available right now. You can type it instead."
+        : status === 429
+        ? "Too many photos just now. Try again in a minute."
+        : sorry,
       detail: `gemini ${status} ${model}: ${why}`,
     }, 502);
   }

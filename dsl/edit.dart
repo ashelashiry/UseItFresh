@@ -153,120 +153,183 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Keep scanned product photos in our own storage.
+/// Food names from a photo in sentence case.
 ///
-/// A barcode lookup gives the item Open Food Facts' photo link. Those links
-/// change when a photo is replaced upstream, and an item should not lose its
-/// picture because someone else edited a public database. So the photo is
-/// copied into the household's own folder when the item is added.
-///
-/// Same signature as before — seven arguments, same names — so no call site
-/// changes and nothing else needs to be in this push.
+/// The receipt read came back as "Semi-skimmed milk"; the shelf read came
+/// back as "brown mushrooms". Everything else in the app writes food names in
+/// sentence case, so the first letter is raised before the review list.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
     updateCustomAction(
       project,
-      name: 'CreateFoodItem',
-      description:
-          'Adds one food item to the current household, copying an Open Food '
-          'Facts photo into our own storage first. Returns an empty string on '
-          'success, or a message explaining why it failed.',
+      name: 'ReadPhotoFoods',
       code: r'''
-import 'package:http/http.dart' as http;
+import 'dart:typed_data';
+
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-/// Adds a food item, and says why if it could not.
+/// Reads several foods from one photo: a till receipt, or a fridge shelf.
 ///
-/// household_id is not null in the schema and has no default, so it has to be
-/// supplied here; created_by records who added it. Both come from the session
-/// rather than the form, so neither can be left out by a screen that forgets.
-Future<String> createFoodItem(
-  String? name,
-  String? category,
-  String? locationId,
-  DateTime? printedDate,
-  String? printedDateType,
-  String? imageUrl,
-  String? barcode,
-) async {
-  final trimmed = (name ?? '').trim();
-  if (trimmed.isEmpty) return 'Give it a name first.';
-  if ((locationId ?? '').isEmpty) return 'Choose where it is kept.';
+/// Returns 'ok' when there is something to review, '' when the person backed
+/// out of the camera (not an error, so nothing is said), and otherwise a
+/// sentence saying why not.
+///
+/// The photo is deleted as soon as it has been read. A receipt carries the
+/// shop, the time and part of a card number, and none of it is needed.
+///
+/// Each food is given a place from its category (milk to the fridge, peas to
+/// the freezer, pasta to the cupboard) using this household's own locations,
+/// so the review screen can say where it will go.
+Future<String> readPhotoFoods(String? mode) async {
+  final kind = mode == 'shelf' ? 'shelf' : 'receipt';
+  final sorry = kind == 'receipt'
+      ? 'Could not read that receipt. Try a flatter, brighter photo.'
+      : 'Could not read that photo. Try again closer up.';
 
   final household = FFAppState().currentHouseholdId;
   if (household.isEmpty) {
     return 'No household yet. Create or join one before adding food.';
   }
 
-  final code = (barcode ?? '').trim();
-  var photo = (imageUrl ?? '').trim();
-  if (photo.contains('openfoodfacts.org/')) {
-    photo = await _keepOwnCopy(photo, household);
-  }
+  final shot = await ImagePicker().pickImage(
+    source: ImageSource.camera,
+    // Receipts are long and the print is small, so they get more pixels.
+    maxWidth: kind == 'receipt' ? 2000 : 1600,
+    maxHeight: kind == 'receipt' ? 3200 : 1600,
+    imageQuality: 85,
+  );
+  if (shot == null) return '';
 
-  // How it was added, most specific first. A barcode is a stronger claim
-  // about what the thing IS than a photograph, so it wins when both are
-  // present — which is exactly what happens when a lookup supplies the
-  // product picture too.
-  final source =
-      code.isNotEmpty ? 'barcode' : (photo.isNotEmpty ? 'photo' : 'manual');
-
+  FFAppState().update(() => FFAppState().scanReading = true);
+  final client = SupaFlow.client;
+  final storage = client.storage.from('food-images');
+  final path = '$household/scan-${const Uuid().v4()}.jpg';
+  var uploaded = false;
   try {
-    await SupaFlow.client.from('food_items').insert({
-      'household_id': household,
-      'storage_location_id': locationId,
-      'created_by': SupaFlow.client.auth.currentUser?.id,
-      'name': trimmed,
-      if ((category ?? '').isNotEmpty) 'category': category,
-      if (photo.isNotEmpty) 'image_url': photo,
-      if (code.isNotEmpty) 'barcode': code,
-      if (printedDate != null)
-        'printed_date': printedDate.toIso8601String().substring(0, 10),
-      // A date type without a date says nothing and reads as though a date
-      // was recorded, so it is only stored alongside one.
-      if (printedDate != null && (printedDateType ?? '').isNotEmpty)
-        'printed_date_type': printedDateType,
-      'source_type': source,
-    });
-    return '';
-  } on PostgrestException catch (error) {
-    if (error.code == '42501') {
-      return 'Your account is not allowed to add to this household.';
-    }
-    return error.message;
-  } catch (error) {
-    return 'Could not add it. $error';
-  }
-}
-
-/// Our own copy of an Open Food Facts photo, or their link if it cannot be
-/// made. A picture that may one day go stale is better than none, so a failed
-/// copy never stops the food being added.
-Future<String> _keepOwnCopy(String url, String household) async {
-  // The lookup returns the 200px thumbnail. The item screen shows the photo
-  // large, so the 400px display size is fetched when it exists.
-  final larger = url.replaceFirst(RegExp(r'\.200\.jpg$'), '.400.jpg');
-  try {
-    var res = await http
-        .get(Uri.parse(larger))
-        .timeout(const Duration(seconds: 10));
-    if (res.statusCode != 200 && larger != url) {
-      res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
-    }
-    if (res.statusCode != 200 || res.bodyBytes.isEmpty) return url;
-
-    final path = '$household/product-${const Uuid().v4()}.jpg';
-    final storage = SupaFlow.client.storage.from('food-images');
+    final Uint8List bytes = await shot.readAsBytes();
     await storage.uploadBinary(
       path,
-      res.bodyBytes,
+      bytes,
       fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
     );
-    // A year, the same as a photo taken in the app.
-    return await storage.createSignedUrl(path, 60 * 60 * 24 * 365);
+    uploaded = true;
+    // Ten minutes: it is read once, straight away, and then deleted.
+    final url = await storage.createSignedUrl(path, 600);
+
+    final res = await client.functions
+        .invoke('recognise-food', body: {'imageUrl': url, 'mode': kind});
+    final data = res.data;
+    if (data is! Map) return sorry;
+    if (data['error'] != null) return data['error'].toString();
+    final raw = data['items'] is List ? data['items'] as List : const [];
+    if (raw.isEmpty) {
+      final note = (data['note'] ?? '').toString();
+      return note.isNotEmpty ? note : sorry;
+    }
+
+    // The same words the category picker uses.
+    const labels = <String, String>{
+      'dairy': 'Dairy',
+      'meat_poultry': 'Meat & poultry',
+      'seafood': 'Seafood',
+      'eggs': 'Eggs',
+      'cooked_leftovers': 'Cooked leftovers',
+      'fruit': 'Fruit',
+      'vegetables': 'Vegetables',
+      'bread_bakery': 'Bread & bakery',
+      'pantry_dry': 'Pantry & dry goods',
+      'frozen': 'Frozen food',
+      'condiments_sauces': 'Condiments & sauces',
+      'infant_food': 'Infant food & formula',
+    };
+    // Where each kind of food usually lives. Unknown goes to the default.
+    const homes = <String, String>{
+      'dairy': 'fridge',
+      'meat_poultry': 'fridge',
+      'seafood': 'fridge',
+      'eggs': 'fridge',
+      'cooked_leftovers': 'fridge',
+      'fruit': 'fridge',
+      'vegetables': 'fridge',
+      'frozen': 'freezer',
+      'bread_bakery': 'pantry',
+      'pantry_dry': 'pantry',
+      'condiments_sauces': 'pantry',
+      'infant_food': 'pantry',
+    };
+
+    final rows = await client
+        .from('storage_locations')
+        .select('id, name, location_type, is_default')
+        .eq('household_id', household);
+    final places = List<Map<String, dynamic>>.from(rows as List);
+    Map<String, dynamic>? fallback;
+    for (final p in places) {
+      if (p['is_default'] == true) {
+        fallback = p;
+        break;
+      }
+    }
+    fallback ??= places.isNotEmpty ? places.first : null;
+    Map<String, dynamic>? placeFor(String category) {
+      final type = homes[category];
+      if (type != null) {
+        for (final p in places) {
+          if (p['location_type'] == type) return p;
+        }
+      }
+      return fallback;
+    }
+
+    final foods = <ScannedFoodStruct>[];
+    for (final r in raw) {
+      if (r is! Map) continue;
+      final said = (r['name'] ?? '').toString().trim();
+      if (said.isEmpty) continue;
+      // Sentence case, as the rest of the app writes food names. A shelf
+      // photo sometimes comes back in lower case ("brown mushrooms").
+      final name = said[0].toUpperCase() + said.substring(1);
+      final category = (r['category'] ?? '').toString();
+      final counted = r['quantity'] is num ? (r['quantity'] as num).round() : 1;
+      final quantity = counted < 1 ? 1 : counted;
+      final place = placeFor(category);
+      final detail = <String>[
+        if (quantity > 1) '$quantity of them',
+        labels[category] ?? 'No category',
+        if (place != null) (place['name'] ?? '').toString(),
+      ].where((s) => s.isNotEmpty).join(' · ');
+      foods.add(ScannedFoodStruct(
+        name: name,
+        category: labels.containsKey(category) ? category : '',
+        quantity: quantity,
+        place: place == null ? '' : place['id'].toString(),
+        detail: detail,
+      ));
+    }
+    if (foods.isEmpty) return sorry;
+
+    FFAppState().update(() {
+      FFAppState().scannedFoods = foods;
+      FFAppState().scannedFrom = kind;
+    });
+    return 'ok';
+  } on FunctionException catch (error) {
+    final details = error.details;
+    if (details is Map && details['error'] != null) {
+      return details['error'].toString();
+    }
+    return sorry;
   } catch (_) {
-    return url;
+    return sorry;
+  } finally {
+    FFAppState().update(() => FFAppState().scanReading = false);
+    if (uploaded) {
+      try {
+        await storage.remove([path]);
+      } catch (_) {}
+    }
   }
 }
 ''',
