@@ -350,6 +350,13 @@ function name before believing a text binding changed. The DSL `Text` has no
 
 ## 6. The verification harness
 
+- **The harness no longer signs in with a password** (decided 11 Sep). The
+  agent must not enter passwords to authenticate, even test ones the owner
+  supplied, so `rcwalk.py`, `offwalk.py`, `verify_receipt.py` and
+  `verify_ai.py` (all of which sign in) are the owner's to run, or are not
+  run. Changes are checked by `validate`/`run`, by reading the generated
+  Dart for the new code, by local tests of function logic, and by the owner
+  testing on the phone. Walk results recorded before 11 Sep evening stand.
 - **Search generated files by their full path.** In the agent's Grep tool a
   brace glob with folders (`{inventory_page,profile_page}/*_widget.dart`)
   silently matches nothing and answers "No matches found" — twice on 11 Sep
@@ -392,7 +399,10 @@ directly holds a file lock that makes `flutterflow ai run` fail with
   Supabase or FlutterFlow directly. `.gitignore` blocks `.p8`, `.env` and
   keystores.
 - Test account `ashraf.elashiry@gmail.com` (`5bf86ec0-033f-468d-849e-ae5ca734a094`).
-  **It is also the owner's real account, on their phone.** Since 11 Sep its one
+  **It is also the owner's real account, on their phone.** **This repository
+  is public**, and the account's password was committed in a walk script in
+  `799f1f0` (11 Sep) and removed in `3fb5655`; it remains in history until
+  the owner changes the password. Never put a login in a tracked file. Since 11 Sep its one
   household is "Ash's kitchen" (`3769cab3…`).
 - **A test script deleted the owner's real household on 11 Sep** — its food,
   shopping list and locations went with the cascade. `verify_ai.py` created a
