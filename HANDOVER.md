@@ -1,9 +1,9 @@
 # Use It Fresh — handover
 
-**Written 9 Sep 2026, updated 10 Sep. Read this before touching anything.**
+**Written 9 Sep 2026, updated 11 Sep. Read this before touching anything.**
 
 Project `fridge-wise-gvpy0s` · branch `main` ·
-FlutterFlow at commit `OKF0DbqxAuEcCjn3ZREM`
+FlutterFlow at commit `VmwmBylmyafXzs4DOCwJ` (11 Sep)
 
 ---
 
@@ -109,16 +109,17 @@ lookup and the camera scanner, the shopping list, waste history, replace-what-
 you-finish, expiry reminders (local notifications, see section 10), photo
 naming, and receipt / fridge-shelf reading with a review screen.
 
-1. **Photo naming answered 502 on 11 Sep** — the Gemini call failed, not the
-   auth. `gemini-2.0-flash` was shut down in June 2026 and `gemini-2.5-flash`
-   shuts down 16 Oct 2026, so the function no longer pins a model: it tries
-   `gemini-flash-latest`, then asks the key which Flash models it can call
-   (`GET /v1beta/models`) and takes the newest stable one. A failure now
-   returns `detail` ("gemini 404 <model>: <Google's message>") for diagnosis.
-   **Needs the owner to paste and deploy** `supabase/functions/recognise-food/
-   index.ts` from the Supabase editor, then re-run `verify_ai.py`.
-2. **Receipt and fridge-shelf reading** — built 11 Sep, untested against the
-   live function until item 1 is deployed. One photo → `ReadPhotoFoods`
+1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
+   credit running out, not the code. The function also no longer pins a
+   model: it tries `gemini-flash-latest`, then the newest stable Flash the
+   key can call (`GET /v1beta/models`). A failure returns `detail`
+   ("gemini 429 <model>: <Google's message>") for diagnosis. **One paste
+   pending, optional:** the current `supabase/functions/recognise-food/
+   index.ts` (plural shelf names, and "not available right now" instead of
+   "too many photos" when credit runs out) is not yet deployed from the
+   Supabase editor. `verify_receipt.py` tests it after a paste.
+2. **Receipt and fridge-shelf reading** — built 11 Sep and walked in the app
+   end to end, receipt and shelf both (`rcwalk.py`, `PHOTO=shelf`). One photo → `ReadPhotoFoods`
    (`mode: receipt | shelf`) → `ScanReviewPage` → `SaveScannedFoods`, one
    insert for the lot. The photo is deleted from storage straight after it is
    read. Each food's location comes from its category (`homes` map in the
@@ -130,8 +131,9 @@ naming, and receipt / fridge-shelf reading with a review screen.
    position, and a text field in a row can stay tied to the wrong line after
    a removal above it. The row's position in an edit flow is
    `const ItemRef().index` (see `lib/src/dsl/references.dart` in the SDK).
-3. **Keep Open Food Facts photos in our own storage.** Scanned products store
-   OFF's image URL; if OFF moves it, the item loses its picture.
+3. **Open Food Facts photos are kept in our own storage** since 11 Sep:
+   `CreateFoodItem` copies the photo into the household folder on add
+   (400px where it exists) and keeps their link if the copy fails.
 4. **Home needs no redesign** (checked 11 Sep with six foods in a kitchen).
    "Use these next" already exists; it shows only when `urgentCount` finds
    something close to its date, so an undated kitchen shows just the grid.
@@ -159,20 +161,26 @@ naming, and receipt / fridge-shelf reading with a review screen.
    (only `ApiCall` takes `onFailure`, see `lib/src/dsl/actions.dart` in the
    SDK), so a failed query can only be detected by what did not happen after
    it: the `loaded` flag at the end of the chain staying false.
-   **Written and validated, not pushed (11 Sep)** — waiting for the owner to
-   say their test build is deployed:
-   - `dsl/_pending_offline_a.dart.txt` — `CanReachKitchen` (a custom action
+   **Shipped 11 Sep** (once Build 3 was deployed) **and walked offline:** the
+   kitchen and Home show "Can't reach your kitchen" with Try again, the
+   kitchen subtitle says so, Profile's household line is blank, there are no
+   uncaught errors, and Try again brings the food back once online. The
+   receipt walk still passes online. The subtitle and Profile line then had
+   to be replaced rather than rebound (see the `bindText` trap in section 5).
+   Not yet covered: opening an item or adding food offline, and the greeting,
+   which falls back to the email name. Sources kept for reference:
+   - `dsl/_archive_offline_a.dart.txt` — `CanReachKitchen` (a custom action
      that catches its own failure), four loaded-aware functions
      (`kitchenState`, `kitchenLine`, `householdLine`, `offerHouseholdSetup`;
      the old ones are untouched so no call site can break), `loadedOk` /
      `offline` on Inventory, Home and Profile, their page-loads reproduced
      exactly inside the "reachable" branch, and the rebinds. `flutterflow ai
      validate` dry run passed; the four functions pass 18 local cases.
-   - `dsl/_pending_offline_b.dart.txt` — the "Can't reach your kitchen" cards
+   - `dsl/_archive_offline_b.dart.txt` — the "Can't reach your kitchen" cards
      with Try again (reruns the screen's own load in place). Validate only
      after A is live: it uses A's flags and functions.
-   - `dsl/_pending_offline_walk.py.txt` — `offwalk.py`, the walk that found it.
-   To ship: A → build → offline walk (the kitchen subtitle should say it
+   - `dsl/_archive_offline_walk.py.txt` — `offwalk.py`, the walk that found it.
+   How it shipped: A → build → offline walk (the kitchen subtitle should say it
    cannot reach the kitchen, with no empty panel and no household prompt) →
    B → build → offline walk again (cards, and Try again once back online) →
    the receipt walk, to check nothing changed online.

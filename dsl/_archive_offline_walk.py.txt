@@ -204,17 +204,45 @@ try:
         shot(ws, "%02d-%s-offline.png" % (n, label))
         n += 1
 
-    step("5. offline: open an item from the kitchen")
+    # The app's primary button, sampled from a screenshot. The old default
+    # (37, 102, 81) is 30 off in red, which is why walks never found it.
+    GREEN = (7, 83, 58)
+
+    last_y = [None]
+
+    def try_again():
+        # Full-width green below the filter chips: the nav bar's Scan button
+        # is too narrow to count, and the chips sit above y=200. Once tapped,
+        # the button keeps a lighter hover shade while the mouse rests on it,
+        # and the colour no longer matches - so a position already found is
+        # reused rather than looked for again.
+        y = green_rows(shot(ws), 200, colour=GREEN, tol=14) or last_y[0]
+        print("   Try again at y=%s" % y)
+        if y:
+            last_y[0] = y
+            click(ws, W // 2, y, 8.0)
+        return y
+
+    step("5. offline: Try again on the kitchen")
     click(ws, TABS["kitchen"], H - 40, 6.0)
-    click(ws, 110, 300, 8.0)
-    shot(ws, "%02d-item-offline.png" % n)
+    try_again()
+    shot(ws, "%02d-kitchen-retry-offline.png" % n)
     n += 1
 
-    step("6. signal back")
+    step("6. signal back: the card stays until asked")
     offline(ws, False)
-    click(ws, TABS["home"], H - 40, 6.0)
-    click(ws, TABS["kitchen"], H - 40, 8.0)
-    shot(ws, "%02d-kitchen-back-online.png" % n)
+    pump(ws, 2.0)
+    shot(ws, "%02d-kitchen-online-card.png" % n)
+    n += 1
+
+    step("7. signal back: Try again")
+    try_again()
+    shot(ws, "%02d-kitchen-after-retry.png" % n)
+    n += 1
+
+    step("8. signal back: Home")
+    click(ws, TABS["home"], H - 40, 8.0)
+    shot(ws, "%02d-home-back-online.png" % n)
 finally:
     try:
         send(ws, "Page.navigate", {"url": "about:blank"})

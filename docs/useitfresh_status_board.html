@@ -154,8 +154,8 @@
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
       <p class="sub">Receipts, fridge photos and photo naming work end to end,
-      and you can now fix a misread line before adding it. The next build is
-      ready for your round of testing.</p>
+      and the app now says so honestly when it can&rsquo;t reach your
+      kitchen.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
@@ -168,13 +168,12 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Deploy the next build. If Build 2 is already on your phone, deploy once
-      more as Build 3.</p>
-      <p>Fixing a line on the receipt list, &ldquo;Add food&rdquo; on Home and
-      &ldquo;2 items&rdquo; all came after I said Build 2 was ready. Each was
-      driven in the app with no errors, and your &ldquo;Ash&rsquo;s
-      kitchen&rdquo; was never touched: every test uses its own temporary
-      household.</p>
+      <p>Build 4 is ready whenever you want it. No rush.</p>
+      <p>It adds one thing to Build 3. With no signal, the app now says it
+      can&rsquo;t reach your kitchen and offers Try again, instead of
+      claiming your kitchen is empty. Tested in the app with the connection
+      cut and again online: no errors, and your &ldquo;Ash&rsquo;s
+      kitchen&rdquo; was never touched.</p>
     </div>
   </div>
 
@@ -183,15 +182,12 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Deploy the next build</h3>
+          <h3>Deploy Build 4, when it suits you</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
-          <b>Build Number</b> by one &rarr; Deploy to TestFlight. When
-          TestFlight says it&rsquo;s ready, update the app on your phone.</p>
-          <p><b>Then tell me it&rsquo;s deployed.</b> My next change touches how
-          Home and the kitchen load. I&rsquo;m holding it so it can&rsquo;t land
-          half-done in the build you&rsquo;re testing.</p>
+          <b>Build Number</b> by one &rarr; Deploy to TestFlight. If you are
+          part way through testing Build 3, finish that first.</p>
         </div>
-        <span class="how">Now</span>
+        <span class="how">When convenient</span>
       </li>
       <li class="ask">
         <div>
@@ -247,6 +243,10 @@
           <span class="what">Turn them on with <b>1 day before</b>, then add
           something dated <b>two days from now</b>. The reminder arrives
           tomorrow at 10am.</span></li>
+      <li><span class="where">Airplane mode</span>
+          <span class="what">Open the kitchen with no signal. It says it
+          can&rsquo;t reach your kitchen instead of &ldquo;empty&rdquo;. Turn
+          the signal back on and tap <b>Try again</b>. (Build 4.)</span></li>
       <li><span class="where">Home</span>
           <span class="what">&ldquo;Use these next&rdquo; appears once something
           is close to its date. Until then Home shows your food, and a plain
@@ -304,6 +304,14 @@
             <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
+            <td><b>No signal</b></td>
+            <td>The kitchen said &ldquo;Nothing in here yet&rdquo;, Home offered to
+            set up a new household, and Profile said &ldquo;No household
+            yet&rdquo;. Now they say they can&rsquo;t reach your kitchen, with Try
+            again.</td>
+            <td><span class="state wait">Build 4</span></td>
+          </tr>
+          <tr>
             <td><b>Reminders in a browser</b></td>
             <td>They threw an error on every kitchen visit at localhost. Reminders
             only exist on the phone, so the browser now skips them.</td>
@@ -322,16 +330,15 @@
 
   <section>
     <h2>My priorities</h2>
-    <p class="lede">Home turned out not to need a redesign. &ldquo;Use these
-    next&rdquo; was already there; it only shows when something is close to its
-    date.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
         <tbody>
-          <tr><td class="rank">1</td><td><b>No-signal states</b><span class="why">Written and checked &middot; held until your build is deployed</span></td><td><span class="size m">M</span></td>
-              <td>Checked offline in the app. With food in the kitchen, it says &ldquo;Nothing in here yet&rdquo; and Home offers to set up a new household, which invites a duplicate. It should only say &ldquo;empty&rdquo; after a load that worked, and otherwise say it can&rsquo;t reach your kitchen. Back online it recovers by itself.</td></tr>
-          <tr><td class="rank">2</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
+          <tr><td class="rank">1</td><td><b>No signal: the item screen and Add food</b></td><td><span class="size s">S</span></td>
+              <td>The kitchen, Home and Profile are covered. Opening an item or adding food without signal is not tested yet.</td></tr>
+          <tr><td class="rank">2</td><td><b>The greeting when offline</b></td><td><span class="size s">S</span></td>
+              <td>Home says &ldquo;Hi, ashraf.elashiry&rdquo; when it can&rsquo;t load your name. Minor, but it looks broken.</td></tr>
+          <tr><td class="rank">3</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
               <td>Held on purpose until there&rsquo;s real recipe data. The design guide rules out suggesting ingredients from a stock photo.</td></tr>
         </tbody>
       </table>
