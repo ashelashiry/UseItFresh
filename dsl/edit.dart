@@ -153,224 +153,64 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// "Can't reach your kitchen", with Try again.
+/// The two lines that still said "empty" offline now say what they know.
 ///
-/// Push A (off1) made the kitchen, Home and Profile stop claiming they are
-/// empty when there is no signal. This adds what they say instead: a card on
-/// the kitchen and on Home, and a Try again button that reruns that screen's
-/// own load in place (the same check, the same queries) rather than
-/// navigating anywhere and stacking a second copy of the screen.
+/// Push A re-pointed the kitchen subtitle and Profile's household line at
+/// loaded-aware functions with `bindText`, and the offline walk showed both
+/// still reading "Nothing in here yet" and "No household yet". The generated
+/// code still called kitchenCount and householdRole: `bindText` did not
+/// displace the existing binding. So each text is replaced outright with a
+/// fresh one bound to the new function, matching its look.
 ///
-/// Every action output on a page needs its own name, so the retry chains
-/// carry a Retry suffix. This is its own push because an insert cannot share a
-/// push with key-addressed rebinds on the same page.
+/// The kitchen subtitle's 14pt size is a style override the DSL `Text` cannot
+/// express; it goes back on as a fast-lane fontSize patch after this push.
 void buildStarterEditFlow(App app) {
-  final firstHouseholdId = CustomFunctionHandle(
-    name: 'firstHouseholdId',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returnType: string,
-  );
-  final kitchenState = CustomFunctionHandle(
-    name: 'kitchenState',
+  final kitchenLine = CustomFunctionHandle(
+    name: 'kitchenLine',
     args: {
+      'rows': listOf(ff.Tables.foodItemsStatus),
       'ok': bool_,
       'offline': bool_,
-      'all': listOf(ff.Tables.foodItemsStatus),
-      'shown': listOf(ff.Tables.foodItemsStatus),
-      'query': string,
-      'filter': string,
     },
     returnType: string,
   );
-
-  /// The check, then either "offline" or the screen's own load and "loaded".
-  List<DslAction> gated(String tag, List<DslAction> chain,
-          {List<DslAction> after = const []}) =>
-      [
-        CallCustomAction.named(
-          'CanReachKitchen',
-          args: {},
-          returnType: bool_,
-          arguments: {},
-          outputAs: 'reach$tag',
-        ),
-        If(
-          Equals(ActionOutput('reach$tag'), false),
-          then: [SetState('offline', true)],
-          orElse: [
-            SetState('offline', false),
-            ...chain,
-            SetState('loadedOk', true),
-            ...after,
-          ],
-        ),
-      ];
+  final householdLine = CustomFunctionHandle(
+    name: 'householdLine',
+    args: {'rows': listOf(ff.Tables.households), 'uid': string, 'ok': bool_},
+    returnType: string,
+  );
 
   final inv = ff.Pages.inventoryPage;
-  final home = ff.Pages.homePage;
-
-  List<DslAction> inventoryLoad(String tag) => [
-        PostgresQuery(
-          ff.Tables.households,
-          outputAs: 'invHouseholds$tag',
-          query: PostgresQuerySpec(
-            orderBys: const [PostgresOrderBy('created_at')],
-          ),
-        ),
-        UpdateAppState.set(
-          ff.AppState.currentHouseholdId,
-          CustomFunction(firstHouseholdId, args: {
-            'rows': ActionOutput('invHouseholds$tag'),
-            'current': AppState(ff.AppState.currentHouseholdId),
-          }),
-        ),
-        PostgresQuery(
-          ff.Tables.foodItemsStatus,
-          outputAs: 'invItems$tag',
-          query: PostgresQuerySpec(
-            filters: [
-              PostgresFilter(
-                'household_id',
-                relation: PostgresFilterRelation.equalTo,
-                value: AppState(ff.AppState.currentHouseholdId),
-              ),
-            ],
-            orderBys: const [
-              PostgresOrderBy('urgency_rank'),
-              PostgresOrderBy('days_left'),
-            ],
-          ),
-        ),
-        SetState(inv.state.allItems, ActionOutput('invItems$tag')),
-        SetState(inv.state.items, ActionOutput('invItems$tag')),
-      ];
-
-  List<DslAction> homeLoad(String tag) => [
-        PostgresQuery(
-          ff.Tables.households,
-          outputAs: 'householdsForHome$tag',
-          query: PostgresQuerySpec(
-              orderBys: const [PostgresOrderBy('created_at')]),
-        ),
-        SetState('households', ActionOutput('householdsForHome$tag')),
-        UpdateAppState.set(
-          ff.AppState.currentHouseholdId,
-          CustomFunction(firstHouseholdId, args: {
-            'rows': ActionOutput('householdsForHome$tag'),
-            'current': AppState(ff.AppState.currentHouseholdId),
-          }),
-        ),
-        PostgresQuery(
-          ff.Tables.profiles,
-          outputAs: 'profileForHome$tag',
-          query: PostgresQuerySpec(
-            filters: [
-              PostgresFilter('id',
-                  relation: PostgresFilterRelation.equalTo,
-                  value: const AuthUser(AuthUserField.userId)),
-            ],
-          ),
-        ),
-        SetState(home.state.me, ActionOutput('profileForHome$tag')),
-        PostgresQuery(
-          ff.Tables.foodItemsStatus,
-          outputAs: 'urgentForHome$tag',
-          query: PostgresQuerySpec(
-            filters: [
-              PostgresFilter('household_id',
-                  relation: PostgresFilterRelation.equalTo,
-                  value: AppState(ff.AppState.currentHouseholdId)),
-            ],
-            orderBys: const [
-              PostgresOrderBy('urgency_rank'),
-              PostgresOrderBy('days_left'),
-            ],
-          ),
-        ),
-        SetState(home.state.useFirst, ActionOutput('urgentForHome$tag')),
-      ];
-
-  /// The card both screens show. Says what happened and what will happen,
-  /// and does not guess at anything it cannot see.
-  Container offlineCard(String name, Object visible, List<DslAction> retry) =>
-      Container(
-        name: name,
-        visible: visible,
-        color: Colors.accent1,
-        borderRadius: 24,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxis: CrossAxis.center,
-          spacing: 10,
-          children: [
-            Icon('wifi_off', size: 30, color: Colors.primary),
-            Text(
-              'Can’t reach your kitchen.',
-              name: '${name}Title',
-              style: Styles.titleMedium,
-              color: Colors.primary,
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              'No signal, or the connection dropped. Your food will show '
-              'again as soon as you are back online.',
-              name: '${name}Body',
-              style: Styles.bodySmall,
-              color: Colors.secondaryText,
-              textAlign: TextAlign.center,
-            ),
-            Button(
-              'Try again',
-              name: '${name}Retry',
-              width: double.infinity,
-              height: 48,
-              borderRadius: 14,
-              color: Colors.primary,
-              textColor: Colors.secondaryBackground,
-              onTap: retry,
-            ),
-          ],
-        ),
-      );
-
-  // Kitchen: first in the states column, shown only in the offline state.
   app.editPage(inv, (page) {
-    page.ensureInsertedBefore(
-      inv.widgets.byKey('Container_dfajl791').single,
-      offlineCard(
-        'InventoryOffline',
-        Equals(
-          CustomFunction(kitchenState, args: {
-            'ok': State('loadedOk'),
-            'offline': State('offline'),
-            'all': State(inv.state.allItems),
-            'shown': State(inv.state.items),
-            'query': State(inv.state.query),
-            'filter': State(inv.state.filter),
-          }),
-          'offline',
-        ),
-        gated('InvRetry', inventoryLoad('Retry'), after: [
-          CallCustomAction.named(
-            'ScheduleExpiryReminders',
-            args: {},
-            returnType: string,
-            arguments: {},
-            outputAs: 'invRescheduleRetry',
-          ),
-        ]),
+    page.ensureReplaced(
+      inv.widgets.byKey('Text_403jzbco').single,
+      Text(
+        CustomFunction(kitchenLine, args: {
+          'rows': State(inv.state.allItems),
+          'ok': State('loadedOk'),
+          'offline': State('offline'),
+        }),
+        name: 'InventoryLede',
+        style: Styles.bodySmall,
+        color: Colors.secondaryText,
+        maxLines: 3,
       ),
     );
   });
 
-  // Home: right under the greeting.
-  app.editPage(home, (page) {
-    page.ensureInsertedAfter(
-      home.widgets.byKey('Column_8bi8tamu').single,
-      offlineCard(
-        'HomeOffline',
-        State('offline'),
-        gated('HomeRetry', homeLoad('Retry')),
+  final profile = ff.Pages.profilePage;
+  app.editPage(profile, (page) {
+    page.ensureReplaced(
+      profile.widgets.byKey('Text_qg7xk5rt').single,
+      Text(
+        CustomFunction(householdLine, args: {
+          'rows': State('households'),
+          'uid': const AuthUser(AuthUserField.userId),
+          'ok': State('loadedOk'),
+        }),
+        name: 'ProfileRole',
+        style: Styles.bodySmall,
+        color: Colors.secondaryText,
       ),
     );
   });

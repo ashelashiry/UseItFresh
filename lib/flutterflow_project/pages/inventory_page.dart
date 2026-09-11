@@ -89,7 +89,7 @@ abstract final class InventoryPageWidgets {
                     text: "Your kitchen.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Text_403jzbco",
+                    key: "Text_jgkpr2qd",
                     type: "Text",
                     path: "InventoryPage.body[0].children[0].children[1]",
                     name: "InventoryLede",

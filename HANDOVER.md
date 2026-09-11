@@ -326,6 +326,18 @@ The minified stack was enough to find it: the failing function was an
 `async` whose first line read a `late` static (`$.x.bU()`, the "not
 initialized" getter) and whose next called `"cancelAll"` on a method channel.
 
+### `bindText` does not replace a text that is already bound
+
+Pointing an existing Text at a new function with `page.bindText(...)` pushed
+cleanly, and the generated code went on calling the OLD function (11 Sep: the
+kitchen subtitle kept `kitchenCount`, Profile's line kept `householdRole`, so
+both still said "empty" offline). `bindVisible` on the same pages worked. A
+node inspect only confirms the widget, not where the old binding lives, so the
+mechanism is unconfirmed. **Replace the widget instead** (`ensureReplaced` with
+a fresh `Text(CustomFunction(...))`), and check the generated Dart for the new
+function name before believing a text binding changed. The DSL `Text` has no
+`fontSize`; a size override goes back on with a fast-lane patch afterwards.
+
 ---
 
 ## 6. The verification harness
