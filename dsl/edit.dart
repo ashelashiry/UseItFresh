@@ -153,58 +153,23 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Build 5, part A: the item screen, Add food and the greeting stop
-/// pretending when there is no signal.
+/// Build 5, part B: "Can't reach your kitchen" on the item screen and on Add
+/// food, with Try again.
 ///
-/// The same pattern as the kitchen, Home and Profile in Build 4: a
-/// reachability check first, then either an `offline` flag and nothing else,
-/// or the screen's own page-load reproduced exactly and `loadedOk` at the end.
+/// Part A gated both page-loads. This adds what they say instead, at the top
+/// of each screen, and a Try again that reruns that screen's own check and
+/// load in place. Every action output on a page needs its own name, so the
+/// retry chains carry a Retry suffix.
 ///
-///   * Item screen: offline it would show an empty item with live "I used it"
-///     and "Throw it out" buttons that cannot save. The actions now wait for
-///     a load that worked.
-///   * Add food: offline the "where is it kept" picker sat empty with no
-///     reason given. The page-load is gated; its card comes in part B.
-///   * Greeting (hiLineLoaded; the name greetingLine is already taken by an
-///     original function): offline, Home said "Hi, ashraf.elashiry" (the email fallback
-///     for a profile that did not load). It says "Hi" until the profile has
-///     loaded. The text is replaced rather than rebound, because `bindText`
-///     does not displace an existing binding (HANDOVER, section 5).
-///
-/// The "can't reach your kitchen" cards are part B: an insert cannot share a
-/// push with key-addressed edits on the same page.
+/// Add food's card is honest about what still works: the form can be filled
+/// in, but nothing can be saved until the connection is back.
 void buildStarterEditFlow(App app) {
-  final hiLineLoaded = app.customFunction(
-    'hiLineLoaded',
-    args: {'rows': listOf(ff.Tables.profiles), 'email': string, 'ok': bool_},
-    returns: string,
-    description:
-        'The short greeting above the headline, e.g. "Hi, Ash". Just "Hi" '
-        'until the profile has loaded, so an offline start does not greet '
-        'someone by their email address.',
-    code: r"""
-if (ok != true) return 'Hi';
-var who = '';
-if (rows != null && rows.isNotEmpty) {
-  who = rows.first.displayName?.trim() ?? '';
-}
-if (who.isEmpty) {
-  final address = email ?? '';
-  final at = address.indexOf('@');
-  who = at > 0 ? address.substring(0, at) : address;
-}
-return who.isEmpty ? 'Hi' : 'Hi, $who';
-""",
+  final firstHouseholdId = CustomFunctionHandle(
+    name: 'firstHouseholdId',
+    args: {'rows': listOf(ff.Tables.households), 'current': string},
+    returnType: string,
   );
 
-  for (final page in [ff.Pages.foodItemPage, ff.Pages.addFoodItemPage]) {
-    app.editPageState(page, (state) {
-      state.ensureField('loadedOk', bool_.withDefault(false));
-      state.ensureField('offline', bool_.withDefault(false));
-    });
-  }
-
-  /// The check, then either "offline" or the screen's own load and "loaded".
   List<DslAction> gated(String tag, List<DslAction> chain,
           {List<DslAction> after = const []}) =>
       [
@@ -227,50 +192,28 @@ return who.isEmpty ? 'Hi' : 'Hi, $who';
         ),
       ];
 
-  final firstHouseholdId = CustomFunctionHandle(
-    name: 'firstHouseholdId',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returnType: string,
-  );
-
-  // -- Item screen: its one query, exactly, inside the check -----------------
   final item = ff.Pages.foodItemPage;
-  app.editPageOnLoad(
-    item,
-    gated('Item', [
-      PostgresQuery(
-        ff.Tables.foodItemsStatus,
-        outputAs: 'loadedItem',
-        query: PostgresQuerySpec(
-          filters: [
-            PostgresFilter('id',
-                relation: PostgresFilterRelation.equalTo,
-                value: PageParam('itemId')),
-          ],
-        ),
-      ),
-      SetState(item.state.item, const ActionOutput('loadedItem')),
-    ]),
-  );
-  // "I used it", "Throw it out" and the replace toggle only once the item has
-  // actually loaded: offline they would act on an item the screen cannot show.
-  app.editPage(item, (page) {
-    page.bindVisible(
-        item.widgets.byKey('Column_01lid1tp').single, State('loadedOk'));
-  });
-
-  // -- Add food: bc8's chain, exactly, inside the check ----------------------
-  // "Loaded" goes before the barcode prefill: that If is terminal in this DSL,
-  // so anything written after it would be nested inside it.
   final add = ff.Pages.addFoodItemPage;
-  app.editPageOnLoad(
-    add,
-    gated(
-      'Add',
-      [
+
+  List<DslAction> itemLoad(String tag) => [
+        PostgresQuery(
+          ff.Tables.foodItemsStatus,
+          outputAs: 'loadedItem$tag',
+          query: PostgresQuerySpec(
+            filters: [
+              PostgresFilter('id',
+                  relation: PostgresFilterRelation.equalTo,
+                  value: PageParam('itemId')),
+            ],
+          ),
+        ),
+        SetState(item.state.item, ActionOutput('loadedItem$tag')),
+      ];
+
+  List<DslAction> addLoad(String tag) => [
         PostgresQuery(
           ff.Tables.households,
-          outputAs: 'householdsForScope',
+          outputAs: 'householdsForScope$tag',
           query: PostgresQuerySpec(
             orderBys: const [PostgresOrderBy('created_at')],
           ),
@@ -278,13 +221,13 @@ return who.isEmpty ? 'Hi' : 'Hi, $who';
         UpdateAppState.set(
           ff.AppState.currentHouseholdId,
           CustomFunction(firstHouseholdId, args: {
-            'rows': const ActionOutput('householdsForScope'),
+            'rows': ActionOutput('householdsForScope$tag'),
             'current': AppState(ff.AppState.currentHouseholdId),
           }),
         ),
         PostgresQuery(
           ff.Tables.storageLocations,
-          outputAs: 'locationsForHousehold',
+          outputAs: 'locationsForHousehold$tag',
           query: PostgresQuerySpec(
             filters: [
               PostgresFilter(
@@ -299,10 +242,12 @@ return who.isEmpty ? 'Hi' : 'Hi, $who';
             ],
           ),
         ),
-        SetState(add.state.locations, const ActionOutput('locationsForHousehold')),
-      ],
-      after: [
-        // Start from the barcode find, if there is one (unchanged from bc8).
+        SetState(add.state.locations, ActionOutput('locationsForHousehold$tag')),
+      ];
+
+  // A barcode find that arrived while offline is still waiting in app state,
+  // so the retry fills the form from it too once the connection is back.
+  List<DslAction> barcodePrefill() => [
         If(
           Not(Equals(AppState(ff.AppState.scanName), '')),
           then: [
@@ -322,24 +267,70 @@ return who.isEmpty ? 'Hi' : 'Hi, $who';
             UpdateAppState.set(ff.AppState.scanBarcode, ''),
           ],
         ),
-      ],
-    ),
-  );
+      ];
 
-  // -- Home: the greeting, replaced to wait for the profile -------------------
-  final home = ff.Pages.homePage;
-  app.editPage(home, (page) {
-    page.ensureReplaced(
-      home.widgets.byKey('Text_kuedjrmm').single,
-      Text(
-        CustomFunction(hiLineLoaded, args: {
-          'rows': State(home.state.me),
-          'email': const AuthUser(AuthUserField.email),
-          'ok': State('loadedOk'),
-        }),
-        name: 'HomeHi',
-        style: Styles.bodyLarge,
-        color: Colors.secondaryText,
+  Container offlineCard(String name, String body, List<DslAction> retry) =>
+      Container(
+        name: name,
+        visible: State('offline'),
+        color: Colors.accent1,
+        borderRadius: 24,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxis: CrossAxis.center,
+          spacing: 10,
+          children: [
+            Icon('wifi_off', size: 30, color: Colors.primary),
+            Text(
+              'Can’t reach your kitchen.',
+              name: '${name}Title',
+              style: Styles.titleMedium,
+              color: Colors.primary,
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              body,
+              name: '${name}Body',
+              style: Styles.bodySmall,
+              color: Colors.secondaryText,
+              textAlign: TextAlign.center,
+            ),
+            Button(
+              'Try again',
+              name: '${name}Retry',
+              width: double.infinity,
+              height: 48,
+              borderRadius: 14,
+              color: Colors.primary,
+              textColor: Colors.secondaryBackground,
+              onTap: retry,
+            ),
+          ],
+        ),
+      );
+
+  // Item screen: first in the body, above the name.
+  app.editPage(item, (page) {
+    page.ensureInsertedBefore(
+      item.widgets.byKey('Text_4oc4iodb').single,
+      offlineCard(
+        'ItemOffline',
+        'No signal, or the connection dropped. This item will show again as '
+            'soon as you are back online.',
+        gated('ItemRetry', itemLoad('Retry')),
+      ),
+    );
+  });
+
+  // Add food: first in the form, above the photo.
+  app.editPage(add, (page) {
+    page.ensureInsertedBefore(
+      add.widgets.byKey('Column_rr37vtu0').single,
+      offlineCard(
+        'AddOffline',
+        'No signal, or the connection dropped. You can fill this in, but it '
+            'cannot be saved until you are back online.',
+        gated('AddRetry', addLoad('Retry'), after: barcodePrefill()),
       ),
     );
   });

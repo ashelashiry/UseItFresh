@@ -121,46 +121,92 @@ abstract final class FoodItemPageWidgets {
                     name: "Column",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
+                        key: "Container_v9uxqy2s",
+                        type: "Container",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[0]",
+                        name: "ItemOffline",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "Column_lf34mhhr",
+                            type: "Column",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[0].children[0]",
+                            name: "Column",
+                            children: <ffai.ProjectWidgetHandle>[
+                              ffai.ProjectWidgetHandle(
+                                key: "Icon_yzqdof0s",
+                                type: "Icon",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[0].children[0].children[0]",
+                                name: "Icon",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_99ywaw61",
+                                type: "Text",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[0].children[0].children[1]",
+                                name: "ItemOfflineTitle",
+                                text: "Can’t reach your kitchen.",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Text_4csarogf",
+                                type: "Text",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[0].children[0].children[2]",
+                                name: "ItemOfflineBody",
+                                text: "No signal, or the connection dropped. This item will show again as soon as you are back online.",
+                              ),
+                              ffai.ProjectWidgetHandle(
+                                key: "Button_rppbkwdp",
+                                type: "Button",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[0].children[0].children[3]",
+                                name: "ItemOfflineRetry",
+                                text: "Try again",
+                                triggers: const <String>[
+                                  "ON_TAP",
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      ffai.ProjectWidgetHandle(
                         key: "Text_4oc4iodb",
                         type: "Text",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[0]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[1]",
                         name: "ItemName",
                       ),
                       ffai.ProjectWidgetHandle(
                         key: "Container_d1vf3f1i",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[1]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[2]",
                         name: "ItemBadge",
                       ),
                       ffai.ProjectWidgetHandle(
                         key: "Text_5gldqe50",
                         type: "Text",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[2]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[3]",
                         name: "ItemDetail",
                       ),
                       ffai.ProjectWidgetHandle(
                         key: "Container_19g4bdfl",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[3]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[4]",
                         name: "Fact_date",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_vqns0s2m",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[3].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[4].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_z0f4axer",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[3].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[4].children[0].children[0]",
                                 name: "FactLabel_date",
                                 text: "THE DATE",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_6r4uynpk",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[3].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[4].children[0].children[1]",
                                 name: "FactValue_date",
                               ),
                             ],
@@ -170,26 +216,26 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_m4r7jjet",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[4]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[5]",
                         name: "Fact_dateSource",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_n1kzavrw",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[4].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[5].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_c3r3u35b",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[4].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[5].children[0].children[0]",
                                 name: "FactLabel_dateSource",
                                 text: "WHERE THAT CAME FROM",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_o46gtnpr",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[4].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[5].children[0].children[1]",
                                 name: "FactValue_dateSource",
                               ),
                             ],
@@ -199,26 +245,26 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_sd04zugr",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[5]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[6]",
                         name: "Fact_basis",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_hx4s7c3j",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[5].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[6].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_tmd2g824",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[5].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[6].children[0].children[0]",
                                 name: "FactLabel_basis",
                                 text: "HOW THIS WAS WORKED OUT",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_qqnk9qi2",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[5].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[6].children[0].children[1]",
                                 name: "FactValue_basis",
                               ),
                             ],
@@ -228,26 +274,26 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_bxp4bdnx",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[6]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[7]",
                         name: "Fact_quantity",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_fvnzmha3",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[6].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[7].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_qhmwbxbe",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[6].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[7].children[0].children[0]",
                                 name: "FactLabel_quantity",
                                 text: "HOW MUCH",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_jjsuw1lz",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[6].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[7].children[0].children[1]",
                                 name: "FactValue_quantity",
                               ),
                             ],
@@ -257,26 +303,26 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_8o782doc",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[7]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[8]",
                         name: "Fact_where",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_939jd6pn",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[7].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[8].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_bkyh2d6p",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[7].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[8].children[0].children[0]",
                                 name: "FactLabel_where",
                                 text: "WHERE IT IS KEPT",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_q764rx5q",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[7].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[8].children[0].children[1]",
                                 name: "FactValue_where",
                               ),
                             ],
@@ -286,26 +332,26 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_hxwaktck",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[8]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[9]",
                         name: "Fact_category",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_lihsva4p",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[8].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[9].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_ndtgb32l",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[8].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[9].children[0].children[0]",
                                 name: "FactLabel_category",
                                 text: "CATEGORY",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_ir7hz6a3",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[8].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[9].children[0].children[1]",
                                 name: "FactValue_category",
                               ),
                             ],
@@ -315,26 +361,26 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_de2f9ked",
                         type: "Container",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[9]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[10]",
                         name: "Fact_added",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Column_z69hqk9r",
                             type: "Column",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[9].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0]",
                             name: "Column",
                             children: <ffai.ProjectWidgetHandle>[
                               ffai.ProjectWidgetHandle(
                                 key: "Text_atnxqwey",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[9].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0]",
                                 name: "FactLabel_added",
                                 text: "ADDED",
                               ),
                               ffai.ProjectWidgetHandle(
                                 key: "Text_xeil70jj",
                                 type: "Text",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[9].children[0].children[1]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[1]",
                                 name: "FactValue_added",
                               ),
                             ],
@@ -344,13 +390,13 @@ abstract final class FoodItemPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Column_01lid1tp",
                         type: "Column",
-                        path: "FoodItemPage.body[0].children[1].children[0].children[10]",
+                        path: "FoodItemPage.body[0].children[1].children[0].children[11]",
                         name: "ItemActions",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Container_twamrhpx",
                             type: "Container",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[11].children[0]",
                             name: "ItemReplaceToggle",
                             triggers: const <String>[
                               "ON_TAP",
@@ -359,25 +405,25 @@ abstract final class FoodItemPageWidgets {
                               ffai.ProjectWidgetHandle(
                                 key: "Row_i47w4bjl",
                                 type: "Row",
-                                path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0]",
+                                path: "FoodItemPage.body[0].children[1].children[0].children[11].children[0].children[0]",
                                 name: "Row",
                                 children: <ffai.ProjectWidgetHandle>[
                                   ffai.ProjectWidgetHandle(
                                     key: "Icon_emavulm8",
                                     type: "Icon",
-                                    path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0].children[0]",
+                                    path: "FoodItemPage.body[0].children[1].children[0].children[11].children[0].children[0].children[0]",
                                     name: "ItemReplaceOff",
                                   ),
                                   ffai.ProjectWidgetHandle(
                                     key: "Icon_69sqo82c",
                                     type: "Icon",
-                                    path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0].children[1]",
+                                    path: "FoodItemPage.body[0].children[1].children[0].children[11].children[0].children[0].children[1]",
                                     name: "ItemReplaceOn",
                                   ),
                                   ffai.ProjectWidgetHandle(
                                     key: "Text_rdeflnkr",
                                     type: "Text",
-                                    path: "FoodItemPage.body[0].children[1].children[0].children[10].children[0].children[0].children[2]",
+                                    path: "FoodItemPage.body[0].children[1].children[0].children[11].children[0].children[0].children[2]",
                                     name: "ItemReplaceLabel",
                                     text: "Put it on the shopping list",
                                   ),
@@ -388,7 +434,7 @@ abstract final class FoodItemPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_q7rrsu3l",
                             type: "Button",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[1]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[11].children[1]",
                             name: "ItemUsed",
                             text: "I used it",
                             triggers: const <String>[
@@ -398,7 +444,7 @@ abstract final class FoodItemPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_fdabmnbe",
                             type: "Button",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[10].children[2]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[11].children[2]",
                             name: "ItemDiscarded",
                             text: "Throw it out",
                             triggers: const <String>[
