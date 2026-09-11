@@ -157,14 +157,14 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Scanner, reminders and photo naming are built. I have
-      stopped all database work until you say go, after my test deleted your
-      household.</p>
+      <p class="sub">Receipt and fridge-photo reading are built. Everything
+      that reads photos is waiting on one thing: credit in your Google AI
+      Studio account.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
       git <b>main</b> &middot; pushed to GitHub<br>
-      FlutterFlow <b>aVKC95AC0wQmw01JZnxe</b><br>
+      FlutterFlow <b>ceV2IFCHZuzsgvLC0eR7</b><br>
       app <b>localhost:8080</b> &middot; running
     </div>
   </header>
@@ -172,9 +172,9 @@
   <div class="verdict">
     <span class="lbl">My recommendation</span>
     <div>
-      <p>Reply &ldquo;go&rdquo;. I get photo naming working today, then build receipt scanning.</p>
-      <p>Put a new build on your phone whenever suits you (ask 2). Photo naming
-      runs on the server, so fixing it does not need another build.</p>
+      <p>Add credit in AI Studio. I test receipts end to end, then you deploy Build 2.</p>
+      <p>The key and the code are fine. Google turned the calls away with
+      &ldquo;Your prepayment credits are depleted&rdquo;.</p>
     </div>
   </div>
 
@@ -184,22 +184,23 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Say &ldquo;go&rdquo; so I can test photo naming</h3>
-          <p>The last test answered &ldquo;could not name that photo&rdquo;. I need
-          to run it once more to see why. The test now makes its own temporary
-          household and deletes only that one. It checks what exists before and
-          stops if it can&rsquo;t tell which household is its own.</p>
+          <h3>Add credit to your Gemini project</h3>
+          <p>Go to <b>ai.studio/projects</b>, open the project your key belongs
+          to, then <b>Billing</b>, and add credit. The minimum is plenty for
+          testing. Then tell me &ldquo;credits added&rdquo;. Nothing needs
+          redeploying.</p>
         </div>
-        <span class="how">Reply &ldquo;go&rdquo;</span>
+        <span class="how">5 min</span>
       </li>
       <li class="ask">
         <div>
-          <h3>New build on your phone</h3>
+          <h3>Build 2, once I say receipts work</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
-          <b>Build Number</b> by one &rarr; Deploy to TestFlight. That gets you
-          expiry reminders and photo naming.</p>
+          <b>Build Number</b> by one &rarr; Deploy to TestFlight. It brings
+          reminders, photo naming, receipts, fridge photos and kept product
+          photos. That&rsquo;s the build for your full round of testing.</p>
         </div>
-        <span class="how">5 min</span>
+        <span class="how">After my go</span>
       </li>
       <li class="ask">
         <div>
@@ -279,11 +280,33 @@
             <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
+            <td><b>Scan a receipt</b><span class="why">Scan &rarr; Receipt</span></td>
+            <td>One photo of the till receipt. Shop abbreviations become plain
+            names, bags and cleaning products are left out, and each food is
+            given a place: fridge, freezer or pantry. You remove anything wrong,
+            then add the lot. The photo is deleted once it has been read.</td>
+            <td><span class="state wait">Needs credit</span></td>
+          </tr>
+          <tr>
+            <td><b>Fridge photo</b><span class="why">Scan &rarr; Fridge photo</span></td>
+            <td>The same review list, from a photo of a shelf. Only what can
+            actually be seen is listed. It won&rsquo;t guess what&rsquo;s inside
+            a closed tub.</td>
+            <td><span class="state wait">Needs credit</span></td>
+          </tr>
+          <tr>
             <td><b>Name it from a photo</b><span class="why">Gemini, key kept in Supabase</span></td>
             <td>Take a photo and the form suggests a name and category. It never
             overwrites what you typed. It never guesses a date or says whether
             food is safe to eat.</td>
-            <td><span class="state held">Test failing</span></td>
+            <td><span class="state wait">Needs credit</span></td>
+          </tr>
+          <tr>
+            <td><b>Product photos kept</b></td>
+            <td>A scanned product&rsquo;s photo is copied into your own storage,
+            at a sharper size. It won&rsquo;t disappear if the product database
+            changes it.</td>
+            <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
             <td><b>iOS build fix</b></td>
@@ -302,24 +325,22 @@
   </section>
 
   <section>
-    <h2>My priorities after &ldquo;go&rdquo;</h2>
-    <p class="lede">Now that Gemini is connected, the two Scan tiles that do
-    nothing yet are the best next step.</p>
+    <h2>My priorities</h2>
+    <p class="lede">Receipts, fridge photos and kept product photos are done
+    (above). What&rsquo;s left, in order:</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
         <tbody>
-          <tr><td class="rank">1</td><td><b>Get photo naming working</b></td><td><span class="size s">S</span></td>
-              <td>It&rsquo;s built. It only fails at the step where it asks Gemini. The next two jobs use the same step.</td></tr>
-          <tr><td class="rank">2</td><td><b>Scan a receipt</b><span class="why">The &ldquo;Receipt&rdquo; tile on Scan</span></td><td><span class="size l">L</span></td>
-              <td>A whole shop logged in one go. You tick which lines to keep, and nothing is added without you seeing it.</td></tr>
-          <tr><td class="rank">3</td><td><b>Photograph a fridge shelf</b><span class="why">The &ldquo;Fridge&rdquo; tile on Scan</span></td><td><span class="size m">M</span></td>
-              <td>Reuses the receipt review screen, so it&rsquo;s cheaper once job 2 exists.</td></tr>
-          <tr><td class="rank">4</td><td><b>Keep product photos in our own storage</b></td><td><span class="size s">S</span></td>
-              <td>Scanned photos are links to Open Food Facts right now. If they change a link, your item loses its picture.</td></tr>
-          <tr><td class="rank">5</td><td><b>Home screen refresh</b></td><td><span class="size m">M</span></td>
+          <tr><td class="rank">1</td><td><b>Test all photo reading</b><span class="why">Starts when you add credit</span></td><td><span class="size s">S</span></td>
+              <td>Tests are ready: a real receipt with abbreviations, bags and bleach on it, a shelf photo, and a single item. Then the whole flow in the app.</td></tr>
+          <tr><td class="rank">2</td><td><b>Edit a line on the review list</b></td><td><span class="size s">S</span></td>
+              <td>For now you can only remove a wrong line, not fix it. Fixing a misread name before adding it saves a trip to each item afterwards.</td></tr>
+          <tr><td class="rank">3</td><td><b>Clearer message when Gemini has no credit</b></td><td><span class="size s">S</span></td>
+              <td>Right now the app says &ldquo;too many photos&rdquo;, which is wrong. I&rsquo;ll bundle this fix into your next function paste.</td></tr>
+          <tr><td class="rank">4</td><td><b>Home screen refresh</b></td><td><span class="size m">M</span></td>
               <td>Put &ldquo;use these first&rdquo; at the top of Home, now that there&rsquo;s real data to show.</td></tr>
-          <tr><td class="rank">6</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
+          <tr><td class="rank">5</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
               <td>Kitchens and shops often have poor signal. Screens should say what happened instead of sitting blank.</td></tr>
         </tbody>
       </table>

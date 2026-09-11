@@ -153,390 +153,123 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Point the Receipt and Fridge photo tiles at the review screen.
+/// Keep scanned product photos in our own storage.
 ///
-/// Until now both said "arrives in Phase 3". Each takes one photo, has it
-/// read, and opens the review list. Closing the camera says nothing, because
-/// changing your mind is not an error; anything else that stops it says why.
+/// A barcode lookup gives the item Open Food Facts' photo link. Those links
+/// change when a photo is replaced upstream, and an item should not lose its
+/// picture because someone else edited a public database. So the photo is
+/// copied into the household's own folder when the item is added.
+///
+/// Same signature as before — seven arguments, same names — so no call site
+/// changes and nothing else needs to be in this push.
 void buildStarterEditFlow(App app) {
-  final scan = ff.Pages.scanAddPage;
+  app.raw((project) {
+    updateCustomAction(
+      project,
+      name: 'CreateFoodItem',
+      description:
+          'Adds one food item to the current household, copying an Open Food '
+          'Facts photo into our own storage first. Returns an empty string on '
+          'success, or a message explaining why it failed.',
+      code: r'''
+import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
-  List<DslAction> readThenReview(String mode, String tag) => [
-        CallCustomAction.named(
-          'ReadPhotoFoods',
-          args: {'mode': string},
-          returnType: string,
-          arguments: {'mode': mode},
-          outputAs: 'read$tag',
-        ),
-        If(
-          Equals(ActionOutput('read$tag'), 'ok'),
-          then: [Navigate(ff.Pages.scanReviewPage)],
-          orElse: [
-            If(
-              Not(Equals(ActionOutput('read$tag'), '')),
-              then: [Snackbar(ActionOutput('read$tag'))],
-            ),
-          ],
-        ),
-      ];
+/// Adds a food item, and says why if it could not.
+///
+/// household_id is not null in the schema and has no default, so it has to be
+/// supplied here; created_by records who added it. Both come from the session
+/// rather than the form, so neither can be left out by a screen that forgets.
+Future<String> createFoodItem(
+  String? name,
+  String? category,
+  String? locationId,
+  DateTime? printedDate,
+  String? printedDateType,
+  String? imageUrl,
+  String? barcode,
+) async {
+  final trimmed = (name ?? '').trim();
+  if (trimmed.isEmpty) return 'Give it a name first.';
+  if ((locationId ?? '').isEmpty) return 'Choose where it is kept.';
 
-  app.editPage(scan, (page) {
-    page.ensureActions(
-      scan.widgets.byKey('Container_g7jwjr0v').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: readThenReview('receipt', 'Receipt'),
-    );
-    page.ensureActions(
-      scan.widgets.byKey('Container_u78daphn').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: readThenReview('shelf', 'Shelf'),
-    );
-  });
-
-  // FlutterFlow's copy of the function, kept the same as the deployed one.
-  // FlutterFlow declares edge functions but does not deploy them: the live
-  // code is whatever was last deployed from the Supabase editor. This copy
-  // only stops a later deploy from FlutterFlow putting the old code back.
-  app.supabaseEdgeFunction(
-    name: 'recognise-food',
-    description:
-        'Reads food from a photo in this project storage: one item, a '
-        'receipt, or a fridge shelf. Never judges freshness, safety or dates.',
-    verifyJwt: false,
-    enableCors: true,
-    code: r'''
-// recognise-food — read food from a photograph.
-//
-// Three kinds of photo, chosen by `mode` in the request body:
-//   "item"    (default) one food → { name, category, note }
-//   "receipt" a till receipt     → { items: [{ name, category, quantity }], note }
-//   "shelf"   a fridge shelf or cupboard → { items: [...], note }
-//
-// Deploy with "Verify JWT with legacy secret" OFF. This project signs user
-// sessions with the new ES256 keys, which that legacy check rejects, while it
-// ACCEPTS the anon key — and the anon key ships inside the app. So the gateway
-// check would block every real user and let in anyone who unpacks the app.
-// Instead the caller is checked here, against the auth server, which accepts
-// real sessions of either kind and gives the anon key no user at all.
-//
-// The Gemini key lives in Supabase as the GEMINI_API_KEY secret and never
-// leaves the server.
-//
-// What it may say is deliberately narrow: names, categories and counts, as
-// suggestions. Never freshness, safety, spoilage, a price or a date, even when
-// one is visible. Nothing is saved from here — the person confirms first.
-
-import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const API = "https://generativelanguage.googleapis.com/v1beta";
-
-// Google retires model names on its own schedule (gemini-2.0-flash went in
-// June 2026) and a retired name answers 404. So nothing here is pinned to a
-// version: the alias is tried first, and if that is gone too, the key is asked
-// which Flash models it can use and the newest stable one is taken.
-const PREFERRED = ["gemini-flash-latest"];
-let discovered = ""; // kept while this instance stays warm
-
-const CATEGORIES = [
-  "dairy", "meat_poultry", "seafood", "eggs", "cooked_leftovers", "fruit",
-  "vegetables", "bread_bakery", "pantry_dry", "frozen", "condiments_sauces",
-  "infant_food",
-];
-
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-const NEVER = `Do NOT judge freshness, safety, spoilage or ripeness. Do NOT read
-or estimate any date, even if one is visible. Do NOT include prices.`;
-
-const ITEM_PROMPT = `You are helping someone log the food in their kitchen.
-Look at the photo and name the single main food item in plain everyday words,
-for example "Cheddar cheese", "Semi-skimmed milk", "Spinach", "Chicken thighs".
-Include a brand only if it is clearly legible and is what people call it.
-Choose the closest category from the list, or "unknown" if none fits.
-${NEVER}
-If the photo is not of food, set isFood to false.`;
-
-const RECEIPT_PROMPT = `This is a photo of a shopping receipt. List every FOOD
-or DRINK item that was bought, so it can be added to a kitchen inventory.
-Skip bags, cleaning products, toiletries, medicine, household goods, offers,
-discounts, subtotals, totals and payment lines.
-Shops abbreviate: write each item as a plain everyday name, for example
-"SEMI SKMD MLK 4PT" becomes "Semi-skimmed milk" and "TSC BRST FLLT" becomes
-"Chicken breast fillets". Keep a brand only when it is what people call it.
-If one product appears on several lines, list it once and add the quantities.
-quantity is the number of units bought; use 1 when it is not shown.
-Choose the closest category from the list, or "unknown" if none fits.
-If you cannot read a line well enough to name it, leave it out rather than guess.
-${NEVER}
-If the photo is not a receipt, set isReceipt to false and return no items.`;
-
-const SHELF_PROMPT = `This is a photo of a fridge shelf, a cupboard or a
-worktop. List each distinct food item you can clearly see, so it can be added
-to a kitchen inventory. Name each in plain everyday words; include a brand only
-when it is clearly legible. quantity is how many of that item you can see.
-List only what is actually visible. Do not guess what is inside an opaque or
-unlabelled container — leave it out.
-Choose the closest category from the list, or "unknown" if none fits.
-${NEVER}
-If there is no food in the photo, return no items.`;
-
-const CATEGORY = { type: "STRING", enum: [...CATEGORIES, "unknown"] };
-
-const ITEM_SCHEMA = {
-  type: "OBJECT",
-  properties: {
-    name: { type: "STRING" },
-    category: CATEGORY,
-    isFood: { type: "BOOLEAN" },
-  },
-  required: ["name", "category", "isFood"],
-};
-
-const LIST_ITEMS = {
-  type: "ARRAY",
-  items: {
-    type: "OBJECT",
-    properties: {
-      name: { type: "STRING" },
-      category: CATEGORY,
-      quantity: { type: "INTEGER" },
-    },
-    required: ["name", "category", "quantity"],
-  },
-};
-
-const RECEIPT_SCHEMA = {
-  type: "OBJECT",
-  properties: { isReceipt: { type: "BOOLEAN" }, items: LIST_ITEMS },
-  required: ["isReceipt", "items"],
-};
-
-const SHELF_SCHEMA = {
-  type: "OBJECT",
-  properties: { items: LIST_ITEMS },
-  required: ["items"],
-};
-
-const SORRY = {
-  item: "Could not name that photo. You can type it instead.",
-  receipt: "Could not read that receipt. Try a flatter, brighter photo.",
-  shelf: "Could not read that photo. Try again closer up.",
-};
-
-function reply(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, "Content-Type": "application/json" },
-  });
-}
-
-function toBase64(bytes: Uint8Array): string {
-  let bin = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(bin);
-}
-
-function version(name: string): number[] {
-  const m = name.match(/^gemini-([\d.]+)-/);
-  return m ? m[1].split(".").map(Number) : [0];
-}
-
-function newerFirst(a: string, b: string): number {
-  const va = version(a), vb = version(b);
-  for (let i = 0; i < Math.max(va.length, vb.length); i++) {
-    const d = (vb[i] ?? 0) - (va[i] ?? 0);
-    if (d !== 0) return d;
-  }
-  // Same version: full Flash before Flash-Lite.
-  return Number(a.endsWith("-lite")) - Number(b.endsWith("-lite"));
-}
-
-// The newest stable Flash model this key can call. Stable means a plain
-// "gemini-<version>-flash" or "-flash-lite" name: no preview, experimental,
-// dated, image, audio or live variants.
-async function discoverModel(key: string): Promise<string> {
-  const res = await fetch(`${API}/models?pageSize=1000`, {
-    headers: { "x-goog-api-key": key },
-  });
-  if (!res.ok) return "";
-  const { models = [] } = await res.json();
-  const usable = (models as { name?: string; supportedGenerationMethods?: string[] }[])
-    .filter((m) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
-    .map((m) => String(m.name ?? "").replace(/^models\//, ""))
-    .filter((n) => /^gemini-[\d.]+-flash(-lite)?$/.test(n))
-    .sort(newerFirst);
-  return usable[0] ?? "";
-}
-
-async function generate(model: string, key: string, body: string) {
-  return await fetch(`${API}/models/${model}:generateContent`, {
-    method: "POST",
-    // Header, not query string, so the key never lands in a URL log.
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body,
-  });
-}
-
-async function callGemini(key: string, body: string) {
-  const tried: string[] = [];
-  let res: Response | null = null;
-  for (const model of [discovered, ...PREFERRED]) {
-    if (!model || tried.includes(model)) continue;
-    tried.push(model);
-    res = await generate(model, key, body);
-    if (res.status !== 404) return { res, model };
-  }
-  const found = await discoverModel(key);
-  if (found && !tried.includes(found)) {
-    res = await generate(found, key, body);
-    if (res.ok) discovered = found;
-    return { res, model: found };
-  }
-  return { res, model: tried.join(",") };
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-
-  const base = Deno.env.get("SUPABASE_URL") ?? "";
-  const publicKey = Deno.env.get("SUPABASE_ANON_KEY") ??
-    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
-
-  // A signed-in person, checked with the auth server — not merely a token that
-  // parses. The anon key is a valid JWT but belongs to no user, so it stops here.
-  const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) {
-    return reply({ error: "Sign in to read photos." }, 401);
-  }
-  const supabase = createClient(base, publicKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData?.user) {
-    return reply({ error: "Sign in to read photos." }, 401);
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one before adding food.';
   }
 
-  const key = Deno.env.get("GEMINI_API_KEY");
-  if (!key) return reply({ error: "Photo reading is not set up yet." }, 503);
+  final code = (barcode ?? '').trim();
+  var photo = (imageUrl ?? '').trim();
+  if (photo.contains('openfoodfacts.org/')) {
+    photo = await _keepOwnCopy(photo, household);
+  }
 
-  let imageUrl = "";
-  let mode = "item";
+  // How it was added, most specific first. A barcode is a stronger claim
+  // about what the thing IS than a photograph, so it wins when both are
+  // present — which is exactly what happens when a lookup supplies the
+  // product picture too.
+  final source =
+      code.isNotEmpty ? 'barcode' : (photo.isNotEmpty ? 'photo' : 'manual');
+
   try {
-    const input = await req.json();
-    imageUrl = String(input?.imageUrl ?? "");
-    if (input?.mode === "receipt" || input?.mode === "shelf") mode = input.mode;
-  } catch {
-    return reply({ error: "No photo was sent." }, 400);
-  }
-  const sorry = SORRY[mode as keyof typeof SORRY];
-
-  // Signed links into the private food-images bucket only. Anything else —
-  // another site, or the public avatars bucket — would turn this into a way
-  // to spend the key on pictures that are not someone's food.
-  if (!imageUrl.startsWith(`${base}/storage/v1/object/sign/food-images/`)) {
-    return reply({ error: "That photo is not from this app." }, 400);
-  }
-
-  const img = await fetch(imageUrl);
-  if (!img.ok) return reply({ error: "Could not read the photo." }, 400);
-  const bytes = new Uint8Array(await img.arrayBuffer());
-  if (bytes.length > 8_000_000) {
-    return reply({ error: "That photo is too large." }, 413);
-  }
-  const mime = img.headers.get("content-type") ?? "image/jpeg";
-
-  const prompt = mode === "receipt" ? RECEIPT_PROMPT
-    : mode === "shelf" ? SHELF_PROMPT : ITEM_PROMPT;
-  const schema = mode === "receipt" ? RECEIPT_SCHEMA
-    : mode === "shelf" ? SHELF_SCHEMA : ITEM_SCHEMA;
-
-  const body = JSON.stringify({
-    contents: [{
-      parts: [
-        { text: prompt },
-        { inline_data: { mime_type: mime, data: toBase64(bytes) } },
-      ],
-    }],
-    generationConfig: {
-      temperature: 0.1,
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    },
-  });
-
-  const { res, model } = await callGemini(key, body);
-
-  if (!res || !res.ok) {
-    const status = res?.status ?? 0;
-    // Google's own message, never the key: it is sent in a header and error
-    // bodies do not echo it. `detail` is for diagnosis; the app shows `error`.
-    let why = "";
-    try {
-      why = String((await res?.json())?.error?.message ?? "").slice(0, 200);
-    } catch { /* not JSON */ }
-    console.error("gemini", model, status, why);
-    return reply({
-      error: status === 429 ? "Too many photos just now. Try again in a minute." : sorry,
-      detail: `gemini ${status} ${model}: ${why}`,
-    }, 502);
-  }
-
-  const data = await res.json();
-  // Thinking models may return thought parts first; the answer is the rest.
-  const parts = (data?.candidates?.[0]?.content?.parts ?? []) as {
-    text?: string;
-    thought?: boolean;
-  }[];
-  const text = parts.filter((p) => !p.thought).map((p) => p.text ?? "").join("");
-  let out: {
-    name?: string;
-    category?: string;
-    isFood?: boolean;
-    isReceipt?: boolean;
-    items?: { name?: string; category?: string; quantity?: number }[];
-  };
-  try {
-    out = JSON.parse(text);
-  } catch {
-    console.error("unparsed", model, text.slice(0, 200));
-    return reply({ error: sorry, detail: `unparsed ${model}` }, 502);
-  }
-
-  const clean = (c: unknown) =>
-    CATEGORIES.includes(String(c)) ? String(c) : "";
-
-  if (mode === "item") {
-    if (out.isFood === false) {
-      return reply({ name: "", category: "", note: "That does not look like food." });
+    await SupaFlow.client.from('food_items').insert({
+      'household_id': household,
+      'storage_location_id': locationId,
+      'created_by': SupaFlow.client.auth.currentUser?.id,
+      'name': trimmed,
+      if ((category ?? '').isNotEmpty) 'category': category,
+      if (photo.isNotEmpty) 'image_url': photo,
+      if (code.isNotEmpty) 'barcode': code,
+      if (printedDate != null)
+        'printed_date': printedDate.toIso8601String().substring(0, 10),
+      // A date type without a date says nothing and reads as though a date
+      // was recorded, so it is only stored alongside one.
+      if (printedDate != null && (printedDateType ?? '').isNotEmpty)
+        'printed_date_type': printedDateType,
+      'source_type': source,
+    });
+    return '';
+  } on PostgrestException catch (error) {
+    if (error.code == '42501') {
+      return 'Your account is not allowed to add to this household.';
     }
-    const name = String(out.name ?? "").trim().slice(0, 60);
-    return reply({ name, category: clean(out.category), note: "", model });
+    return error.message;
+  } catch (error) {
+    return 'Could not add it. $error';
   }
+}
 
-  if (mode === "receipt" && out.isReceipt === false) {
-    return reply({ items: [], note: "That does not look like a receipt." });
+/// Our own copy of an Open Food Facts photo, or their link if it cannot be
+/// made. A picture that may one day go stale is better than none, so a failed
+/// copy never stops the food being added.
+Future<String> _keepOwnCopy(String url, String household) async {
+  // The lookup returns the 200px thumbnail. The item screen shows the photo
+  // large, so the 400px display size is fetched when it exists.
+  final larger = url.replaceFirst(RegExp(r'\.200\.jpg$'), '.400.jpg');
+  try {
+    var res = await http
+        .get(Uri.parse(larger))
+        .timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200 && larger != url) {
+      res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+    }
+    if (res.statusCode != 200 || res.bodyBytes.isEmpty) return url;
+
+    final path = '$household/product-${const Uuid().v4()}.jpg';
+    final storage = SupaFlow.client.storage.from('food-images');
+    await storage.uploadBinary(
+      path,
+      res.bodyBytes,
+      fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+    );
+    // A year, the same as a photo taken in the app.
+    return await storage.createSignedUrl(path, 60 * 60 * 24 * 365);
+  } catch (_) {
+    return url;
   }
-  const items = (out.items ?? [])
-    .map((i) => ({
-      name: String(i.name ?? "").trim().slice(0, 60),
-      category: clean(i.category),
-      quantity: Math.min(Math.max(Math.round(Number(i.quantity) || 1), 1), 24),
-    }))
-    .filter((i) => i.name)
-    .slice(0, 40);
-  const none = mode === "receipt"
-    ? "No food found on that receipt."
-    : "No food I could name in that photo.";
-  return reply({ items, note: items.length ? "" : none, model });
-});
+}
 ''',
-  );
+    );
+  });
 }
