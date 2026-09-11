@@ -592,6 +592,38 @@ status or safety from a photograph**.
 - Status board: <https://claude.ai/code/artifact/b5a7bfe7-b7ac-446e-a846-679f567c21ab>
 - Screen kit: <https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1>
 
+## 11. Releases: anchoring a build so it can be rolled back
+
+Decided 12 Sep, after the owner pointed out that a build number on the phone
+pointed at nothing recoverable. Builds 4 and 5 had hand-made tags; build 6 had
+nothing.
+
+`RELEASES.md` is the ledger, and `scripts/release.py <build> --note "..."`
+writes a row the moment FlutterFlow finishes deploying. It records three
+anchors, because one is never enough:
+
+- **a git tag** `build-<n>-ios` on the commit the build came from, annotated
+  with the FlutterFlow commit, the live photo-function version and the date;
+- **a FlutterFlow branch** of the same name, from that FlutterFlow commit.
+  This is the one that matters: a rollback redeploys from the branch. Branch
+  ids so far: build-4-ios `VmwmBylmyafXzs4DOCwJ`, build-5-ios
+  `DtQumQwwU4UY9uUudVRl`, build-6-ios `WeJKE7HXMmAfevQmf5NR`;
+- **the photo function's own version**, probed from the live function, because
+  the app and the function ship separately.
+
+Two things the script deliberately refuses: a dirty tree (a tag would point at
+something you cannot get back) and a build number that was already recorded.
+
+Rolling back ships old code as a *new*, higher build number: App Store Connect
+never accepts a number it has seen. Migrations are not rolled back; they are
+additive and safe to re-run, so older builds keep working against a newer
+database.
+
+**The app now says which build it is.** Profile shows "Version 1.0.0 (6)" from
+`package_info_plus`, read from the installed app rather than from
+`pubspec.yaml`, which lags (it said 1.0.0+5 while build 6 was on the phone).
+So a screenshot names its own build. Lands in build 7.
+
 ## 10. Reminders are local, not push
 
 Decided 11 Sep. Reminders are scheduled **on the device** with

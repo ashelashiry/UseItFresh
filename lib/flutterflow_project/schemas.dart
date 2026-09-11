@@ -3034,6 +3034,7 @@ abstract final class CustomCode {
   static const widgets = <String>[
     "AnimatedRemoteImage",
     "AppIcon",
+    "AppVersion",
     "BusySpinner",
     "FoodStatusBadge",
     "FridgeEntrance",

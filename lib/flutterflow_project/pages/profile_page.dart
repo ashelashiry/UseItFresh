@@ -252,9 +252,15 @@ abstract final class ProfilePageWidgets {
                     text: "Use It Fresh provides general food-management guidance, not a guarantee of safety. When in doubt — especially with high-risk food — throw it out and follow local food-safety advice.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Container_pv4flta3",
+                    key: "Container_0azlsggn",
                     type: "Container",
                     path: "ProfilePage.body[0].children[0].children[10]",
+                    name: "ProfileAppVersion",
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_pv4flta3",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[11]",
                     name: "ProfileSignOut",
                     triggers: const <String>[
                       "ON_TAP",
@@ -263,7 +269,7 @@ abstract final class ProfilePageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Text_vvxnrys1",
                         type: "Text",
-                        path: "ProfilePage.body[0].children[0].children[10].children[0]",
+                        path: "ProfilePage.body[0].children[0].children[11].children[0]",
                         name: "ProfileSignOutLabel",
                         text: "Sign out",
                       ),

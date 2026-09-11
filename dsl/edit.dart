@@ -153,60 +153,90 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Profile's household line follows the household the app is showing.
+/// The app says which build it is.
 ///
-/// It read `householdLine(rows, uid, ok)`, which names the first household
-/// in the list: the oldest. With a choice of household that is the wrong
-/// one. `householdLineFor` takes the current household as well and names
-/// that one; the old function is left alone so nothing else can break.
+/// A build number is only useful if you can tell which one you are holding.
+/// Until now nothing on screen said it: `pubspec.yaml` in this repository says
+/// 1.0.0+5 while build 6 is on the phone, because the shipped number is set in
+/// FlutterFlow's deploy dialog, not here. `package_info_plus` reads it from the
+/// installed app itself, so it is right by construction — and a screenshot of
+/// Profile now names the build it came from.
 ///
-/// The line is replaced rather than rebound: `bindText` does not displace a
-/// text that is already bound (HANDOVER §5).
+/// It sits under the safety note on Profile, where a version line belongs:
+/// quiet, and always in the same place.
 void buildStarterEditFlow(App app) {
-  final lineFor = app.customFunction(
-    'householdLineFor',
-    args: {
-      'rows': listOf(ff.Tables.households),
-      'uid': string,
-      'ok': bool_,
-      'current': string,
-    },
-    returns: string,
+  app.pubDependency('package_info_plus', '^8.0.0');
+
+  app.customWidget(
+    'AppVersion',
+    parameters: {},
     description:
-        'Profile’s household line for the household the app is showing: its '
-        'name and whether you own it. Empty until the load worked.',
-    code: r"""
-if (ok != true) return '';
-if (rows == null || rows.isEmpty) return 'No household yet';
-var h = rows.first;
-for (final r in rows) {
-  if (r.id == (current ?? '')) {
-    h = r;
-    break;
+        'The version and build number of the installed app, as "Version 1.0.0 '
+        '(6)". Read from the app itself, so it is never out of date.',
+    code: r'''
+import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+/// "Version 1.0.0 (6)", read from the installed app.
+///
+/// Not from anything written down in the project: the build number is set when
+/// the app is deployed, so the only honest source is the app itself. Shows
+/// nothing at all if it cannot be read, rather than a wrong number.
+class AppVersion extends StatefulWidget {
+  const AppVersion({super.key, this.width, this.height});
+
+  final double? width;
+  final double? height;
+
+  @override
+  State<AppVersion> createState() => _AppVersionState();
+}
+
+class _AppVersionState extends State<AppVersion> {
+  String _said = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _read();
+  }
+
+  Future<void> _read() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final build = info.buildNumber.trim();
+      if (!mounted) return;
+      setState(() => _said = build.isEmpty
+          ? 'Version ${info.version}'
+          : 'Version ${info.version} ($build)');
+    } catch (_) {
+      // Nothing to say is better than a number that might be wrong.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_said.isEmpty) return const SizedBox.shrink();
+    final t = FlutterFlowTheme.of(context);
+    return SizedBox(
+      width: widget.width ?? double.infinity,
+      child: Text(
+        _said,
+        textAlign: TextAlign.center,
+        style: t.bodySmall.copyWith(color: t.secondaryText),
+      ),
+    );
   }
 }
-final owns = (h.ownerId ?? '') == (uid ?? '');
-final name = (h.name ?? '').trim();
-final where = name.isEmpty ? 'Your household' : name;
-return owns ? '$where · Owner' : '$where · Member';
-""",
+''',
   );
 
   final profile = ff.Pages.profilePage;
   app.editPage(profile, (page) {
-    page.ensureReplaced(
-      profile.widgets.byKey('Text_4v8ksfvt').single,
-      Text(
-        CustomFunction(lineFor, args: {
-          'rows': State('households'),
-          'uid': const AuthUser(AuthUserField.userId),
-          'ok': State('loadedOk'),
-          'current': AppState(ff.AppState.currentHouseholdId),
-        }),
-        name: 'ProfileHouseholdLine',
-        style: Styles.bodySmall,
-        color: Colors.secondaryText,
-      ),
+    page.ensureInsertedAfter(
+      profile.widgets.byKey('Text_47tb7tt1').single,
+      CustomWidget(
+          widgetName: 'AppVersion', name: 'ProfileAppVersion', arguments: {}),
     );
   });
 }
