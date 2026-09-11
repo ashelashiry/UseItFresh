@@ -1,3 +1,21 @@
+// recognise-food — suggest a name and category for a food photograph.
+//
+// Deploy with "Verify JWT with legacy secret" OFF. This project signs user
+// sessions with the new ES256 keys, which that legacy check rejects, while it
+// ACCEPTS the anon key — and the anon key ships inside the app. So the gateway
+// check would block every real user and let in anyone who unpacks the app.
+// Instead the caller is checked here, against the auth server, which accepts
+// real sessions of either kind and gives the anon key no user at all.
+//
+// The Gemini key lives in Supabase as the GEMINI_API_KEY secret and never
+// leaves the server.
+//
+// What it may say is deliberately narrow: a name and a category, as a
+// suggestion. Never freshness, safety, spoilage or a date, even when one is
+// visible. Not food gets "That does not look like food", not an invented item.
+
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
 // Models are tried in order; a retired model name answers 404 and the next
 // one is used, so a deprecation does not take the feature down.
 const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
@@ -42,6 +60,24 @@ function toBase64(bytes: Uint8Array): string {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
+  const base = Deno.env.get("SUPABASE_URL") ?? "";
+  const publicKey = Deno.env.get("SUPABASE_ANON_KEY") ??
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
+
+  // A signed-in person, checked with the auth server — not merely a token that
+  // parses. The anon key is a valid JWT but belongs to no user, so it stops here.
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) {
+    return reply({ error: "Sign in to name photos." }, 401);
+  }
+  const supabase = createClient(base, publicKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData?.user) {
+    return reply({ error: "Sign in to name photos." }, 401);
+  }
+
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) return reply({ error: "Photo naming is not set up yet." }, 503);
 
@@ -52,11 +88,11 @@ Deno.serve(async (req) => {
     return reply({ error: "No photo was sent." }, 400);
   }
 
-  // This project's storage only — otherwise this is an open proxy that spends
-  // the key on anyone's pictures.
-  const base = Deno.env.get("SUPABASE_URL") ?? "";
-  if (!imageUrl || !base ||
-      !String(imageUrl).startsWith(`${base}/storage/v1/object/`)) {
+  // Signed links into the private food-images bucket only. Anything else —
+  // another site, or the public avatars bucket — would turn this into a way
+  // to spend the key on pictures that are not someone's food.
+  if (!imageUrl ||
+      !String(imageUrl).startsWith(`${base}/storage/v1/object/sign/food-images/`)) {
     return reply({ error: "That photo is not from this app." }, 400);
   }
 
