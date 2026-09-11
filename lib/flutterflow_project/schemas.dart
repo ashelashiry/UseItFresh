@@ -2977,6 +2977,7 @@ abstract final class CustomCode {
     "kitchenState",
     "listCount",
     "listState",
+    "mapEmpty",
     "noMapYes",
     "noScannedFoods",
     "offerHouseholdSetup",

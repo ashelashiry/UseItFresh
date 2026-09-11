@@ -28,6 +28,9 @@ abstract final class ScanAddPageWidgets {
       type: "Scaffold",
       path: "ScanAddPage",
       name: "ScanAddPage",
+      triggers: const <String>[
+        "ON_INIT_STATE",
+      ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(

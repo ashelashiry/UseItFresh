@@ -28,6 +28,9 @@ abstract final class MapReviewPageWidgets {
       type: "Scaffold",
       path: "MapReviewPage",
       name: "MapReviewPage",
+      triggers: const <String>[
+        "ON_INIT_STATE",
+      ],
       slots: <String, List<ffai.ProjectWidgetHandle>>{
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
