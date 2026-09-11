@@ -587,7 +587,7 @@
     <h2>Track B &mdash; naming food from a photograph</h2>
     <div class="part">
       <div class="part-head">
-        <span class="no">Optional &middot; not blocking</span>
+        <span class="no" style="color:var(--forest)">Done</span>
         <h3>Gemini API key</h3>
         <span class="where">aistudio.google.com &middot; ~5 min &middot; free tier</span>
       </div>
@@ -598,7 +598,7 @@
           <li>When asked for a project, choose <b>Create API key in new project</b>.
             <span class="hint">A fresh project keeps this app's usage and spend visible on its own rather than mixed into something else.</span></li>
           <li>Copy the key. Read the free-tier limits shown on that page.</li>
-          <li>In FlutterFlow: <b>Settings &amp; Integrations</b> &rarr; <b>Integrations</b> &rarr; <b>Gemini</b> &rarr; paste the key &rarr; save.</li>
+          <li>Put it in <b>Supabase</b>, not FlutterFlow: <b>supabase.com/dashboard/project/ltdvxdizjrkgwldbmbbf/functions/secrets</b> &rarr; <b>Add new secret</b>, name <code>GEMINI_API_KEY</code>.<span class="hint">Done 11 Sep. FlutterFlow has no Gemini setting, and a key used from inside the app would ship in the app bundle. In Supabase it never leaves the server.</span></li>
           <li>Tell me it is in place. I never need the key itself.</li>
         </ol>
         <div class="flag">

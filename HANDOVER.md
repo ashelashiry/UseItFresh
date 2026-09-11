@@ -218,6 +218,16 @@ Every one of these produced a **successful push and a wrong app**.
 - **`Page.setInterceptFileChooserDialog` + `DOM.setFileInputFiles`** is how you
   exercise the camera in the harness. `image_picker` on the web is a file
   input, so this drives the real path right up to the picker itself.
+- **Supabase "Verify JWT with legacy secret" is backwards for this project.**
+  User sessions are signed with the new ES256 keys; the legacy check rejects
+  them and ACCEPTS the anon key, which ships in the app. Left on, an edge
+  function blocks every real user and admits anyone who unpacks the app. Deploy
+  edge functions with it OFF and check the caller in code with
+  `auth.getUser()` — see `supabase/functions/recognise-food/index.ts`.
+- **FlutterFlow declares Supabase edge functions but does not deploy them.**
+  After a push the function answers 404. Deploy from the Supabase dashboard
+  (Edge Functions -> Deploy a new function -> Via Editor), with the source in
+  `supabase/functions/`, and keep FlutterFlow's declaration identical.
 - **Validation is your friend.** The nav-bar component contract
   (`selectedIndex`, `onItemTapped` taking one int, both non-nullable,
   `selectedIndex` actually referenced) was discovered entirely from validation
