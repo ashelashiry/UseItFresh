@@ -342,6 +342,10 @@ function name before believing a text binding changed. The DSL `Text` has no
 
 ## 6. The verification harness
 
+- **Search generated files by their full path.** In the agent's Grep tool a
+  brace glob with folders (`{inventory_page,profile_page}/*_widget.dart`)
+  silently matches nothing and answers "No matches found" — twice on 11 Sep
+  that read as "the code is not there" when it was.
 - **Walks that write data use their own household.** `rcwalk.py` creates a
   temporary household through the API (found by diffing ids), then points the
   headless browser at it with
