@@ -153,40 +153,60 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The next round, part two: the Join button joins.
+/// Profile's household line follows the household the app is showing.
 ///
-/// It showed "Invite joining unlocks in the next update" and did nothing
-/// else. Now it reads the invite code field, calls JoinHousehold (added in
-/// part one), and on success says so and opens Home on the joined kitchen;
-/// otherwise it says why not ("That code didn't match a household…").
+/// It read `householdLine(rows, uid, ok)`, which names the first household
+/// in the list: the oldest. With a choice of household that is the wrong
+/// one. `householdLineFor` takes the current household as well and names
+/// that one; the old function is left alone so nothing else can break.
+///
+/// The line is replaced rather than rebound: `bindText` does not displace a
+/// text that is already bound (HANDOVER §5).
 void buildStarterEditFlow(App app) {
-  final household = ff.Pages.householdSetupPage;
-  app.editPage(household, (page) {
-    page.ensureActions(
-      household.widgets.byKey('Button_wnnhah32').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: [
-        CallCustomAction.named(
-          'JoinHousehold',
-          args: {'code': string},
-          returnType: string,
-          arguments: {
-            'code': WidgetState(
-              household.widgets.byKey('TextField_pmsdcf3h').single,
-              WidgetStateProperty.text,
-            ),
-          },
-          outputAs: 'joinSaid',
-        ),
-        If(
-          Equals(ActionOutput('joinSaid'), ''),
-          then: [
-            Snackbar('You’ve joined the household.'),
-            Navigate(ff.Pages.homePage, replaceRoute: true),
-          ],
-          orElse: [Snackbar(ActionOutput('joinSaid'))],
-        ),
-      ],
+  final lineFor = app.customFunction(
+    'householdLineFor',
+    args: {
+      'rows': listOf(ff.Tables.households),
+      'uid': string,
+      'ok': bool_,
+      'current': string,
+    },
+    returns: string,
+    description:
+        'Profile’s household line for the household the app is showing: its '
+        'name and whether you own it. Empty until the load worked.',
+    code: r"""
+if (ok != true) return '';
+if (rows == null || rows.isEmpty) return 'No household yet';
+var h = rows.first;
+for (final r in rows) {
+  if (r.id == (current ?? '')) {
+    h = r;
+    break;
+  }
+}
+final owns = (h.ownerId ?? '') == (uid ?? '');
+final name = (h.name ?? '').trim();
+final where = name.isEmpty ? 'Your household' : name;
+return owns ? '$where · Owner' : '$where · Member';
+""",
+  );
+
+  final profile = ff.Pages.profilePage;
+  app.editPage(profile, (page) {
+    page.ensureReplaced(
+      profile.widgets.byKey('Text_4v8ksfvt').single,
+      Text(
+        CustomFunction(lineFor, args: {
+          'rows': State('households'),
+          'uid': const AuthUser(AuthUserField.userId),
+          'ok': State('loadedOk'),
+          'current': AppState(ff.AppState.currentHouseholdId),
+        }),
+        name: 'ProfileHouseholdLine',
+        style: Styles.bodySmall,
+        color: Colors.secondaryText,
+      ),
     );
   });
 }

@@ -153,8 +153,9 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">A, B and C are built: two people in one kitchen, ideas
-      shaped to the meal you want, and ideas you can keep. Then the big test.</p>
+      <p class="sub">Two people, one kitchen; ideas shaped to what you want and
+      kept for the household; a choice of kitchen for anyone in two. Then the
+      big test.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
@@ -167,10 +168,10 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Make a new build, then run the test round.</p>
-      <p>The test round is a page of its own, with every step to follow and a
-      Works / Problem / Skip mark that saves as you go. Tell me &ldquo;done&rdquo;
-      and I&rsquo;ll read your marks from it. Builds 4 and 5 are kept as fallbacks.</p>
+      <p>Paste the photo function once more, make a new build, then run the test round.</p>
+      <p>The function now says which version it is, so I can confirm your paste
+      landed with one check. The test round has every step, with marks that
+      save as you go. Builds 4 and 5 are kept as fallbacks.</p>
     </div>
   </div>
 
@@ -179,14 +180,23 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Make a new build, then run the test round</h3>
+          <h3>Paste the photo function into Supabase</h3>
+          <p>It&rsquo;s on your clipboard. In Supabase: <b>Edge Functions &rarr;
+          recognise-food &rarr; Code</b>, click in the code, <b>Ctrl+A</b>, <b>Delete</b>,
+          <b>Ctrl+V</b>, check the last line is <code>});</code> near line 635, then
+          <b>Deploy</b>. Leave &ldquo;Verify JWT&rdquo; off. Tell me and I&rsquo;ll
+          confirm version <code>2026-09-12.1</code> is live.</p>
+        </div>
+        <span class="how">5 min</span>
+      </li>
+      <li class="ask">\1
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
           <b>Build Number</b> by one &rarr; Deploy to TestFlight. Then follow
           the <a href="https://claude.ai/code/artifact/3107b4f3-3365-4b3b-aa95-6a7e7d7736e9">test round</a>
           on your phone. Journey 15 needs a second account: someone in your
           family, or you with a second email address.</p>
         </div>
-        <span class="how">Now</span>
+        <span class="how">After the paste</span>
       </li>
       <li class="ask">
         <div>
@@ -328,6 +338,12 @@
             <td><span class="state phone">Build 4</span></td>
           </tr>
           <tr>
+            <td><b>Choose which household to show</b></td>
+            <td>For anyone in two kitchens: pick one on the household screen; every
+            screen follows. New locations land in the kitchen you&rsquo;re showing.</td>
+            <td><span class="state wait">Next build</span></td>
+          </tr>
+          <tr>
             <td><b>Two people, one kitchen</b></td>
             <td>Join a household with its invite code; the card says who is in it.
             Food, the shopping list and what was used are shared.</td>
@@ -341,7 +357,7 @@
           </tr>
           <tr>
             <td><b>Keep an idea</b></td>
-            <td>Keep the ideas you liked; they stay on your phone until removed.</td>
+            <td>Keep the ideas you liked, shared with everyone in your household.</td>
             <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
@@ -401,18 +417,18 @@
 
   <section>
     <h2>What next? You choose</h2>
-    <p class="lede">A, B and C are in. After your test round, the fixes it turns
-    up come first; these are the candidates after that.</p>
+    <p class="lede">After your test round, its fixes come first. These are the
+    candidates after that.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Idea</th><th>Size</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="rank">A</td><td><b>Kept ideas shared with the household</b></td><td><span class="size m">M</span></td>
-              <td>Kept ideas live on one phone today. Sharing them needs a small database change you paste.</td></tr>
-          <tr><td class="rank">B</td><td><b>Sign in with Apple and Google</b></td><td><span class="size m">M</span></td>
-              <td>The buttons are stand-ins. Needs keys you add in Supabase and Apple.</td></tr>
-          <tr><td class="rank">C</td><td><b>Choose which household to show</b></td><td><span class="size s">S</span></td>
-              <td>For someone in two households; today the app keeps the one it was showing.</td></tr>
+          <tr><td class="rank">A</td><td><b>Sign in with Apple and Google</b></td><td><span class="size m">M</span></td>
+              <td>The buttons are stand-ins. Needs keys you add in Supabase and Apple; I never handle them.</td></tr>
+          <tr><td class="rank">B</td><td><b>Leave a household</b></td><td><span class="size s">S</span></td>
+              <td>Joining works now; leaving one has no button yet.</td></tr>
+          <tr><td class="rank">C</td><td><b>The app&rsquo;s own version on Profile</b></td><td><span class="size s">S</span></td>
+              <td>Build number on screen, so a screenshot says which build it came from.</td></tr>
         </tbody>
       </table>
     </div>

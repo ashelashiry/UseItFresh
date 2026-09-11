@@ -109,10 +109,10 @@ abstract final class ProfilePageWidgets {
                             name: "ProfileName",
                           ),
                           ffai.ProjectWidgetHandle(
-                            key: "Text_4v8ksfvt",
+                            key: "Text_h1mmqqcq",
                             type: "Text",
                             path: "ProfilePage.body[0].children[0].children[1].children[1].children[1]",
-                            name: "ProfileRole",
+                            name: "ProfileHouseholdLine",
                           ),
                         ],
                       ),

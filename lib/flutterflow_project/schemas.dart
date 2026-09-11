@@ -2984,6 +2984,7 @@ abstract final class CustomCode {
     "hiLine",
     "hiLineLoaded",
     "householdLine",
+    "householdLineFor",
     "householdRole",
     "itemField",
     "itemPhoto",
@@ -3009,6 +3010,7 @@ abstract final class CustomCode {
   static const actions = <String>[
     "AddItemToShoppingList",
     "AddNameToShoppingList",
+    "AddStorageLocation",
     "AskNotificationPermission",
     "CanReachKitchen",
     "CaptureFoodPhoto",
@@ -3036,6 +3038,7 @@ abstract final class CustomCode {
     "FoodStatusBadge",
     "FridgeEntrance",
     "HouseholdMembers",
+    "HouseholdSwitcher",
     "IdeaChoices",
     "KitchenIcon",
     "LoopingRemoteImage",

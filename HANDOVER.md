@@ -197,6 +197,30 @@ Agreed from a clickable mockup before it was built.
     and then joins another has two; inserts that omit `household_id` fall
     back to the server default (oldest membership). The app's own inserts
     pass it, but the second person is told to join without creating one.
+- **The round after (12 Sep), same build.**
+  - **Kept ideas are shared.** Moved from phone-only app state to
+    `saved_recipes` (first migration: household, who kept it, title,
+    `recipe_data` JSON, member-only RLS), so the household sees them and they
+    survive a reinstall. No database change was needed. `keptIdeas` app state
+    is now unused; it never reached a build.
+  - **Choosing a household.** `HouseholdSwitcher` under the household card,
+    for someone in two or more: tap one to show it (clears meal ideas, which
+    were for the other kitchen). `CreateHousehold` now switches to the new
+    household, reading it back with a second query because the insert's own
+    read-back can run before the membership trigger. Profile's line uses
+    `householdLineFor` (with the current household); `householdLine` named
+    the oldest.
+  - **Locations go to the right household.** "Add location" sent no
+    household, so the server default (oldest membership) took it, and
+    reloaded unfiltered. `AddStorageLocation` sends it; the button then
+    reopens the screen, whose load already filters.
+  - **The photo function says its version.** `VERSION` in `index.ts` goes into
+    every reply and an `x-function-version` header, the signed-out 401
+    included. Check a paste with
+    `curl -s -X POST https://ltdvxdizjrkgwldbmbbf.supabase.co/functions/v1/recognise-food`.
+    **Raise it with every change** (date, then a count for the day). The
+    owner asked for this after a paste that stopped at line 502 could not be
+    told apart from the working one.
 
 1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
    credit running out, not the code. The function also no longer pins a
