@@ -4,698 +4,341 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <style>
-  /* ---- Light palette (complete, on bare :root) ---- */
   :root {
-    --ground:        #FAF8F1;
-    --surface:       #FFFFFF;
-    --surface-sunk:  #F2EFE4;
-    --line:          #E2DED0;
-    --line-soft:     #EDEAE0;
-
-    --ink:           #22301F;
-    --ink-mid:       #4A5747;
-    --ink-soft:      #5C6A58;
-    --ink-faint:     #8B9787;
-
-    --accent:        #2F8A57;
-    --accent-deep:   #1F5C3D;
-    --accent-wash:   #E8F1EA;
-
-    --warn:          #E8853D;
-    --warn-wash:     #FBEDE1;
-    --danger:        #C44536;
-    --danger-wash:   #F8E5E2;
-    --info:          #3B78B5;
-    --info-wash:     #E5EDF6;
-
-    --shadow: 0 1px 2px rgba(34,48,31,.05), 0 4px 16px rgba(34,48,31,.05);
-
-    --f-display: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    --f-body:    "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ground:#FAF8F1; --surface:#FFFFFF; --surface-sunk:#F2EFE4;
+    --line:#E2DED0; --line-soft:#EDEAE0;
+    --ink:#22301F; --ink-mid:#4A5747; --ink-soft:#5C6A58; --ink-faint:#8B9787;
+    --accent:#2F8A57; --accent-deep:#1F5C3D; --accent-wash:#E8F1EA;
+    --warn:#C96A22; --warn-wash:#FBEDE1;
+    --danger:#C44536; --danger-wash:#F8E5E2;
+    --info:#3B78B5; --info-wash:#E5EDF6;
+    --shadow:0 1px 2px rgba(34,48,31,.05), 0 4px 16px rgba(34,48,31,.05);
+    --f-display:"Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body:"Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
-
-  /* ---- Dark: system default (no stamp), unless explicitly light ---- */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground:       #141A14;
-      --surface:      #1C241C;
-      --surface-sunk: #222B22;
-      --line:         #33402F;
-      --line-soft:    #2A342A;
-
-      --ink:          #E6EDE3;
-      --ink-mid:      #BAC7B6;
-      --ink-soft:     #9FAF9B;
-      --ink-faint:    #7B8A77;
-
-      --accent:       #5FB57F;
-      --accent-deep:  #3E7A5A;
-      --accent-wash:  #1E2E24;
-
-      --warn:         #E8944F;
-      --warn-wash:    #33261A;
-      --danger:       #E08A79;
-      --danger-wash:  #35211E;
-      --info:         #86AED6;
-      --info-wash:    #1C2732;
-
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.28);
+      --ground:#141A14; --surface:#1C241C; --surface-sunk:#222B22;
+      --line:#33402F; --line-soft:#2A342A;
+      --ink:#E6EDE3; --ink-mid:#BAC7B6; --ink-soft:#9FAF9B; --ink-faint:#7B8A77;
+      --accent:#5FB57F; --accent-deep:#8FD1A7; --accent-wash:#1E2E24;
+      --warn:#E8944F; --warn-wash:#33261A;
+      --danger:#E08A79; --danger-wash:#35211E;
+      --info:#86AED6; --info-wash:#1C2732;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.28);
     }
   }
-
-  /* ---- Dark: explicit toggle ---- */
   :root[data-theme="dark"] {
-    --ground:       #141A14;
-    --surface:      #1C241C;
-    --surface-sunk: #222B22;
-    --line:         #33402F;
-    --line-soft:    #2A342A;
-
-    --ink:          #E6EDE3;
-    --ink-mid:      #BAC7B6;
-    --ink-soft:     #9FAF9B;
-    --ink-faint:    #7B8A77;
-
-    --accent:       #5FB57F;
-    --accent-deep:  #3E7A5A;
-    --accent-wash:  #1E2E24;
-
-    --warn:         #E8944F;
-    --warn-wash:    #33261A;
-    --danger:       #E08A79;
-    --danger-wash:  #35211E;
-    --info:         #86AED6;
-    --info-wash:    #1C2732;
-
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.28);
+    --ground:#141A14; --surface:#1C241C; --surface-sunk:#222B22;
+    --line:#33402F; --line-soft:#2A342A;
+    --ink:#E6EDE3; --ink-mid:#BAC7B6; --ink-soft:#9FAF9B; --ink-faint:#7B8A77;
+    --accent:#5FB57F; --accent-deep:#8FD1A7; --accent-wash:#1E2E24;
+    --warn:#E8944F; --warn-wash:#33261A;
+    --danger:#E08A79; --danger-wash:#35211E;
+    --info:#86AED6; --info-wash:#1C2732;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.28);
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing:border-box; }
+  body { background:var(--ground); color:var(--ink); font-family:var(--f-body);
+         font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:960px; margin:0 auto; padding:40px 24px 96px; }
 
-  body {
-    background: var(--ground);
-    color: var(--ink);
-    font-family: var(--f-body);
-    font-size: 15.5px;
-    line-height: 1.62;
-    -webkit-font-smoothing: antialiased;
-  }
+  .masthead { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+              gap:20px; padding-bottom:22px; border-bottom:2px solid var(--ink); }
+  .eyebrow { font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.13em;
+             text-transform:uppercase; color:var(--accent-deep); margin:0 0 8px; }
+  h1 { font-family:var(--f-display); font-weight:800; font-size:clamp(30px,5vw,42px);
+       line-height:1.05; letter-spacing:-.022em; margin:0; text-wrap:balance; }
+  .sub { color:var(--ink-soft); margin:10px 0 0; max-width:58ch; font-size:15.5px; }
+  .stamp { font-family:var(--f-mono); font-size:11.5px; line-height:1.8; color:var(--ink-faint);
+           text-align:right; white-space:nowrap; }
+  .stamp b { color:var(--ink-mid); font-weight:600; }
 
-  .wrap {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 40px 24px 96px;
-  }
+  /* The answer, first */
+  .verdict { margin-top:26px; display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:start;
+             background:var(--accent-wash); border-radius:12px; padding:18px 22px; }
+  .verdict .lbl { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.1em;
+                  text-transform:uppercase; color:var(--accent-deep); padding-top:4px; white-space:nowrap; }
+  .verdict p { margin:0; font-family:var(--f-display); font-size:18px; font-weight:600; line-height:1.45;
+               color:var(--ink); max-width:62ch; text-wrap:pretty; }
+  .verdict p + p { margin-top:6px; font-family:var(--f-body); font-size:14.5px; font-weight:500; color:var(--ink-mid); }
 
-  /* ---------- Masthead ---------- */
-  .masthead {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 20px;
-    padding-bottom: 22px;
-    border-bottom: 2px solid var(--ink);
-  }
-  .eyebrow {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-    color: var(--accent-deep);
-    margin: 0 0 8px;
-  }
-  h1 {
-    font-family: var(--f-display);
-    font-weight: 800;
-    font-size: clamp(30px, 5vw, 44px);
-    line-height: 1.05;
-    letter-spacing: -.022em;
-    margin: 0;
-    text-wrap: balance;
-  }
-  .sub {
-    color: var(--ink-soft);
-    margin: 10px 0 0;
-    max-width: 60ch;
-    font-size: 15px;
-  }
-  .stamp {
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    line-height: 1.8;
-    color: var(--ink-faint);
-    text-align: right;
-    white-space: nowrap;
-  }
-  .stamp b { color: var(--ink-mid); font-weight: 600; }
+  section { margin-top:50px; }
+  h2 { font-family:var(--f-display); font-size:22px; font-weight:700; letter-spacing:-.015em;
+       margin:0 0 6px; text-wrap:balance; }
+  .lede { color:var(--ink-soft); margin:0 0 18px; max-width:68ch; font-size:14.5px; }
 
-  /* ---------- Stat tiles ---------- */
-  .tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
-    gap: 12px;
-    margin: 26px 0 0;
-  }
-  .tile {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 15px 16px 14px;
-    box-shadow: var(--shadow);
-  }
-  .tile .k {
-    font-family: var(--f-mono);
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    display: block;
-    margin-bottom: 7px;
-  }
-  .tile .v {
-    font-family: var(--f-display);
-    font-size: 27px;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -.02em;
-    font-variant-numeric: tabular-nums;
-  }
-  .tile .n { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
-  .tile.is-good .v   { color: var(--accent); }
-  .tile.is-block .v  { color: var(--danger); }
-  .tile.is-warn .v   { color: var(--warn); }
+  /* Asks: an ordered list — the order is the priority */
+  .asks { list-style:none; margin:0; padding:0; display:grid; gap:10px; counter-reset:a; }
+  .ask { counter-increment:a; display:grid; grid-template-columns:38px 1fr auto; gap:0 14px;
+         align-items:start; background:var(--surface); border:1px solid var(--line);
+         border-radius:10px; padding:15px 18px; box-shadow:var(--shadow); }
+  .ask::before { content:counter(a); width:28px; height:28px; border-radius:50%;
+                 display:flex; align-items:center; justify-content:center;
+                 font-family:var(--f-mono); font-size:12px; font-weight:600;
+                 background:var(--warn-wash); color:var(--warn); margin-top:1px; }
+  .ask.first::before { background:var(--danger-wash); color:var(--danger); }
+  .ask.opt::before { background:var(--surface-sunk); color:var(--ink-faint); }
+  .ask h3 { font-family:var(--f-display); font-size:16.5px; font-weight:700; margin:0 0 4px; line-height:1.35; }
+  .ask p { margin:0; color:var(--ink-soft); font-size:14.5px; max-width:66ch; }
+  .ask p + p { margin-top:6px; }
+  .ask .how { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.07em;
+              text-transform:uppercase; white-space:nowrap; padding:4px 9px; border-radius:5px;
+              background:var(--surface-sunk); color:var(--ink-mid); border:1px solid var(--line-soft);
+              margin-top:2px; }
+  .ask.first .how { background:var(--danger-wash); color:var(--danger); border-color:transparent; }
 
-  /* ---------- Sections ---------- */
-  section { margin-top: 54px; }
-  h2 {
-    font-family: var(--f-display);
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -.015em;
-    margin: 0 0 6px;
-    display: flex;
-    align-items: baseline;
-    gap: 11px;
-  }
-  h2 .idx {
-    font-family: var(--f-mono);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-    letter-spacing: .04em;
-  }
-  .lede {
-    color: var(--ink-soft);
-    margin: 0 0 20px;
-    max-width: 72ch;
-    font-size: 14.5px;
-  }
+  /* Incident */
+  .incident { border:1px solid var(--line); border-left:4px solid var(--danger); border-radius:10px;
+              background:var(--surface); padding:16px 20px; }
+  .incident dl { margin:0; display:grid; grid-template-columns:max-content 1fr; gap:8px 18px; }
+  .incident dt { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.09em;
+                 text-transform:uppercase; color:var(--ink-faint); padding-top:3px; }
+  .incident dd { margin:0; font-size:14.5px; color:var(--ink-mid); max-width:66ch; }
 
-  /* ---------- Blocker cards ---------- */
-  .blockers { display: grid; gap: 11px; }
-  .blocker {
-    display: grid;
-    grid-template-columns: 4px 1fr;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-  }
-  .blocker .stripe { background: var(--warn); }
-  .blocker.sev-critical .stripe { background: var(--danger); }
-  .blocker.sev-admin    .stripe { background: var(--info); }
-  .blocker .inner { padding: 15px 18px 16px; }
-  .blocker h3 {
-    font-family: var(--f-display);
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 6px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 9px;
-  }
-  .blocker p { margin: 0; color: var(--ink-soft); font-size: 14.5px; max-width: 78ch; }
-  .blocker p + p { margin-top: 8px; }
-  .owner {
-    font-family: var(--f-mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: var(--surface-sunk);
-    color: var(--ink-soft);
-    border: 1px solid var(--line);
-  }
-  .owner.you  { background: var(--info-wash);   color: var(--info);   border-color: transparent; }
-  .owner.me   { background: var(--accent-wash); color: var(--accent-deep); border-color: transparent; }
-  :root[data-theme="dark"] .owner.me,
-  :root:not([data-theme="light"]) .owner.me { color: var(--accent); }
+  /* Tables */
+  .t-scroll { overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px; }
+  table { width:100%; border-collapse:collapse; min-width:600px; }
+  th { font-family:var(--f-mono); font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+       color:var(--ink-faint); text-align:left; padding:11px 16px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td { padding:11px 16px; border-bottom:1px solid var(--line-soft); vertical-align:top; font-size:14.5px; }
+  tr:last-child td { border-bottom:none; }
+  td .why { display:block; color:var(--ink-faint); font-size:13px; margin-top:2px; max-width:60ch; }
+  td.rank { font-family:var(--f-mono); font-size:12px; color:var(--ink-faint); font-variant-numeric:tabular-nums;
+            white-space:nowrap; padding-top:13px; }
 
-  code, .mono { font-family: var(--f-mono); font-size: .88em; }
-  code {
-    background: var(--surface-sunk);
-    border: 1px solid var(--line-soft);
-    border-radius: 4px;
-    padding: 1px 5px;
-    color: var(--ink-mid);
-  }
-  pre {
-    font-family: var(--f-mono);
-    font-size: 12.5px;
-    line-height: 1.6;
-    background: var(--surface-sunk);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--danger);
-    border-radius: 7px;
-    padding: 13px 15px;
-    overflow-x: auto;
-    margin: 11px 0 0;
-    color: var(--ink-mid);
-  }
+  .state { display:inline-block; font-family:var(--f-mono); font-size:10px; font-weight:600;
+           letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+  .state.web   { background:var(--accent-wash); color:var(--accent-deep); }
+  .state.phone { background:var(--info-wash); color:var(--info); }
+  .state.held  { background:var(--danger-wash); color:var(--danger); }
+  .state.wait  { background:var(--warn-wash); color:var(--warn); }
 
-  /* ---------- Phase blocks ---------- */
-  .phase {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 11px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 15px;
-  }
-  .phase-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    background: var(--surface-sunk);
-    border-bottom: 1px solid var(--line);
-  }
-  .phase-head .no {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink-faint);
-    letter-spacing: .08em;
-  }
-  .phase-head h3 {
-    font-family: var(--f-display);
-    font-size: 17px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -.01em;
-    flex: 1 1 auto;
-  }
-  .pill {
-    font-family: var(--f-mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-    padding: 3.5px 9px;
-    border-radius: 20px;
-  }
-  .pill.done    { background: var(--accent-wash); color: var(--accent-deep); }
-  .pill.now     { background: var(--danger-wash); color: var(--danger); }
-  .pill.next    { background: var(--warn-wash);   color: var(--warn); }
-  .pill.later   { background: var(--surface);     color: var(--ink-faint); border: 1px solid var(--line); }
-  :root[data-theme="dark"] .pill.done,
-  :root:not([data-theme="light"]) .pill.done { color: var(--accent); }
+  .size { display:inline-block; font-family:var(--f-mono); font-size:11px; font-weight:700; min-width:30px;
+          padding:3px 0; border-radius:5px; text-align:center; }
+  .size.s { background:var(--accent-wash); color:var(--accent-deep); }
+  .size.m { background:var(--warn-wash); color:var(--warn); }
+  .size.l { background:var(--danger-wash); color:var(--danger); }
 
-  .rollup {
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    color: var(--ink-faint);
-    font-variant-numeric: tabular-nums;
-  }
+  code { font-family:var(--f-mono); font-size:.86em; background:var(--surface-sunk);
+         border:1px solid var(--line-soft); border-radius:4px; padding:1px 5px; color:var(--ink-mid); }
+  .note { margin-top:12px; padding:11px 14px; background:var(--surface-sunk); border-radius:8px;
+          font-size:14px; color:var(--ink-soft); max-width:74ch; }
 
-  .t-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; min-width: 560px; }
-  th {
-    font-family: var(--f-mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    text-align: left;
-    padding: 10px 18px;
-    border-bottom: 1px solid var(--line);
-    white-space: nowrap;
-  }
-  th.c, td.c { text-align: center; }
-  td {
-    padding: 11px 18px;
-    border-bottom: 1px solid var(--line-soft);
-    vertical-align: top;
-    font-size: 14.5px;
-  }
-  tr:last-child td { border-bottom: none; }
-  td.id {
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    color: var(--ink-faint);
-    white-space: nowrap;
-    padding-top: 13px;
-  }
-  td .story { display: block; }
-  td .why {
-    display: block;
-    color: var(--ink-faint);
-    font-size: 13px;
-    margin-top: 3px;
-    max-width: 62ch;
-  }
+  .links { display:flex; flex-wrap:wrap; gap:10px; }
+  .links a { display:inline-flex; align-items:center; gap:8px; padding:9px 15px; border-radius:9px;
+             background:var(--surface); border:1px solid var(--line); color:var(--accent-deep);
+             text-decoration:none; font-family:var(--f-display); font-weight:600; font-size:14px; }
+  .links a:hover { border-color:var(--accent); }
 
-  .size {
-    display: inline-block;
-    font-family: var(--f-mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .05em;
-    min-width: 34px;
-    padding: 3px 0;
-    border-radius: 5px;
-    text-align: center;
-    border: 1px solid var(--line);
-    background: var(--surface-sunk);
-    color: var(--ink-soft);
-  }
-  .size.s-xs { background: var(--accent-wash); color: var(--accent-deep); border-color: transparent; }
-  .size.s-s  { background: var(--accent-wash); color: var(--accent-deep); border-color: transparent; font-weight: 700; }
-  .size.s-m  { background: var(--warn-wash);   color: var(--warn);        border-color: transparent; font-weight: 700; }
-  .size.s-l  { background: var(--danger-wash); color: var(--danger);      border-color: transparent; font-weight: 700; }
-  :root[data-theme="dark"] .size.s-xs, :root:not([data-theme="light"]) .size.s-xs,
-  :root[data-theme="dark"] .size.s-s,  :root:not([data-theme="light"]) .size.s-s { color: var(--accent); }
+  footer { margin-top:60px; padding-top:18px; border-top:1px solid var(--line); font-size:13px;
+           color:var(--ink-faint); display:flex; flex-wrap:wrap; gap:10px 26px; justify-content:space-between; }
+  footer .mono { font-family:var(--f-mono); font-size:11.5px; }
 
-  .tag {
-    display: inline-block;
-    font-family: var(--f-mono);
-    font-size: 9.5px;
-    font-weight: 600;
-    letter-spacing: .07em;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--info-wash);
-    color: var(--info);
-    margin-left: 6px;
-    vertical-align: 1px;
+  a { color:var(--accent-deep); }
+  a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+  @media (max-width:640px) {
+    .stamp { text-align:left; }
+    .wrap { padding:28px 16px 72px; }
+    .verdict { grid-template-columns:1fr; gap:6px; }
+    .ask { grid-template-columns:34px 1fr; }
+    .ask .how { grid-column:2; justify-self:start; margin-top:10px; }
+    .incident dl { grid-template-columns:1fr; gap:2px; }
+    .incident dd { margin-bottom:8px; }
   }
-  .tag.dec { background: var(--warn-wash); color: var(--warn); }
-
-  /* ---------- Legend / decisions ---------- */
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 22px;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    font-size: 13.5px;
-    color: var(--ink-soft);
-    align-items: center;
-  }
-  .legend .li { display: flex; align-items: center; gap: 8px; }
-
-  .decisions { display: grid; gap: 10px; }
-  .dec {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 14px;
-    align-items: start;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 14px 17px;
-    box-shadow: var(--shadow);
-  }
-  .dec .q {
-    font-family: var(--f-mono);
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: .08em;
-    color: var(--warn);
-    background: var(--warn-wash);
-    padding: 3px 8px;
-    border-radius: 5px;
-    white-space: nowrap;
-  }
-  .dec h4 { font-family: var(--f-display); font-size: 15px; font-weight: 700; margin: 0 0 3px; }
-  .dec p  { margin: 0; font-size: 14px; color: var(--ink-soft); max-width: 76ch; }
-
-  ul.plain { margin: 0; padding-left: 19px; color: var(--ink-soft); font-size: 14.5px; }
-  ul.plain li { margin-bottom: 6px; }
-  ul.plain li::marker { color: var(--accent); }
-
-  footer {
-    margin-top: 62px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
-    font-size: 13px;
-    color: var(--ink-faint);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 26px;
-    justify-content: space-between;
-  }
-  footer .mono { font-size: 11.5px; }
-
-  a { color: var(--accent-deep); }
-  :root[data-theme="dark"] a, :root:not([data-theme="light"]) a { color: var(--accent); }
-  a:focus-visible, [tabindex]:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: 3px;
-  }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
-  @media (max-width: 620px) {
-    .stamp { text-align: left; }
-    .wrap { padding: 28px 16px 72px; }
-  }
-</style>
-
-<style>
-  .todo{display:grid;gap:14px;margin-top:4px}
-  .job{background:var(--surface);border:1px solid var(--line);border-radius:12px;
-       box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-columns:5px 1fr}
-  .job .bar{background:var(--danger)}
-  .job.soft .bar{background:var(--warn)}
-  .job.later .bar{background:var(--info)}
-  .job .in{padding:16px 20px 18px}
-  .job h3{font-family:var(--f-display);font-size:17px;font-weight:700;margin:0 0 3px;
-          display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-  .job .why{color:var(--ink-soft);font-size:14px;margin:0 0 12px;max-width:76ch}
-  .mins{font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.09em;
-        text-transform:uppercase;padding:3px 8px;border-radius:4px;
-        background:var(--danger-wash);color:var(--danger)}
-  .job.soft .mins{background:var(--warn-wash);color:var(--warn)}
-  .job.later .mins{background:var(--info-wash);color:var(--info)}
-  ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
-  ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 34px;
-              border-bottom:1px solid var(--line-soft);font-size:14.5px}
-  ol.steps li:last-child{border-bottom:none}
-  ol.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:22px;height:22px;
-    border-radius:50%;background:var(--surface-sunk);border:1px solid var(--line);
-    font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--ink-mid);
-    display:flex;align-items:center;justify-content:center}
-  .note{margin-top:11px;padding:10px 13px;background:var(--surface-sunk);border-radius:8px;
-        font-size:13.5px;color:var(--ink-soft)}
-  .note.warn{background:var(--warn-wash);color:var(--ink-mid)}
-  .path{font-family:var(--f-mono);font-size:12.5px;background:var(--surface-sunk);
-        border:1px solid var(--line-soft);border-radius:5px;padding:2px 6px;
-        word-break:break-all;color:var(--ink-mid)}
-  .live{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-  .live a{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:9px;
-          background:var(--accent-wash);color:var(--accent-deep);text-decoration:none;
-          font-family:var(--f-display);font-weight:600;font-size:14px}
-  :root[data-theme="dark"] .live a,
-  :root:not([data-theme="light"]) .live a{color:var(--accent)}
-  .keys{width:100%;border-collapse:collapse;margin-top:10px}
-  .keys th{font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
-           color:var(--ink-faint);text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
-  .keys td{padding:9px 12px;border-bottom:1px solid var(--line-soft);font-size:14px;vertical-align:top}
-  .keys tr:last-child td{border-bottom:none}
-  .safe{color:var(--accent)} .unsafe{color:var(--danger);font-weight:600}
 </style>
 
 <div class="wrap">
 
   <header class="masthead">
     <div>
-      <p class="eyebrow">Status &middot; 10 September 2026</p>
+      <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Three features built and verified today, plus the build
-      fix. Everything that could be done without something from you is now
-      done — what is left is waiting on a key, a plan, or a device.</p>
+      <p class="sub">Scanner, reminders and photo naming are built. I have
+      stopped all database work until you say go, after my test deleted your
+      household.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
-      branch <b>main</b> &middot; git <b>4011151</b><br>
-      FlutterFlow <b>STWJxWjKmAKP7fT9gc6Q</b><br>
-      handover <b>HANDOVER.md</b>
+      git <b>main</b> &middot; pushed to GitHub<br>
+      FlutterFlow <b>aVKC95AC0wQmw01JZnxe</b><br>
+      app <b>localhost:8080</b> &middot; running
     </div>
   </header>
 
-  <div class="tiles">
-    <div class="tile is-good">
-      <span class="k">Build</span>
-      <div class="v">Green</div>
-      <div class="n">verified after every push</div>
-    </div>
-    <div class="tile is-good">
-      <span class="k">Built today</span>
-      <div class="v">5</div>
-      <div class="n">barcode &middot; list &middot; replace &middot; history &middot; restock</div>
-    </div>
-    <div class="tile is-good">
-      <span class="k">Faults fixed</span>
-      <div class="v">18</div>
-      <div class="n">1 build break &middot; 16 found by driving it</div>
-    </div>
-    <div class="tile is-warn">
-      <span class="k">Needs you</span>
-      <div class="v">2</div>
-      <div class="n">FlutterFlow plan &middot; Gemini key</div>
+  <div class="verdict">
+    <span class="lbl">My recommendation</span>
+    <div>
+      <p>Reply &ldquo;go&rdquo;. I get photo naming working today, then build receipt scanning.</p>
+      <p>Put a new build on your phone whenever suits you (ask 2). Photo naming
+      runs on the server, so fixing it does not need another build.</p>
     </div>
   </div>
 
-  <!-- ================= 00 · WHERE TO GO ================= -->
   <section>
-    <h2><span class="idx">00</span> The two pages you need</h2>
-    <div class="live">
-      <a href="https://claude.ai/code/artifact/f7fce39b-c476-4384-801c-1f852baabc96" target="_blank" rel="noopener">Setup &amp; keys &rarr; step by step</a>
+    <h2>What I need from you</h2>
+    <p class="lede">In priority order. Only the first one holds me up.</p>
+    <ol class="asks">
+      <li class="ask first">
+        <div>
+          <h3>Say &ldquo;go&rdquo; so I can test photo naming</h3>
+          <p>The last test answered &ldquo;could not name that photo&rdquo;. I need
+          to run it once more to see why. The test now makes its own temporary
+          household and deletes only that one. It checks what exists before and
+          stops if it can&rsquo;t tell which household is its own.</p>
+        </div>
+        <span class="how">Reply &ldquo;go&rdquo;</span>
+      </li>
+      <li class="ask">
+        <div>
+          <h3>New build on your phone</h3>
+          <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
+          <b>Build Number</b> by one &rarr; Deploy to TestFlight. That gets you
+          expiry reminders and photo naming.</p>
+        </div>
+        <span class="how">5 min</span>
+      </li>
+      <li class="ask">
+        <div>
+          <h3>Your lost food: re-add it or restore</h3>
+          <p><b>I recommend re-adding it.</b> The household you see now,
+          &ldquo;Ash&rsquo;s kitchen&rdquo;, is empty and yours to keep using.</p>
+          <p>A restore brings back last night&rsquo;s copy of the <i>whole</i>
+          database, so everything since then goes. If you set up the household
+          today, the backup won&rsquo;t have it anyway.</p>
+        </div>
+        <span class="how">Your call</span>
+      </li>
+      <li class="ask opt">
+        <div>
+          <h3>The barcode on that water bottle</h3>
+          <p>Type me the digits under the barcode. I&rsquo;ll check whether the
+          product database has a photo for it, or whether the app missed it.</p>
+        </div>
+        <span class="how">Optional</span>
+      </li>
+      <li class="ask opt">
+        <div>
+          <h3>A second account, for testing a shared household</h3>
+          <p>Sign up on <b>localhost:8080</b> as
+          <code>ashraf.elashiry+tester@gmail.com</code> (Gmail delivers it to
+          your normal inbox). Then join your household with its invite code. I
+          won&rsquo;t create accounts for you.</p>
+        </div>
+        <span class="how">Optional</span>
+      </li>
+    </ol>
+    <div class="note"><b>Not needed yet:</b> point-in-time recovery. Supabase
+    Pro already backs up daily. Turn it on before real users arrive.</div>
+  </section>
+
+  <section>
+    <h2>What happened to your household</h2>
+    <div class="incident">
+      <dl>
+        <dt>What</dt>
+        <dd>My photo-naming test deleted your real household, with its food,
+        shopping list and storage locations. It took &ldquo;the first
+        household&rdquo; instead of the one it had just made.</dd>
+        <dt>Fixed</dt>
+        <dd>The test deletes only the household it created, and stops if it
+        can&rsquo;t tell which one that is. I switched off the two older
+        cleanup scripts that delete in bulk.</dd>
+        <dt>Left over</dt>
+        <dd>Photos from those items are still in storage with nothing pointing
+        at them. They&rsquo;re harmless. I&rsquo;ll delete them only if you ask.</dd>
+        <dt>From now on</dt>
+        <dd>I won&rsquo;t run any test that writes to your account without
+        telling you first.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section>
+    <h2>What&rsquo;s built</h2>
+    <p class="lede">Since the last report. &ldquo;Browser&rdquo; means it works on
+    localhost:8080. &ldquo;Phone&rdquo; means it also needs the new build from ask 2.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>Feature</th><th>What it does</th><th>Where it is</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Camera barcode scanner</b></td>
+            <td>Point the camera at a barcode. The product&rsquo;s name, brand,
+            size and photo fill the form. You can change any of them, the photo too.</td>
+            <td><span class="state phone">On your phone</span></td>
+          </tr>
+          <tr>
+            <td><b>Expiry reminders</b><span class="why">Profile &rarr; Reminders</span></td>
+            <td>Your phone reminds you a set number of days before food goes
+            off. The reminders are scheduled on the phone itself, so they need
+            no server.</td>
+            <td><span class="state wait">Next build</span></td>
+          </tr>
+          <tr>
+            <td><b>Name it from a photo</b><span class="why">Gemini, key kept in Supabase</span></td>
+            <td>Take a photo and the form suggests a name and category. It never
+            overwrites what you typed. It never guesses a date or says whether
+            food is safe to eat.</td>
+            <td><span class="state held">Test failing</span></td>
+          </tr>
+          <tr>
+            <td><b>iOS build fix</b></td>
+            <td>Removed a web-only piece of code that stopped the phone build.</td>
+            <td><span class="state phone">On your phone</span></td>
+          </tr>
+          <tr>
+            <td><b>TestFlight setup</b></td>
+            <td>Apple and App Store Connect are set up. Each new build is now just
+            &ldquo;raise the number, Deploy&rdquo;.</td>
+            <td><span class="state web">Done</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>My priorities after &ldquo;go&rdquo;</h2>
+    <p class="lede">Now that Gemini is connected, the two Scan tiles that do
+    nothing yet are the best next step.</p>
+    <div class="t-scroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
+        <tbody>
+          <tr><td class="rank">1</td><td><b>Get photo naming working</b></td><td><span class="size s">S</span></td>
+              <td>It&rsquo;s built. It only fails at the step where it asks Gemini. The next two jobs use the same step.</td></tr>
+          <tr><td class="rank">2</td><td><b>Scan a receipt</b><span class="why">The &ldquo;Receipt&rdquo; tile on Scan</span></td><td><span class="size l">L</span></td>
+              <td>A whole shop logged in one go. You tick which lines to keep, and nothing is added without you seeing it.</td></tr>
+          <tr><td class="rank">3</td><td><b>Photograph a fridge shelf</b><span class="why">The &ldquo;Fridge&rdquo; tile on Scan</span></td><td><span class="size m">M</span></td>
+              <td>Reuses the receipt review screen, so it&rsquo;s cheaper once job 2 exists.</td></tr>
+          <tr><td class="rank">4</td><td><b>Keep product photos in our own storage</b></td><td><span class="size s">S</span></td>
+              <td>Scanned photos are links to Open Food Facts right now. If they change a link, your item loses its picture.</td></tr>
+          <tr><td class="rank">5</td><td><b>Home screen refresh</b></td><td><span class="size m">M</span></td>
+              <td>Put &ldquo;use these first&rdquo; at the top of Home, now that there&rsquo;s real data to show.</td></tr>
+          <tr><td class="rank">6</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
+              <td>Kitchens and shops often have poor signal. Screens should say what happened instead of sitting blank.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><b>Before real users:</b> a separate test project so tests
+    never touch real data, and point-in-time recovery on.</div>
+  </section>
+
+  <section>
+    <h2>Links</h2>
+    <div class="links">
       <a href="http://localhost:8080" target="_blank" rel="noopener">The app &rarr; localhost:8080</a>
-    </div>
-    <div class="note" style="margin-top:12px"><b>Start with the setup page.</b>
-    It has the field-by-field steps for getting this onto your iPhone &mdash;
-    which Apple page each of FlutterFlow's four deployment fields comes from,
-    in the order they have to be done, plus what must never be sent to me. It
-    is a page, not chat, so you never have to scroll back for it.</div>
-    <div class="note" style="margin-top:10px"><b>All backed up.</b> GitHub has
-    every commit, and FlutterFlow holds every app change independently. The DNS
-    fault that blocked this earlier is cleared.</div>
-  </section>
-
-  <!-- ================= 01 · BUILT TODAY ================= -->
-  <section>
-    <h2><span class="idx">01</span> Built today</h2>
-    <p class="lede">Each one driven in a browser end to end and checked against
-    the database afterwards, not just looked at.</p>
-
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>Feature</th><th>What it does, and what it proved</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><b>Photo capture</b><span class="why">Built weeks ago, never once run.</span></td>
-            <td>Camera &rarr; the household's own folder &rarr; signed URL &rarr; review &rarr; the item. The card and the details hero both show your photograph instead of the illustrative one.</td>
-          </tr>
-          <tr>
-            <td><b>Barcode lookup</b><span class="why">Open Food Facts: open, no key, no quota.</span></td>
-            <td>Type the number, get the real product — name, brand, size, photograph — and the add form starts already filled in. Saved with its barcode and marked as coming from one, so the same product can be recognised again later.<br><br>The <b>scanner</b> is native-only and needs a device; the <b>lookup</b> is the valuable half and works today.</td>
-          </tr>
-          <tr>
-            <td><b>Scan an empty packet</b><span class="why">The other half of the barcode gesture.</span></td>
-            <td>You are out of something that was never in your kitchen &mdash; scan the empty packet and it goes straight on the shopping list. The screen stays put so you can work through a cupboard without it jumping away between each one.</td>
-          </tr>
-          <tr>
-            <td><b>Shopping list</b><span class="why">Table existed since day one, no screen.</span></td>
-            <td>Add, tick, remove, shared with the household. Bought things stay on the list struck through rather than vanishing — in the aisle the useful question is "has someone already got this?", and an item that disappears cannot answer it.</td>
-          </tr>
-          <tr>
-            <td><b>What you used</b><span class="why">The payoff for logging every outcome since day one.</span></td>
-            <td>Used up against thrown out over thirty days, which category goes in the bin most, and whether it is better than the month before. <b>No chart</b> &mdash; with a household's worth of data a chart would be four bars pretending to be a trend. It says nothing rather than inventing a pattern: no worst category until three things have gone and one clearly leads, and no month-on-month comparison until there is a month to compare against.</td>
-          </tr>
-          <tr>
-            <td><b>Replace what you finish</b><span class="why">This is the loop the app is for.</span></td>
-            <td>A toggle on the item screen: <i>Put it on the shopping list</i>. It applies whether you used it up or threw it out — running out of milk is a more common reason to need more than wasting it is. Off by default; nothing is ever added because the app guessed.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ================= 02 · WHAT DRIVING IT CAUGHT ================= -->
-  <section>
-    <h2><span class="idx">02</span> What driving it caught</h2>
-    <p class="lede">Sixteen faults today. Every one of them passed validation
-    and pushed cleanly first — none would have been found by reading the code.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>Fault</th><th>Why it mattered</th></tr></thead>
-        <tbody>
-          <tr><td><b>A chocolate bar filed as bakery</b></td><td>The category exists only to estimate shelf life, so this would have had the app claim a Mars bar was going off within the week. It now reads 180 days. Caught because the mapping was tested against forty real products.</td></tr>
-          <tr><td><b>A stretching row hid three cards below it</b></td><td>A <code>Row</code> set to stretch inside a <i>scrollable</i> Column has no height to stretch to. It fails layout and takes every sibling after it down with it &mdash; the same family as the shrink-wrap bug that broke two screens before. The values were computed and stored correctly and simply never drawn.</td></tr>
-          <tr><td><b>"I used it" only worked when something else had failed</b></td><td>Actions written after a conditional are nested <i>into</i> it. The settle ended up inside a failure branch, so finishing an item did nothing on the ordinary path.</td></tr>
-          <tr><td><b>Adding to the shopping list was silently refused</b></td><td>Row security requires the client to supply <code>created_by</code>. Without it every insert was rejected while the screen looked like it had worked.</td></tr>
-          <tr><td><b>Two new fields swallowed the first keystroke batch</b></td><td>Every new text field arrives with a two-second debounce, so tapping straight after typing used the previous value. It answered "that does not look like a barcode" about a perfectly good barcode.</td></tr>
-          <tr><td><b>The review screen omitted the photograph</b></td><td>It said "this is what will be recorded" and left out the one thing you cannot check anywhere else.</td></tr>
-          <tr><td><b>Database codes on screen again</b></td><td><code>vegetables</code> rather than "Vegetables", and the raw storage type under every location name.</td></tr>
-          <tr><td><b>Every storage location wore a fridge icon</b></td><td>Those rows were still the stock list FlutterFlow generates. The right icons already existed and were being used correctly elsewhere.</td></tr>
-          <tr><td><b>Choosing a location did not look like choosing</b></td><td>The row looked identical to the two it was not, so the list read as three buttons that did nothing.</td></tr>
-          <tr><td><b>The loading indicator had a diameter of zero</b></td><td>On a phone that is the difference between "it is working" and "nothing happened".</td></tr>
-          <tr><td><b>Six tap targets under the recommended size</b></td><td>Flagged on every push for weeks. All now 48px.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="note" style="margin-top:14px">Every one of these is written up
-    in <span class="path">HANDOVER.md</span> section 5, which is now
-    <b>twenty-eight</b> traps in this DSL that each produced a successful push
-    and a wrong app.</div>
-  </section>
-
-  <!-- ================= 03 · WHAT REMAINS ================= -->
-  <section>
-    <h2><span class="idx">03</span> What remains</h2>
-    <p class="lede">Nothing here is blocked on me. The first three need
-    something from you; the last two are deliberate holds.</p>
-    <div class="t-scroll">
-      <table>
-        <thead><tr><th>&nbsp;</th><th>Job</th><th class="c">Size</th><th>Blocked on</th></tr></thead>
-        <tbody>
-          <tr><td class="id">1</td><td><b>TestFlight on your iPhone</b><span class="why">Unblocks barcode SCANNING, push, and the native camera in one go.</span></td><td class="c"><span class="size s-m">M</span></td><td><b>You:</b> a FlutterFlow paid plan and an App Store Connect API key. No Mac needed.</td></tr>
-          <tr><td class="id">2</td><td><b>AI recognition</b><span class="why">Point the camera at food and have it named.</span></td><td class="c"><span class="size s-l">L</span></td><td><b>You:</b> a Gemini API key. Goes into FlutterFlow, never to me.</td></tr>
-          <tr><td class="id">3</td><td><b>Expiry reminders</b><span class="why">notification_preferences exists and nothing reads it.</span></td><td class="c"><span class="size s-m">M</span></td><td>Needs push, so it follows item 1.</td></tr>
-          <tr><td class="id">4</td><td><b>Multi-user household</b><span class="why">Invite codes and joining are built but have never been exercised with a second account, and row security is what a second account would test.</span></td><td class="c"><span class="size s-s">S</span></td><td><b>You:</b> a second test account. I will not create accounts on your behalf, and I cannot delete one afterwards without the service-role key. <code>you+tester@gmail.com</code> works.</td></tr>
-          <tr><td class="id">5</td><td><b>Large-text accessibility</b></td><td class="c"><span class="size s-s">S</span></td><td>Flutter takes text scaling from the platform, so it cannot be emulated in a browser. Needs a device.</td></tr>
-          <tr><td class="id">6</td><td><b>Recipes</b></td><td class="c"><span class="size s-m">M</span></td><td>Held <b>deliberately</b>: the guide forbids claiming a recipe's ingredients from an illustrative photo. Waits on real recipe data.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="note" style="margin-top:14px"><b>My recommendation is item 1.</b>
-    It is the only one that unblocks three others, and the two things it needs
-    are both administrative rather than technical.</div>
-  </section>
-
-  <!-- ================= 04 · ACCOUNT ================= -->
-  <section>
-    <h2><span class="idx">04</span> Your account</h2>
-    <div class="note">
-      All the test data has been <b>removed</b> — households, food, shopping
-      lists, events and uploaded photographs. The account is back where you
-      asked for it: <b>signed in, no household</b>, so you can walk the
-      first-run flow from the beginning.<br><br>
-      <b>localhost:8080</b> is serving the current build.<br><br>
-      To try the barcode screen: Scan &rarr; Barcode, and type
-      <code>5000159407236</code> (a Mars bar) or any barcode from your
-      cupboard.
+      <a href="https://claude.ai/code/artifact/f7fce39b-c476-4384-801c-1f852baabc96" target="_blank" rel="noopener">Setup &amp; keys, step by step</a>
     </div>
   </section>
 
   <footer>
-    <span>HANDOVER.md in the workspace root has the detail. Section 5 &mdash; the DSL traps &mdash; is the time-saver.</span>
-    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 10 Sep 2026</span>
+    <span>Full detail is in HANDOVER.md in the workspace. Section 5 lists the build traps.</span>
+    <span class="mono">UseItFresh &middot; fridge-wise-gvpy0s &middot; 11 Sep 2026</span>
   </footer>
 
 </div>
-
-</body></html>
