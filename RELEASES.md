@@ -17,6 +17,7 @@ python scripts/release.py 7 --note "what this build is"
 <!-- releases: newest first -->
 | Build | Date | Git tag | FlutterFlow commit | Photo function | What it is |
 |---|---|---|---|---|---|
+| 6 | 2026-09-12 | `build-6-ios` | `WeJKE7HXMmAfevQmf5NR` | `2026-09-12.2` | Camera-first Scan; meal ideas with meal, time, servings and leave-out; use-by dates on the photo map; joining a household; kept ideas shared; a choice of household; loading rings that turn |
 | 5 | 2026-09-11 | `build-5-ios` | `DtQumQwwU4UY9uUudVRl` | pre-version | The photo map, and the no-signal fixes for the item screen, Add food and the greeting |
 | 4 | 2026-09-11 | `build-4-ios` | `VmwmBylmyafXzs4DOCwJ` | pre-version | Fallback position: receipts, barcode, shopping list, waste history, reminders |
 
