@@ -70,7 +70,8 @@ If the photo is not a receipt, set isReceipt to false and return no items.`;
 
 const SHELF_PROMPT = `This is a photo of a fridge shelf, a cupboard or a
 worktop. List each distinct food item you can clearly see, so it can be added
-to a kitchen inventory. Name each in plain everyday words; include a brand only
+to a kitchen inventory. Name each in plain everyday words, in the plural when
+you can see more than one ("Eggs", "Cherry tomatoes"); include a brand only
 when it is clearly legible. quantity is how many of that item you can see.
 List only what is actually visible. Do not guess what is inside an opaque or
 unlabelled container — leave it out.
