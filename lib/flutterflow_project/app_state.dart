@@ -35,6 +35,12 @@ abstract final class AppState {
     typeName: "Boolean",
     persisted: true,
   );
+  static const ideasLoading = ffai.ProjectAppStateFieldHandle(
+    name: "ideasLoading",
+    key: "mly1u32k",
+    typeName: "Boolean",
+    persisted: false,
+  );
   static const isMetric = ffai.ProjectAppStateFieldHandle(
     name: "isMetric",
     key: "isMetric",
@@ -63,6 +69,12 @@ abstract final class AppState {
     name: "mapReading",
     key: "ab13g4cd",
     typeName: "Boolean",
+    persisted: false,
+  );
+  static const mealIdeas = ffai.ProjectAppStateFieldHandle(
+    name: "mealIdeas",
+    key: "7flyrry1",
+    typeName: "List<DataStruct<MealIdea>>",
     persisted: false,
   );
   static const scanBarcode = ffai.ProjectAppStateFieldHandle(
@@ -185,11 +197,13 @@ abstract final class AppState {
     currentHouseholdId,
     expiryAlertDays,
     hasOpenedFridge,
+    ideasLoading,
     isMetric,
     mapFoods,
     mapPhotos,
     mapPlace,
     mapReading,
+    mealIdeas,
     scanBarcode,
     scanBrand,
     scanCategory,

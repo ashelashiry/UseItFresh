@@ -153,8 +153,9 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">The photo map is on your phone in Build 5. Build 6 makes
-      the camera the way in: tap Scan and it opens.</p>
+      <p class="sub">Build 6 is ready: the camera opens from Scan, the Recipes
+      tab suggests meals from your own food, and the photo map takes
+      use-by dates.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
@@ -167,11 +168,11 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Try the photo map on Build 5, then deploy Build 6 when it suits you.</p>
-      <p>Build 6 opens the camera as soon as you tap Scan or &ldquo;Add
-      food&rdquo;; close it for a receipt, a barcode or typing. It also
-      fixes Home&rsquo;s &ldquo;Add food&rdquo;, which did nothing in Build 5.
-      Builds 4 and 5 are both kept as fallbacks.</p>
+      <p>Paste the photo function once more, then deploy Build 6 and test.</p>
+      <p>The paste is what lets &ldquo;Get ideas&rdquo; work. Build 6 has the
+      camera-first Scan tab, meal ideas, use-by dates on the photo map, and
+      loading rings that actually turn. Builds 4 and 5 are kept as
+      fallbacks.</p>
     </div>
   </div>
 
@@ -180,20 +181,22 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Try the photo map on Build 5</h3>
-          <p>Scan &rarr; Fridge photo, on a real shelf. Tell me whether the
-          outlines land on the right foods, and anything that looks off.
-          Screenshots to your usual folder are easiest.</p>
+          <h3>Paste the photo function into Supabase</h3>
+          <p>Open <code>supabase/functions/recognise-food/index.ts</code>,
+          select all and copy. In Supabase: <b>Edge Functions &rarr;
+          recognise-food &rarr; Code</b>, select all, paste, <b>Deploy</b>.
+          Leave &ldquo;Verify JWT&rdquo; off. It adds the meal ideas; photos
+          work exactly as before.</p>
         </div>
-        <span class="how">Now</span>
+        <span class="how">5 min</span>
       </li>
       <li class="ask">
         <div>
-          <h3>Deploy Build 6, when it suits you</h3>
+          <h3>Deploy Build 6</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
           <b>Build Number</b> by one &rarr; Deploy to TestFlight.</p>
         </div>
-        <span class="how">When convenient</span>
+        <span class="how">After the paste</span>
       </li>
       <li class="ask">
         <div>
@@ -230,6 +233,15 @@
     <p class="lede">The new things, in the order I&rsquo;d try them. Each photo
     costs a little of your Gemini credit.</p>
     <ul class="tries">
+      <li><span class="where">Recipes &rarr; Get ideas</span>
+          <span class="what"><b>Build 6.</b> Meal ideas from the food in your
+          kitchen, whatever needs using first at the top. Each shows what it
+          uses, what else you&rsquo;d need (one tap adds those to your shopping
+          list), and the steps. Needs the paste.</span></li>
+      <li><span class="where">Photo map &rarr; tap a name</span>
+          <span class="what"><b>Build 6.</b> &ldquo;Add use-by date&rdquo; for
+          an exact reminder. Optional: without it the typical keep time is
+          used.</span></li>
       <li><span class="where">Scan</span>
           <span class="what"><b>Build 6.</b> The camera opens straight away:
           photograph a shelf and check it on the photo map. Close the camera
@@ -326,6 +338,24 @@
             <td><span class="state phone">Build 4</span></td>
           </tr>
           <tr>
+            <td><b>What can I make?</b></td>
+            <td>Meal ideas from your own food, soonest-to-go first. Text only;
+            leaves out anything past its date and never judges safety.</td>
+            <td><span class="state wait">Build 6</span></td>
+          </tr>
+          <tr>
+            <td><b>Use-by dates on the photo map</b></td>
+            <td>Optional date per food, saved as its use-by, so reminders are
+            exact.</td>
+            <td><span class="state wait">Build 6</span></td>
+          </tr>
+          <tr>
+            <td><b>Loading rings that turn</b></td>
+            <td>Every &ldquo;loading&rdquo; and &ldquo;reading&rdquo; ring was a
+            still grey circle. Now they spin.</td>
+            <td><span class="state wait">Build 6</span></td>
+          </tr>
+          <tr>
             <td><b>The camera is the way in</b></td>
             <td>Tap Scan or &ldquo;Add food&rdquo; and the camera opens. Close it for
             the other ways to add. &ldquo;Add food&rdquo; did nothing before.</td>
@@ -364,18 +394,18 @@
 
   <section>
     <h2>What next? You choose</h2>
-    <p class="lede">The camera is now the way in. These are the candidates for
-    what comes after it. Tell me which to start with.</p>
+    <p class="lede">Meal ideas and dates are in. These are the candidates for
+    after your test round. Tell me which to start with.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Idea</th><th>Size</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="rank">A</td><td><b>&ldquo;What can I make?&rdquo;</b></td><td><span class="size m">M</span></td>
-              <td>Ideas from the food actually in your kitchen, soonest-to-go first. Text only, and never a word on whether something is safe. Needs your OK against the design guide.</td></tr>
-          <tr><td class="rank">B</td><td><b>Add dates while reviewing</b></td><td><span class="size m">M</span></td>
-              <td>Optional use-by dates on the map, for exact reminders. The typical keep time already works without them.</td></tr>
-          <tr><td class="rank">C</td><td><b>Shared household, tested properly</b></td><td><span class="size s">S</span></td>
+          <tr><td class="rank">A</td><td><b>Shared household, tested properly</b></td><td><span class="size s">S</span></td>
               <td>Built but never tried with two people. Needs a second account that you create.</td></tr>
+          <tr><td class="rank">B</td><td><b>Shape the ideas</b></td><td><span class="size m">M</span></td>
+              <td>Choose meal type, time and servings, and foods to leave out (spec 8.9).</td></tr>
+          <tr><td class="rank">C</td><td><b>Keep a favourite idea</b></td><td><span class="size s">S</span></td>
+              <td>Save an idea you liked so it is there next week.</td></tr>
         </tbody>
       </table>
     </div>

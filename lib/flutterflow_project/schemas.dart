@@ -22,6 +22,19 @@ abstract final class Structs {
       "photo": ffai.string,
       "place": ffai.string,
       "quantity": ffai.int_,
+      "useBy": ffai.string,
+    },
+    description: ffai.generatedProjectStructDescription,
+  );
+  static final ffai.StructHandle mealIdea = ffai.StructHandle(
+    "MealIdea",
+    <String, ffai.DslType>{
+      "extras": ffai.listOf(ffai.string),
+      "minutes": ffai.int_,
+      "soon": ffai.bool_,
+      "steps": ffai.listOf(ffai.string),
+      "title": ffai.string,
+      "uses": ffai.listOf(ffai.string),
     },
     description: ffai.generatedProjectStructDescription,
   );
@@ -38,6 +51,7 @@ abstract final class Structs {
   );
   static final all = <ffai.StructHandle>[
     mapFood,
+    mealIdea,
     scannedFood,
   ];
 }
@@ -3000,6 +3014,7 @@ abstract final class CustomCode {
     "ClearShelfScan",
     "CreateFoodItem",
     "CreateHousehold",
+    "GetMealIdeas",
     "LetTapsThroughVideos",
     "LoadWasteSummary",
     "LookupBarcode",
@@ -3015,10 +3030,12 @@ abstract final class CustomCode {
   static const widgets = <String>[
     "AnimatedRemoteImage",
     "AppIcon",
+    "BusySpinner",
     "FoodStatusBadge",
     "FridgeEntrance",
     "KitchenIcon",
     "LoopingRemoteImage",
+    "MealIdeaCards",
     "ShelfReview",
     "StatusIcon",
   ];

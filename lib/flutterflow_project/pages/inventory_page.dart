@@ -464,10 +464,10 @@ abstract final class InventoryPageWidgets {
                         name: "InventoryLoading",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "ProgressBar_1h6m3foq",
-                            type: "ProgressBar",
+                            key: "Container_mvznfl55",
+                            type: "Container",
                             path: "InventoryPage.body[0].children[0].children[5].children[1].children[0]",
-                            name: "InventorySpinner",
+                            name: "KitchenLoadingSpinner",
                           ),
                         ],
                       ),

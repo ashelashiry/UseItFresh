@@ -72,10 +72,10 @@ abstract final class ScanAddPageWidgets {
                         name: "Row",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "ProgressBar_jwg0bey6",
-                            type: "ProgressBar",
+                            key: "Container_117n105i",
+                            type: "Container",
                             path: "ScanAddPage.body[0].children[0].children[2].children[0].children[0]",
-                            name: "ProgressBar",
+                            name: "ScanReadingSpinner",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_xhxsnt5h",

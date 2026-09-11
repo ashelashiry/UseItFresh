@@ -97,10 +97,10 @@ abstract final class MapReviewPageWidgets {
                         name: "Row",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
-                            key: "ProgressBar_9gj3r7hi",
-                            type: "ProgressBar",
+                            key: "Container_beg09b01",
+                            type: "Container",
                             path: "MapReviewPage.body[0].children[0].children[3].children[0].children[0]",
-                            name: "ProgressBar",
+                            name: "MapReadingSpinner",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_m5mqjtkg",
@@ -134,7 +134,7 @@ abstract final class MapReviewPageWidgets {
                     type: "Text",
                     path: "MapReviewPage.body[0].children[0].children[6]",
                     name: "MapReviewKeeps",
-                    text: "No dates to type. Each food gets a typical keep time for where it is kept. Add a printed date later if you want an exact reminder.",
+                    text: "No dates to type. Each food gets a typical keep time for where it is kept. For an exact reminder, tap a food's name and add the use-by date from its pack.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Text_j1ribpzp",

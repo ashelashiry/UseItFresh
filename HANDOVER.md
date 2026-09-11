@@ -145,6 +145,30 @@ Agreed from a clickable mockup before it was built.
   every build up to 5; it and the Fridge photo tile now open the review
   screen too. After saving, the kitchen replaces the review screen
   (`replaceRoute`), so Back does not land on an empty map.
+- **"What can I make?"** (Recipes tab, 11 Sep). `recognise-food` mode
+  `ideas` reads `food_items_status` with the caller's own session, so RLS
+  decides what is visible; leaves out past use-by, past best-before, used and
+  thrown-out food; sends Gemini only names and a "use first" mark; and moves
+  any "from your kitchen" name that is not really in the kitchen to "also
+  need". `GetMealIdeas` keeps the ideas in app state (`mealIdeas`,
+  `ideasLoading`) so a tab switch does not ask, and pay, again.
+  `MealIdeaCards` draws them, with "Add these to your shopping list" reusing
+  `AddNameToShoppingList`. Runs only on the "Get ideas" tap. **Needs the
+  owner's paste**; until then the tap says "That photo is not from this app."
+- **Use-by dates on the photo map** (same day). `MapFood.useBy`
+  (yyyy-mm-dd, added with `ensureDataStructField` inside `app.raw`, since the
+  struct exists); ShelfReview and SaveMapFoods replaced whole with
+  `updateCustomWidget` / `updateCustomAction`. Tap a food's name, then "Add
+  use-by date". Saved as `printed_date` + `printed_date_type = 'use_by'`,
+  which the status engine and reminders already read.
+- **Loading rings that turn.** `ProgressBar.circular` generates a
+  `CircularPercentIndicator` at 0% with no animation: a grey ring that never
+  moves. All four (kitchen loading, Scan reading, photo map reading, ideas)
+  are now `BusySpinner`, a small custom widget.
+- Traps met on the way: `ensureReplaced` drops the replaced node's own
+  padding; `page.update(... patch.padding ...)` on a Container did not reach
+  the generated code, and the fast lane has no padding op, so the Recipes
+  container was rebuilt with `Container(padding:)`, which works.
 
 1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
    credit running out, not the code. The function also no longer pins a
