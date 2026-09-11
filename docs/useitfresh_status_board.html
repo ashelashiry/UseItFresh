@@ -56,7 +56,6 @@
            text-align:right; white-space:nowrap; }
   .stamp b { color:var(--ink-mid); font-weight:600; }
 
-  /* The answer, first */
   .verdict { margin-top:26px; display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:start;
              background:var(--accent-wash); border-radius:12px; padding:18px 22px; }
   .verdict .lbl { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.1em;
@@ -70,7 +69,6 @@
        margin:0 0 6px; text-wrap:balance; }
   .lede { color:var(--ink-soft); margin:0 0 18px; max-width:68ch; font-size:14.5px; }
 
-  /* Asks: an ordered list — the order is the priority */
   .asks { list-style:none; margin:0; padding:0; display:grid; gap:10px; counter-reset:a; }
   .ask { counter-increment:a; display:grid; grid-template-columns:38px 1fr auto; gap:0 14px;
          align-items:start; background:var(--surface); border:1px solid var(--line);
@@ -79,7 +77,7 @@
                  display:flex; align-items:center; justify-content:center;
                  font-family:var(--f-mono); font-size:12px; font-weight:600;
                  background:var(--warn-wash); color:var(--warn); margin-top:1px; }
-  .ask.first::before { background:var(--danger-wash); color:var(--danger); }
+  .ask.first::before { background:var(--accent-wash); color:var(--accent-deep); }
   .ask.opt::before { background:var(--surface-sunk); color:var(--ink-faint); }
   .ask h3 { font-family:var(--f-display); font-size:16.5px; font-weight:700; margin:0 0 4px; line-height:1.35; }
   .ask p { margin:0; color:var(--ink-soft); font-size:14.5px; max-width:66ch; }
@@ -88,17 +86,19 @@
               text-transform:uppercase; white-space:nowrap; padding:4px 9px; border-radius:5px;
               background:var(--surface-sunk); color:var(--ink-mid); border:1px solid var(--line-soft);
               margin-top:2px; }
-  .ask.first .how { background:var(--danger-wash); color:var(--danger); border-color:transparent; }
+  .ask.first .how { background:var(--accent-wash); color:var(--accent-deep); border-color:transparent; }
 
-  /* Incident */
-  .incident { border:1px solid var(--line); border-left:4px solid var(--danger); border-radius:10px;
-              background:var(--surface); padding:16px 20px; }
-  .incident dl { margin:0; display:grid; grid-template-columns:max-content 1fr; gap:8px 18px; }
-  .incident dt { font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.09em;
-                 text-transform:uppercase; color:var(--ink-faint); padding-top:3px; }
-  .incident dd { margin:0; font-size:14.5px; color:var(--ink-mid); max-width:66ch; }
+  /* The testing checklist: things to do on the phone, in a sensible order */
+  .tries { list-style:none; margin:0; padding:0; display:grid; gap:0;
+           background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .tries li { display:grid; grid-template-columns:150px 1fr; gap:4px 18px; padding:13px 18px;
+              border-bottom:1px solid var(--line-soft); }
+  .tries li:last-child { border-bottom:none; }
+  .tries .where { font-family:var(--f-mono); font-size:11.5px; font-weight:600; color:var(--accent-deep);
+                  padding-top:2px; }
+  .tries .what { font-size:14.5px; color:var(--ink-mid); max-width:62ch; }
+  .tries .what b { color:var(--ink); }
 
-  /* Tables */
   .t-scroll { overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px; }
   table { width:100%; border-collapse:collapse; min-width:600px; }
   th { font-family:var(--f-mono); font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
@@ -113,14 +113,12 @@
            letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:20px; white-space:nowrap; }
   .state.web   { background:var(--accent-wash); color:var(--accent-deep); }
   .state.phone { background:var(--info-wash); color:var(--info); }
-  .state.held  { background:var(--danger-wash); color:var(--danger); }
   .state.wait  { background:var(--warn-wash); color:var(--warn); }
 
   .size { display:inline-block; font-family:var(--f-mono); font-size:11px; font-weight:700; min-width:30px;
           padding:3px 0; border-radius:5px; text-align:center; }
   .size.s { background:var(--accent-wash); color:var(--accent-deep); }
   .size.m { background:var(--warn-wash); color:var(--warn); }
-  .size.l { background:var(--danger-wash); color:var(--danger); }
 
   code { font-family:var(--f-mono); font-size:.86em; background:var(--surface-sunk);
          border:1px solid var(--line-soft); border-radius:4px; padding:1px 5px; color:var(--ink-mid); }
@@ -146,8 +144,7 @@
     .verdict { grid-template-columns:1fr; gap:6px; }
     .ask { grid-template-columns:34px 1fr; }
     .ask .how { grid-column:2; justify-self:start; margin-top:10px; }
-    .incident dl { grid-template-columns:1fr; gap:2px; }
-    .incident dd { margin-bottom:8px; }
+    .tries li { grid-template-columns:1fr; }
   }
 </style>
 
@@ -157,167 +154,148 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Receipt and fridge-photo reading are built. Everything
-      that reads photos is waiting on one thing: credit in your Google AI
-      Studio account.</p>
+      <p class="sub">Receipts, fridge photos and photo naming work end to end.
+      Build 2 is ready for your round of testing.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
       git <b>main</b> &middot; pushed to GitHub<br>
-      FlutterFlow <b>ceV2IFCHZuzsgvLC0eR7</b><br>
+      FlutterFlow <b>Yxq8am9Raz4030douzH8</b><br>
       app <b>localhost:8080</b> &middot; running
     </div>
   </header>
 
   <div class="verdict">
-    <span class="lbl">My recommendation</span>
+    <span class="lbl">Do this next</span>
     <div>
-      <p>Add credit in AI Studio. I test receipts end to end, then you deploy Build 2.</p>
-      <p>The key and the code are fine. Google turned the calls away with
-      &ldquo;Your prepayment credits are depleted&rdquo;.</p>
+      <p>Deploy Build 2. It&rsquo;s the build for your full round of testing.</p>
+      <p>The whole receipt flow ran in the app with no errors: from the tap on
+      Receipt, through the review list and a removed line, to the food in the
+      kitchen. Your &ldquo;Ash&rsquo;s kitchen&rdquo; was never touched: every
+      test now uses its own temporary household.</p>
     </div>
   </div>
 
   <section>
     <h2>What I need from you</h2>
-    <p class="lede">In priority order. Only the first one holds me up.</p>
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Add credit to your Gemini project</h3>
-          <p>Go to <b>ai.studio/projects</b>, open the project your key belongs
-          to, then <b>Billing</b>, and add credit. The minimum is plenty for
-          testing. Then tell me &ldquo;credits added&rdquo;. Nothing needs
-          redeploying.</p>
-        </div>
-        <span class="how">5 min</span>
-      </li>
-      <li class="ask">
-        <div>
-          <h3>Build 2, once I say receipts work</h3>
+          <h3>Deploy Build 2</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
-          <b>Build Number</b> by one &rarr; Deploy to TestFlight. It brings
-          reminders, photo naming, receipts, fridge photos and kept product
-          photos. That&rsquo;s the build for your full round of testing.</p>
+          <b>Build Number</b> by one &rarr; Deploy to TestFlight. When
+          TestFlight says it&rsquo;s ready, update the app on your phone.</p>
         </div>
-        <span class="how">After my go</span>
+        <span class="how">Now</span>
       </li>
       <li class="ask">
         <div>
-          <h3>Your lost food: re-add it or restore</h3>
-          <p><b>I recommend re-adding it.</b> The household you see now,
-          &ldquo;Ash&rsquo;s kitchen&rdquo;, is empty and yours to keep using.</p>
-          <p>A restore brings back last night&rsquo;s copy of the <i>whole</i>
-          database, so everything since then goes. If you set up the household
-          today, the backup won&rsquo;t have it anyway.</p>
+          <h3>Paste the photo function once more</h3>
+          <p>It changes one message. When Gemini runs out of credit, the app will
+          say &ldquo;not available right now&rdquo; instead of &ldquo;too many
+          photos&rdquo;. It runs on the server, so it needs no new build. Ask me
+          and I&rsquo;ll open the file for you.</p>
         </div>
-        <span class="how">Your call</span>
+        <span class="how">When convenient</span>
       </li>
       <li class="ask opt">
         <div>
           <h3>The barcode on that water bottle</h3>
           <p>Type me the digits under the barcode. I&rsquo;ll check whether the
-          product database has a photo for it, or whether the app missed it.</p>
+          product database has a photo for it.</p>
         </div>
         <span class="how">Optional</span>
       </li>
       <li class="ask opt">
         <div>
-          <h3>A second account, for testing a shared household</h3>
+          <h3>A second account, for a shared household</h3>
           <p>Sign up on <b>localhost:8080</b> as
-          <code>ashraf.elashiry+tester@gmail.com</code> (Gmail delivers it to
-          your normal inbox). Then join your household with its invite code. I
-          won&rsquo;t create accounts for you.</p>
+          <code>ashraf.elashiry+tester@gmail.com</code>, then join your
+          household with its invite code.</p>
         </div>
         <span class="how">Optional</span>
       </li>
     </ol>
-    <div class="note"><b>Not needed yet:</b> point-in-time recovery. Supabase
-    Pro already backs up daily. Turn it on before real users arrive.</div>
   </section>
 
   <section>
-    <h2>What happened to your household</h2>
-    <div class="incident">
-      <dl>
-        <dt>What</dt>
-        <dd>My photo-naming test deleted your real household, with its food,
-        shopping list and storage locations. It took &ldquo;the first
-        household&rdquo; instead of the one it had just made.</dd>
-        <dt>Fixed</dt>
-        <dd>The test deletes only the household it created, and stops if it
-        can&rsquo;t tell which one that is. I switched off the two older
-        cleanup scripts that delete in bulk.</dd>
-        <dt>Left over</dt>
-        <dd>Photos from those items are still in storage with nothing pointing
-        at them. They&rsquo;re harmless. I&rsquo;ll delete them only if you ask.</dd>
-        <dt>From now on</dt>
-        <dd>I won&rsquo;t run any test that writes to your account without
-        telling you first.</dd>
-      </dl>
-    </div>
+    <h2>What to try in Build 2</h2>
+    <p class="lede">The new things, in the order I&rsquo;d try them. Each photo
+    costs a little of your Gemini credit.</p>
+    <ul class="tries">
+      <li><span class="where">Scan &rarr; Receipt</span>
+          <span class="what">Photograph a real till receipt, flat and in good
+          light. Check the names and where each food will go. Remove anything
+          wrong, then tap <b>Add them to your kitchen</b>.</span></li>
+      <li><span class="where">Scan &rarr; Fridge photo</span>
+          <span class="what">Photograph a shelf. It lists only what it can
+          actually see.</span></li>
+      <li><span class="where">Add manually &rarr; photo</span>
+          <span class="what">Take a photo of one food. The name and category
+          fill in, marked as a suggestion. It never overwrites what you typed.</span></li>
+      <li><span class="where">Scan &rarr; Barcode</span>
+          <span class="what">Scan a product. Its photo now stays even if the
+          product database changes it later.</span></li>
+      <li><span class="where">Profile &rarr; Reminders</span>
+          <span class="what">Turn them on with <b>1 day before</b>, then add
+          something dated <b>two days from now</b>. The reminder arrives
+          tomorrow at 10am.</span></li>
+      <li><span class="where">Your kitchen</span>
+          <span class="what">Foods with no photo now show a plain plate, never a
+          blank box or another food&rsquo;s picture.</span></li>
+    </ul>
+    <div class="note"><b>Known limit:</b> on the review list you can remove a
+    wrong line but not fix it yet. That&rsquo;s the next thing I&rsquo;m building.</div>
   </section>
 
   <section>
-    <h2>What&rsquo;s built</h2>
-    <p class="lede">Since the last report. &ldquo;Browser&rdquo; means it works on
-    localhost:8080. &ldquo;Phone&rdquo; means it also needs the new build from ask 2.</p>
+    <h2>Built and fixed today</h2>
     <div class="t-scroll">
       <table>
-        <thead><tr><th>Feature</th><th>What it does</th><th>Where it is</th></tr></thead>
+        <thead><tr><th>What</th><th>Detail</th><th>Where it is</th></tr></thead>
         <tbody>
           <tr>
-            <td><b>Camera barcode scanner</b></td>
-            <td>Point the camera at a barcode. The product&rsquo;s name, brand,
-            size and photo fill the form. You can change any of them, the photo too.</td>
-            <td><span class="state phone">On your phone</span></td>
+            <td><b>Scan a receipt</b></td>
+            <td>Shop abbreviations become plain names. Bags and cleaning products
+            are left out, repeated lines are merged, and each food gets a place.
+            The photo is deleted once read.</td>
+            <td><span class="state phone">Build 2</span></td>
           </tr>
           <tr>
-            <td><b>Expiry reminders</b><span class="why">Profile &rarr; Reminders</span></td>
-            <td>Your phone reminds you a set number of days before food goes
-            off. The reminders are scheduled on the phone itself, so they need
-            no server.</td>
-            <td><span class="state wait">Next build</span></td>
+            <td><b>Fridge photo</b></td>
+            <td>The same review list, from a photo of a shelf.</td>
+            <td><span class="state phone">Build 2</span></td>
           </tr>
           <tr>
-            <td><b>Scan a receipt</b><span class="why">Scan &rarr; Receipt</span></td>
-            <td>One photo of the till receipt. Shop abbreviations become plain
-            names, bags and cleaning products are left out, and each food is
-            given a place: fridge, freezer or pantry. You remove anything wrong,
-            then add the lot. The photo is deleted once it has been read.</td>
-            <td><span class="state wait">Needs credit</span></td>
-          </tr>
-          <tr>
-            <td><b>Fridge photo</b><span class="why">Scan &rarr; Fridge photo</span></td>
-            <td>The same review list, from a photo of a shelf. Only what can
-            actually be seen is listed. It won&rsquo;t guess what&rsquo;s inside
-            a closed tub.</td>
-            <td><span class="state wait">Needs credit</span></td>
-          </tr>
-          <tr>
-            <td><b>Name it from a photo</b><span class="why">Gemini, key kept in Supabase</span></td>
-            <td>Take a photo and the form suggests a name and category. It never
-            overwrites what you typed. It never guesses a date or says whether
-            food is safe to eat.</td>
-            <td><span class="state wait">Needs credit</span></td>
+            <td><b>Name it from a photo</b></td>
+            <td>It was failing because your Gemini project had no credit. It no
+            longer depends on one model name either, so Google retiring a model
+            won&rsquo;t break it.</td>
+            <td><span class="state phone">Build 2</span></td>
           </tr>
           <tr>
             <td><b>Product photos kept</b></td>
-            <td>A scanned product&rsquo;s photo is copied into your own storage,
-            at a sharper size. It won&rsquo;t disappear if the product database
-            changes it.</td>
-            <td><span class="state wait">Next build</span></td>
+            <td>A scanned product&rsquo;s photo is copied into your own storage, at
+            a sharper size.</td>
+            <td><span class="state phone">Build 2</span></td>
           </tr>
           <tr>
-            <td><b>iOS build fix</b></td>
-            <td>Removed a web-only piece of code that stopped the phone build.</td>
-            <td><span class="state phone">On your phone</span></td>
+            <td><b>Plain plate for no photo</b></td>
+            <td>Foods without a photo showed a blank box. Bananas showed tomatoes,
+            and the &ldquo;Use these next&rdquo; card showed spinach for chicken.</td>
+            <td><span class="state phone">Build 2</span></td>
           </tr>
           <tr>
-            <td><b>TestFlight setup</b></td>
-            <td>Apple and App Store Connect are set up. Each new build is now just
-            &ldquo;raise the number, Deploy&rdquo;.</td>
-            <td><span class="state web">Done</span></td>
+            <td><b>Reminders in a browser</b></td>
+            <td>They threw an error on every kitchen visit at localhost. Reminders
+            only exist on the phone, so the browser now skips them.</td>
+            <td><span class="state web">Fixed</span></td>
+          </tr>
+          <tr>
+            <td><b>Refreshing localhost:8080</b></td>
+            <td>A refresh on any screen but the first gave &ldquo;File not
+            found&rdquo;. Now every screen survives a refresh.</td>
+            <td><span class="state web">Fixed</span></td>
           </tr>
         </tbody>
       </table>
@@ -325,28 +303,24 @@
   </section>
 
   <section>
-    <h2>My priorities</h2>
-    <p class="lede">Receipts, fridge photos and kept product photos are done
-    (above). What&rsquo;s left, in order:</p>
+    <h2>My priorities after Build 2</h2>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
         <tbody>
-          <tr><td class="rank">1</td><td><b>Test all photo reading</b><span class="why">Starts when you add credit</span></td><td><span class="size s">S</span></td>
-              <td>Tests are ready: a real receipt with abbreviations, bags and bleach on it, a shelf photo, and a single item. Then the whole flow in the app.</td></tr>
-          <tr><td class="rank">2</td><td><b>Edit a line on the review list</b></td><td><span class="size s">S</span></td>
-              <td>For now you can only remove a wrong line, not fix it. Fixing a misread name before adding it saves a trip to each item afterwards.</td></tr>
-          <tr><td class="rank">3</td><td><b>Clearer message when Gemini has no credit</b></td><td><span class="size s">S</span></td>
-              <td>Right now the app says &ldquo;too many photos&rdquo;, which is wrong. I&rsquo;ll bundle this fix into your next function paste.</td></tr>
-          <tr><td class="rank">4</td><td><b>Home screen refresh</b></td><td><span class="size m">M</span></td>
-              <td>Put &ldquo;use these first&rdquo; at the top of Home, now that there&rsquo;s real data to show.</td></tr>
-          <tr><td class="rank">5</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
+          <tr><td class="rank">1</td><td><b>Fix a line on the review list</b><span class="why">Being designed now</span></td><td><span class="size s">S</span></td>
+              <td>Tap a line to correct a misread name before adding it, instead of fixing each item afterwards.</td></tr>
+          <tr><td class="rank">2</td><td><b>Home screen refresh</b></td><td><span class="size m">M</span></td>
+              <td>&ldquo;Use these first&rdquo; at the top of Home, now there&rsquo;s real food to show.</td></tr>
+          <tr><td class="rank">3</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
               <td>Kitchens and shops often have poor signal. Screens should say what happened instead of sitting blank.</td></tr>
+          <tr><td class="rank">4</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
+              <td>Held on purpose until there&rsquo;s real recipe data. The design guide rules out suggesting ingredients from a stock photo.</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="note"><b>Before real users:</b> a separate test project so tests
-    never touch real data, and point-in-time recovery on.</div>
+    <div class="note"><b>Before real users:</b> a separate test project, so tests
+    never touch real data, and point-in-time recovery turned on.</div>
   </section>
 
   <section>
