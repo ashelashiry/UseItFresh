@@ -187,6 +187,9 @@
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
           <b>Build Number</b> by one &rarr; Deploy to TestFlight. When
           TestFlight says it&rsquo;s ready, update the app on your phone.</p>
+          <p><b>Then tell me it&rsquo;s deployed.</b> My next change touches how
+          Home and the kitchen load. I&rsquo;m holding it so it can&rsquo;t land
+          half-done in the build you&rsquo;re testing.</p>
         </div>
         <span class="how">Now</span>
       </li>
@@ -326,8 +329,8 @@
       <table>
         <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
         <tbody>
-          <tr><td class="rank">1</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
-              <td>Kitchens and shops often have poor signal. Screens should say what happened instead of sitting blank.</td></tr>
+          <tr><td class="rank">1</td><td><b>No-signal states</b><span class="why">Held until your build is deployed</span></td><td><span class="size m">M</span></td>
+              <td>Checked offline in the app. With food in the kitchen, it says &ldquo;Nothing in here yet&rdquo; and Home offers to set up a new household, which invites a duplicate. It should only say &ldquo;empty&rdquo; after a load that worked, and otherwise say it can&rsquo;t reach your kitchen. Back online it recovers by itself.</td></tr>
           <tr><td class="rank">2</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
               <td>Held on purpose until there&rsquo;s real recipe data. The design guide rules out suggesting ingredients from a stock photo.</td></tr>
         </tbody>

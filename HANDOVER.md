@@ -139,7 +139,26 @@ naming, and receipt / fridge-shelf reading with a review screen.
    in the kitchen (now "Add food"), and counts read "2 item" (`quantityLabel`
    now pluralises countable units — loaf/loaves, box/boxes — and never
    weights or volumes; tested locally against ten cases).
-5. **No-signal states** on the screens that load from the network.
+5. **Offline, the main screens say something false** (walked 11 Sep with
+   `offwalk.py`: a kitchen with three foods, then the network cut). The
+   kitchen says "Nothing in here yet… Your fresh start", Home offers "Set up
+   your kitchen — create a household" (an invitation to make a duplicate),
+   Profile says "No household yet", and the greeting falls back to the email
+   name. Back online, the kitchen recovers without a restart. Cause: every
+   page's on-load runs `queryRows` with nothing catching a failure, so the
+   first failed query aborts the chain and the page keeps its initial empty
+   state — which is exactly what the empty states and the household prompt
+   are keyed on. "Couldn't load" and "loaded, empty" are indistinguishable.
+   **Fix:** empty states and the household prompt only after a load that
+   worked (a `loaded` flag set at the END of each on-load chain — the shopping
+   list already does this), and a plain "Can't reach your kitchen — check your
+   signal" line when it did not. Held until the owner's test build is deployed,
+   because it changes how Home and the kitchen load and a push goes live at
+   once. Size M, not S: `editPageOnLoad` replaces a whole chain, so each page's
+   chain must be reproduced exactly. **`PostgresQuery` has no failure branch**
+   (only `ApiCall` takes `onFailure`, see `lib/src/dsl/actions.dart` in the
+   SDK), so a failed query can only be detected by what did not happen after
+   it: the `loaded` flag at the end of the chain staying false.
 6. **Recipes.** Still the old empty state, **deliberately** — the guide forbids
    claiming a recipe's ingredients or nutrition from an illustrative photo, so
    it waits on real recipe data.
