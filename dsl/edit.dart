@@ -153,69 +153,27 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Refresh the schedule whenever the kitchen changes.
+/// Say where the name came from.
 ///
-/// A reminder set from last week's inventory is worse than none: it names food
-/// you have already eaten, and that is how an app teaches someone to swipe its
-/// notifications away without reading them.
+/// A guess that looks like a fact is the thing the guides forbid most. When
+/// the name on the form was filled from a photo, one quiet line under the
+/// field says so, and says what it did NOT do: it did not judge the date.
 ///
-/// Inventory page load is the right hook. It is the screen people land on
-/// after adding, after settling an item, and after opening the app at all — so
-/// the schedule is rebuilt on every path that could have changed it, without
-/// bolting the call onto each one separately.
+/// Its own push, after the capture chain: an insert shifts sibling indices as
+/// it applies, so it cannot share a push with a key-addressed action attach.
 void buildStarterEditFlow(App app) {
-  app.editPageOnLoad(ff.Pages.inventoryPage, [
-    PostgresQuery(
-      ff.Tables.households,
-      outputAs: 'invHouseholds',
-      query: PostgresQuerySpec(
-        orderBys: const [PostgresOrderBy('created_at')],
+  final form = ff.Pages.addFoodItemPage;
+  app.editPage(form, (page) {
+    page.ensureInsertedAfter(
+      form.widgets.byKey('TextField_k6exjii3').single,
+      Text(
+        'Suggested from your photo — change it if it is wrong. The date is '
+        'still yours to add.',
+        name: 'AiSuggestedNote',
+        style: Styles.bodySmall,
+        color: Colors.secondaryText,
+        visible: State(form.state.aiSuggested),
       ),
-    ),
-    UpdateAppState.set(
-      ff.AppState.currentHouseholdId,
-      CustomFunction(
-        CustomFunctionHandle(
-          name: 'firstHouseholdId',
-          args: {'rows': listOf(ff.Tables.households), 'current': string},
-          returnType: string,
-        ),
-        args: {
-          'rows': const ActionOutput('invHouseholds'),
-          'current': AppState(ff.AppState.currentHouseholdId),
-        },
-      ),
-    ),
-    PostgresQuery(
-      ff.Tables.foodItemsStatus,
-      outputAs: 'invItems',
-      query: PostgresQuerySpec(
-        filters: [
-          PostgresFilter(
-            'household_id',
-            relation: PostgresFilterRelation.equalTo,
-            value: AppState(ff.AppState.currentHouseholdId),
-          ),
-        ],
-        orderBys: const [
-          PostgresOrderBy('urgency_rank'),
-          PostgresOrderBy('days_left'),
-        ],
-      ),
-    ),
-    // BOTH lists: allItems backs search and the filter chips, items is what
-    // the grid draws. Setting only one silently breaks filtering.
-    SetState(ff.Pages.inventoryPage.state.allItems,
-        const ActionOutput('invItems')),
-    SetState(ff.Pages.inventoryPage.state.items,
-        const ActionOutput('invItems')),
-    // Last, so it schedules from the inventory this load just fetched.
-    CallCustomAction.named(
-      'ScheduleExpiryReminders',
-      args: {},
-      returnType: string,
-      arguments: {},
-      outputAs: 'invReschedule',
-    ),
-  ]);
+    );
+  });
 }

@@ -5,6 +5,18 @@ library;
 import 'package:flutterflow_ai/flutterflow_ai.dart' as ffai;
 
 abstract final class AppState {
+  static const aiCategory = ffai.ProjectAppStateFieldHandle(
+    name: "aiCategory",
+    key: "m3j1zfs7",
+    typeName: "String",
+    persisted: false,
+  );
+  static const aiName = ffai.ProjectAppStateFieldHandle(
+    name: "aiName",
+    key: "rsto5gmi",
+    typeName: "String",
+    persisted: false,
+  );
   static const currentHouseholdId = ffai.ProjectAppStateFieldHandle(
     name: "currentHouseholdId",
     key: "pw82uhh2",
@@ -126,6 +138,8 @@ abstract final class AppState {
     persisted: false,
   );
   static const all = <ffai.ProjectAppStateFieldHandle>[
+    aiCategory,
+    aiName,
     currentHouseholdId,
     expiryAlertDays,
     hasOpenedFridge,

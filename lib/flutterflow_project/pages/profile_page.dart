@@ -215,16 +215,34 @@ abstract final class ProfilePageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
+                    key: "Container_k6ji4lje",
+                    type: "Container",
+                    path: "ProfilePage.body[0].children[0].children[8]",
+                    name: "ProfileReminders",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Container_4bj4vp89",
+                        type: "Container",
+                        path: "ProfilePage.body[0].children[0].children[8].children[0]",
+                        name: "ProfileRemindersRow",
+                        componentName: "MenuRow",
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "Text_47tb7tt1",
                     type: "Text",
-                    path: "ProfilePage.body[0].children[0].children[8]",
+                    path: "ProfilePage.body[0].children[0].children[9]",
                     name: "ProfileSafetyNote",
                     text: "Use It Fresh provides general food-management guidance, not a guarantee of safety. When in doubt — especially with high-risk food — throw it out and follow local food-safety advice.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_pv4flta3",
                     type: "Container",
-                    path: "ProfilePage.body[0].children[0].children[9]",
+                    path: "ProfilePage.body[0].children[0].children[10]",
                     name: "ProfileSignOut",
                     triggers: const <String>[
                       "ON_TAP",
@@ -233,7 +251,7 @@ abstract final class ProfilePageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Text_vvxnrys1",
                         type: "Text",
-                        path: "ProfilePage.body[0].children[0].children[9].children[0]",
+                        path: "ProfilePage.body[0].children[0].children[10].children[0]",
                         name: "ProfileSignOutLabel",
                         text: "Sign out",
                       ),

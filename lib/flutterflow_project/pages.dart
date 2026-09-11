@@ -13,6 +13,7 @@ import 'pages/inventory_page.dart' show inventoryPageHandle;
 import 'pages/onboarding_page.dart' show onboardingPageHandle;
 import 'pages/profile_page.dart' show profilePageHandle;
 import 'pages/recipes_page.dart' show recipesPageHandle;
+import 'pages/reminders_page.dart' show remindersPageHandle;
 import 'pages/reset_password_page.dart' show resetPasswordPageHandle;
 import 'pages/scan_add_page.dart' show scanAddPageHandle;
 import 'pages/shopping_list_page.dart' show shoppingListPageHandle;
@@ -34,6 +35,7 @@ abstract final class Pages {
   static final onboardingPage = onboardingPageHandle;
   static final profilePage = profilePageHandle;
   static final recipesPage = recipesPageHandle;
+  static final remindersPage = remindersPageHandle;
   static final resetPasswordPage = resetPasswordPageHandle;
   static final scanAddPage = scanAddPageHandle;
   static final shoppingListPage = shoppingListPageHandle;
@@ -54,6 +56,7 @@ abstract final class Pages {
     onboardingPage,
     profilePage,
     recipesPage,
+    remindersPage,
     resetPasswordPage,
     scanAddPage,
     shoppingListPage,

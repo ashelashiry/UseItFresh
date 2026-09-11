@@ -100,9 +100,19 @@ abstract final class BarcodeScanPageWidgets {
                     text: "Type the number printed under the barcode.",
                   ),
                   ffai.ProjectWidgetHandle(
+                    key: "Button_gcnwv64o",
+                    type: "Button",
+                    path: "BarcodeScanPage.body[0].children[0].children[3]",
+                    name: "BarcodeScanButton",
+                    text: "Scan a barcode",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
                     key: "TextField_2f277q20",
                     type: "TextField",
-                    path: "BarcodeScanPage.body[0].children[0].children[3]",
+                    path: "BarcodeScanPage.body[0].children[0].children[4]",
                     name: "BarcodeField",
                     text: "Barcode",
                     triggers: const <String>[
@@ -112,7 +122,7 @@ abstract final class BarcodeScanPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Button_q938kevz",
                     type: "Button",
-                    path: "BarcodeScanPage.body[0].children[0].children[4]",
+                    path: "BarcodeScanPage.body[0].children[0].children[5]",
                     name: "BarcodeLookupButton",
                     text: "Look it up",
                     triggers: const <String>[
@@ -122,13 +132,13 @@ abstract final class BarcodeScanPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_mrp2waln",
                     type: "Container",
-                    path: "BarcodeScanPage.body[0].children[0].children[5]",
+                    path: "BarcodeScanPage.body[0].children[0].children[6]",
                     name: "BarcodeMessage",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Text_kf3c67v3",
                         type: "Text",
-                        path: "BarcodeScanPage.body[0].children[0].children[5].children[0]",
+                        path: "BarcodeScanPage.body[0].children[0].children[6].children[0]",
                         name: "BarcodeMessageText",
                       ),
                     ],
@@ -136,50 +146,50 @@ abstract final class BarcodeScanPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_xbt20ycr",
                     type: "Container",
-                    path: "BarcodeScanPage.body[0].children[0].children[6]",
+                    path: "BarcodeScanPage.body[0].children[0].children[7]",
                     name: "BarcodeResult",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_tgs5snuz",
                         type: "Column",
-                        path: "BarcodeScanPage.body[0].children[0].children[6].children[0]",
+                        path: "BarcodeScanPage.body[0].children[0].children[7].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Image_6zrkyhim",
                             type: "Image",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[0]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[0]",
                             name: "BarcodeResultImage",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_k4j8mxli",
                             type: "Text",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[1]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[1]",
                             name: "BarcodeResultName",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_5pm9xctg",
                             type: "Text",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[2]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[2]",
                             name: "BarcodeResultBrand",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_tjefsqw8",
                             type: "Text",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[3]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[3]",
                             name: "BarcodeResultQuantity",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_3syyfzm6",
                             type: "Text",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[4]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[4]",
                             name: "BarcodeResultSource",
                             text: "From Open Food Facts, a public database. Check it before you add it — you can change anything on the next screen.",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Button_89xi0v23",
                             type: "Button",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[5]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[5]",
                             name: "BarcodeUseButton",
                             text: "Add this",
                             triggers: const <String>[
@@ -189,7 +199,7 @@ abstract final class BarcodeScanPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Container_d6qcqz43",
                             type: "Container",
-                            path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[6]",
+                            path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[6]",
                             name: "BarcodeToListRow",
                             triggers: const <String>[
                               "ON_TAP",
@@ -198,7 +208,7 @@ abstract final class BarcodeScanPageWidgets {
                               ffai.ProjectWidgetHandle(
                                 key: "Text_m1hh3817",
                                 type: "Text",
-                                path: "BarcodeScanPage.body[0].children[0].children[6].children[0].children[6].children[0]",
+                                path: "BarcodeScanPage.body[0].children[0].children[7].children[0].children[6].children[0]",
                                 name: "BarcodeToListLabel",
                                 text: "Out of it? Put it on the shopping list",
                               ),
@@ -211,7 +221,7 @@ abstract final class BarcodeScanPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_brcyhxca",
                     type: "Container",
-                    path: "BarcodeScanPage.body[0].children[0].children[7]",
+                    path: "BarcodeScanPage.body[0].children[0].children[8]",
                     name: "BarcodeManualRow",
                     triggers: const <String>[
                       "ON_TAP",
@@ -220,7 +230,7 @@ abstract final class BarcodeScanPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Text_h3xcuigk",
                         type: "Text",
-                        path: "BarcodeScanPage.body[0].children[0].children[7].children[0]",
+                        path: "BarcodeScanPage.body[0].children[0].children[8].children[0]",
                         name: "BarcodeManualLabel",
                         text: "Add it by hand instead",
                       ),

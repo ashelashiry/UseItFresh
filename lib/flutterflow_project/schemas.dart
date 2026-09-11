@@ -2957,12 +2957,15 @@ abstract final class CustomCode {
   static const actions = <String>[
     "AddItemToShoppingList",
     "AddNameToShoppingList",
+    "AskNotificationPermission",
     "CaptureFoodPhoto",
     "CreateFoodItem",
     "CreateHousehold",
     "LetTapsThroughVideos",
     "LoadWasteSummary",
     "LookupBarcode",
+    "RecogniseFood",
+    "ScheduleExpiryReminders",
     "SettleFoodItem",
     "WarmImageCache",
   ];
