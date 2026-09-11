@@ -75,6 +75,11 @@ you can see more than one ("Eggs", "Cherry tomatoes"); include a brand only
 when it is clearly legible. quantity is how many of that item you can see.
 List only what is actually visible. Do not guess what is inside an opaque or
 unlabelled container — leave it out.
+kind is what it comes in or how it is kept: carton, jar, bottle, can, tub,
+box, bag, packet, tray, bowl, or loose.
+box_2d outlines it on the photo as [ymin, xmin, ymax, xmax], each from 0 to
+1000 across the whole image. When several of the same item sit together,
+draw one outline around them all and give how many in quantity.
 Choose the closest category from the list, or "unknown" if none fits.
 ${NEVER}
 If there is no food in the photo, return no items.`;
@@ -104,6 +109,24 @@ const LIST_ITEMS = {
   },
 };
 
+const KINDS = ["carton", "jar", "bottle", "can", "tub", "box", "bag",
+  "packet", "tray", "bowl", "loose"];
+
+const SHELF_ITEMS = {
+  type: "ARRAY",
+  items: {
+    type: "OBJECT",
+    properties: {
+      name: { type: "STRING" },
+      category: CATEGORY,
+      quantity: { type: "INTEGER" },
+      kind: { type: "STRING", enum: KINDS },
+      box_2d: { type: "ARRAY", items: { type: "INTEGER" } },
+    },
+    required: ["name", "category", "quantity", "kind", "box_2d"],
+  },
+};
+
 const RECEIPT_SCHEMA = {
   type: "OBJECT",
   properties: { isReceipt: { type: "BOOLEAN" }, items: LIST_ITEMS },
@@ -112,7 +135,7 @@ const RECEIPT_SCHEMA = {
 
 const SHELF_SCHEMA = {
   type: "OBJECT",
-  properties: { items: LIST_ITEMS },
+  properties: { items: SHELF_ITEMS },
   required: ["items"],
 };
 
@@ -135,6 +158,15 @@ function toBase64(bytes: Uint8Array): string {
     bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   }
   return btoa(bin);
+}
+
+// [ymin, xmin, ymax, xmax] on 0-1000, or "" when the model's outline is not
+// four numbers in order. Sent as one string so the app can store it simply.
+function outline(b: unknown): string {
+  if (!Array.isArray(b) || b.length !== 4) return "";
+  const [y0, x0, y1, x1] = b.map((v) => Math.min(Math.max(Math.round(Number(v)), 0), 1000));
+  if ([y0, x0, y1, x1].some((v) => Number.isNaN(v)) || y1 <= y0 || x1 <= x0) return "";
+  return `${y0},${x0},${y1},${x1}`;
 }
 
 function version(name: string): number[] {
@@ -302,7 +334,13 @@ Deno.serve(async (req) => {
     category?: string;
     isFood?: boolean;
     isReceipt?: boolean;
-    items?: { name?: string; category?: string; quantity?: number }[];
+    items?: {
+      name?: string;
+      category?: string;
+      quantity?: number;
+      kind?: string;
+      box_2d?: number[];
+    }[];
   };
   try {
     out = JSON.parse(text);
@@ -330,6 +368,9 @@ Deno.serve(async (req) => {
       name: String(i.name ?? "").trim().slice(0, 60),
       category: clean(i.category),
       quantity: Math.min(Math.max(Math.round(Number(i.quantity) || 1), 1), 24),
+      // Shelf photos only: what it comes in, and where it is on the photo.
+      ...(mode === "shelf" ? { kind: KINDS.includes(String(i.kind)) ? String(i.kind) : "",
+        box: outline(i.box_2d) } : {}),
     }))
     .filter((i) => i.name)
     .slice(0, 40);
