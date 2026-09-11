@@ -218,10 +218,20 @@ type Choices = {
   leaveOut: string[]; // stems, lower case
 };
 
-function reply(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
+// Which copy of this file is deployed. Every reply carries it, the signed-out
+// one included, so a single unauthenticated call says whether a paste landed:
+//   curl -s -X POST <project>/functions/v1/recognise-food
+// Raise it with every change: date, then a count for that day.
+const VERSION = "2026-09-12.1";
+
+function reply(body: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify({ ...body, version: VERSION }), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: {
+      ...CORS,
+      "Content-Type": "application/json",
+      "x-function-version": VERSION,
+    },
   });
 }
 
