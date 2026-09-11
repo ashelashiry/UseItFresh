@@ -221,6 +221,18 @@ Agreed from a clickable mockup before it was built.
     **Raise it with every change** (date, then a count for the day). The
     owner asked for this after a paste that stopped at line 502 could not be
     told apart from the working one.
+  - **The dashboard editor caps a paste at about 20,000 characters.** Measured:
+    two pastes of the same file stopped at 20,214 and 20,287 characters (the
+    owner: "it worked before I went beyond 500" lines). So `recognise-food` is
+    now five files, each about 5-6 KB: `index.ts` (the handler and the photo
+    modes), `shared.ts` (VERSION, reply, CORS, the word helpers, readChoices),
+    `prompts.ts` (what Gemini is asked, and the answer schemas), `gemini.ts`
+    (model discovery and the call), `ideas.ts`. Paste each into its own file in
+    the editor. Splitting also means most later changes touch one small file.
+    The alternative, if pasting ever becomes the bottleneck again, is the
+    Supabase CLI: `supabase login` then
+    `supabase functions deploy recognise-food --project-ref ltdvxdizjrkgwldbmbbf`,
+    which the owner runs (it needs their access token; secrets never come here).
 
 1. **Photo naming works** (11 Sep). The 502 was the Gemini project's prepaid
    credit running out, not the code. The function also no longer pins a
