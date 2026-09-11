@@ -153,143 +153,48 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Fix a line on the review list before adding it.
+/// "2 items", not "2 item".
 ///
-/// A receipt read can get a name wrong, or say more than the person wants
-/// ("Medium white bread" for a plain loaf). Until now the only choice was to
-/// remove the line and add the food by hand afterwards. Tapping a line now
-/// opens a small screen for that one line: its name, editable, and what else
-/// is known about it. Saving writes the line back in place, by position, with
-/// only the name changed.
+/// Food added without a unit gets the schema's default, "item", and the label
+/// never made a word plural: a receipt's two lots of bananas read "2 item" on
+/// the kitchen card and on Home. Countable units now take a plural when there
+/// is not exactly one; weights and volumes never do.
 ///
-/// Why a screen of its own rather than an editable row: the rows are built
-/// from the list by position, and a text field inside a row can stay tied to
-/// the wrong line once a line above it is removed. One field on its own screen
-/// has nothing to fall out of step with.
+/// A custom function's code is the BODY only; the signature comes from the
+/// declared arguments.
 void buildStarterEditFlow(App app) {
-  app.ensurePage(
-    'ScanLinePage',
-    description:
-        'Correct the name of one line on the receipt or fridge-photo review '
-        'list, before anything is added.',
-    route: 'scan-line',
-    // Defaults on every parameter, so a cold deep link cannot crash the page.
-    params: {
-      'index': int_.withDefault(-1),
-      'name': string.withDefault(''),
-      'category': string.withDefault(''),
-      'quantity': int_.withDefault(1),
-      'place': string.withDefault(''),
-      'detail': string.withDefault(''),
-    },
-    onLoad: [SetFormField('ScanLineName', PageParam('name'))],
-    body: Scaffold(
-      body: Container(
-        name: 'ScanLineBody',
-        padding:
-            const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 20),
-        child: Column(
-          scrollable: true,
-          crossAxis: CrossAxis.stretch,
-          spacing: 14,
-          children: [
-            Row(
-              name: 'ScanLineBackRow',
-              mainAxis: MainAxis.start,
-              children: [
-                Container(
-                  name: 'ScanLineBack',
-                  onTap: [NavigateBack()],
-                  width: 44,
-                  height: 44,
-                  color: Colors.secondaryBackground,
-                  borderColor: Colors.alternate,
-                  borderWidth: 1,
-                  borderRadius: 999,
-                  child:
-                      Icon('arrow_back', size: 20, color: Colors.primaryText),
-                ),
-              ],
-            ),
-            Text('Fix this line.',
-                name: 'ScanLineHeadline',
-                style: Styles.headlineMedium,
-                color: Colors.primary),
-            Text(
-              PageParam('detail'),
-              name: 'ScanLineDetail',
-              style: Styles.bodyMedium,
-              color: Colors.secondaryText,
-            ),
-            TextField(
-              name: 'ScanLineName',
-              label: 'Name',
-              hint: 'What it is, in plain words',
-            ),
-            Button(
-              'Save this line',
-              name: 'ScanLineSave',
-              width: double.infinity,
-              height: 50,
-              borderRadius: 14,
-              color: Colors.primary,
-              textColor: Colors.secondaryBackground,
-              onTap: [
-                If(
-                  // Read from the field itself, not a page-state copy: a new
-                  // field's change handler is debounced, and a tap straight
-                  // after typing would save the previous value.
-                  Equals(WidgetState('ScanLineName', WidgetStateProperty.text),
-                      ''),
-                  then: [Snackbar('Give it a name first.')],
-                  orElse: [
-                    UpdateAppState.updateItemAtIndex(
-                      'scannedFoods',
-                      PageParam('index'),
-                      Struct(ff.Structs.scannedFood, {
-                        'name': WidgetState(
-                            'ScanLineName', WidgetStateProperty.text),
-                        'category': PageParam('category'),
-                        'quantity': PageParam('quantity'),
-                        'place': PageParam('place'),
-                        'detail': PageParam('detail'),
-                      }),
-                    ),
-                    NavigateBack(),
-                  ],
-                ),
-              ],
-            ),
-            Text(
-              'Only the name changes here. Where it goes and its category stay '
-              'as they were, and nothing is added until you tap Add on the list.',
-              name: 'ScanLineNote',
-              style: Styles.bodySmall,
-              color: Colors.secondaryText,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
+  app.raw((project) {
+    updateCustomFunction(
+      project,
+      name: 'quantityLabel',
+      code: r'''
+if (quantity == null) return (unit ?? '').trim();
+final whole = quantity == quantity.roundToDouble();
+final amount = whole ? quantity.round().toString() : quantity.toString();
+final u = (unit ?? '').trim();
+if (u.isEmpty) return amount;
 
-  // Tapping a line opens it. The remove button sits inside the row, and the
-  // innermost tap target wins, so removing still works.
-  final review = ff.Pages.scanReviewPage;
-  app.editPage(review, (page) {
-    page.ensureActions(
-      review.widgets.byKey('Container_1gma093s').single,
-      triggerType: FFActionTriggerType.ON_TAP,
-      actions: [
-        Navigate('ScanLinePage', params: {
-          'index': const ItemRef().index,
-          'name': const ItemRef()['name'],
-          'category': const ItemRef()['category'],
-          'quantity': const ItemRef()['quantity'],
-          'place': const ItemRef()['place'],
-          'detail': const ItemRef()['detail'],
-        }),
-      ],
+// Weights and volumes never take a plural: "250 g", "2 l", "3 lb".
+const measures = {'g', 'kg', 'ml', 'l', 'oz', 'lb'};
+final lower = u.toLowerCase();
+if (measures.contains(lower) || quantity == 1) return '$amount $u';
+
+// Countable units do: "2 items", "3 loaves".
+const irregular = {
+  'loaf': 'loaves',
+  'box': 'boxes',
+  'bunch': 'bunches',
+  'pouch': 'pouches',
+  'glass': 'glasses',
+  'batch': 'batches',
+};
+if (irregular.containsKey(lower)) return '$amount ${irregular[lower]}';
+// Already plural, or not a plain word: left exactly as written.
+if (lower.endsWith('s') || !RegExp(r'^[a-z]+$').hasMatch(lower)) {
+  return '$amount $u';
+}
+return '$amount ${u}s';
+''',
     );
   });
 }

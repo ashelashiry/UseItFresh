@@ -132,7 +132,13 @@ naming, and receipt / fridge-shelf reading with a review screen.
    `const ItemRef().index` (see `lib/src/dsl/references.dart` in the SDK).
 3. **Keep Open Food Facts photos in our own storage.** Scanned products store
    OFF's image URL; if OFF moves it, the item loses its picture.
-4. **Home screen refresh**, "use these first" at the top, now there is data.
+4. **Home needs no redesign** (checked 11 Sep with six foods in a kitchen).
+   "Use these next" already exists; it shows only when `urgentCount` finds
+   something close to its date, so an undated kitchen shows just the grid.
+   Fixed the same day: the bottom button said "Add your first item" with food
+   in the kitchen (now "Add food"), and counts read "2 item" (`quantityLabel`
+   now pluralises countable units — loaf/loaves, box/boxes — and never
+   weights or volumes; tested locally against ten cases).
 5. **No-signal states** on the screens that load from the network.
 6. **Recipes.** Still the old empty state, **deliberately** — the guide forbids
    claiming a recipe's ingredients or nutrition from an illustrative photo, so
