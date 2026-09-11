@@ -16,6 +16,8 @@ import 'pages/recipes_page.dart' show recipesPageHandle;
 import 'pages/reminders_page.dart' show remindersPageHandle;
 import 'pages/reset_password_page.dart' show resetPasswordPageHandle;
 import 'pages/scan_add_page.dart' show scanAddPageHandle;
+import 'pages/scan_line_page.dart' show scanLinePageHandle;
+import 'pages/scan_review_page.dart' show scanReviewPageHandle;
 import 'pages/shopping_list_page.dart' show shoppingListPageHandle;
 import 'pages/sign_in_page.dart' show signInPageHandle;
 import 'pages/sign_up_page.dart' show signUpPageHandle;
@@ -38,6 +40,8 @@ abstract final class Pages {
   static final remindersPage = remindersPageHandle;
   static final resetPasswordPage = resetPasswordPageHandle;
   static final scanAddPage = scanAddPageHandle;
+  static final scanLinePage = scanLinePageHandle;
+  static final scanReviewPage = scanReviewPageHandle;
   static final shoppingListPage = shoppingListPageHandle;
   static final signInPage = signInPageHandle;
   static final signUpPage = signUpPageHandle;
@@ -59,6 +63,8 @@ abstract final class Pages {
     remindersPage,
     resetPasswordPage,
     scanAddPage,
+    scanLinePage,
+    scanReviewPage,
     shoppingListPage,
     signInPage,
     signUpPage,

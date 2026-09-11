@@ -37,6 +37,18 @@ final class InventoryPageState {
         key: "ehauywrm",
         typeName: "List<PostgresRow>",
       );
+  ffai.ProjectStateFieldHandle get loadedOk =>
+      const ffai.ProjectStateFieldHandle(
+        name: "loadedOk",
+        key: "c64xadp9",
+        typeName: "Boolean",
+      );
+  ffai.ProjectStateFieldHandle get offline =>
+      const ffai.ProjectStateFieldHandle(
+        name: "offline",
+        key: "1t1e0n1i",
+        typeName: "Boolean",
+      );
   ffai.ProjectStateFieldHandle get query =>
       const ffai.ProjectStateFieldHandle(
         name: "query",

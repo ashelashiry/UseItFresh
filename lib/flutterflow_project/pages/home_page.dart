@@ -25,11 +25,23 @@ final class HomePageState {
         key: "s1y2brwm",
         typeName: "List<PostgresRow>",
       );
+  ffai.ProjectStateFieldHandle get loadedOk =>
+      const ffai.ProjectStateFieldHandle(
+        name: "loadedOk",
+        key: "rj7l9p51",
+        typeName: "Boolean",
+      );
   ffai.ProjectStateFieldHandle get me =>
       const ffai.ProjectStateFieldHandle(
         name: "me",
         key: "pzg06la1",
         typeName: "List<PostgresRow>",
+      );
+  ffai.ProjectStateFieldHandle get offline =>
+      const ffai.ProjectStateFieldHandle(
+        name: "offline",
+        key: "pypa27ar",
+        typeName: "Boolean",
       );
   ffai.ProjectStateFieldHandle get useFirst =>
       const ffai.ProjectStateFieldHandle(
@@ -219,7 +231,7 @@ abstract final class HomePageWidgets {
                     type: "Button",
                     path: "HomePage.body[0].children[0].children[4]",
                     name: "QuickAddManualButton",
-                    text: "Add your first item",
+                    text: "Add food",
                     triggers: const <String>[
                       "ON_TAP",
                     ],

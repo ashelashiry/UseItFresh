@@ -77,6 +77,24 @@ abstract final class AppState {
     typeName: "String",
     persisted: false,
   );
+  static const scanReading = ffai.ProjectAppStateFieldHandle(
+    name: "scanReading",
+    key: "hwqb0kc8",
+    typeName: "Boolean",
+    persisted: false,
+  );
+  static const scannedFoods = ffai.ProjectAppStateFieldHandle(
+    name: "scannedFoods",
+    key: "uixotph4",
+    typeName: "List<DataStruct<ScannedFood>>",
+    persisted: false,
+  );
+  static const scannedFrom = ffai.ProjectAppStateFieldHandle(
+    name: "scannedFrom",
+    key: "meba38tt",
+    typeName: "String",
+    persisted: false,
+  );
   static const searchQuery = ffai.ProjectAppStateFieldHandle(
     name: "searchQuery",
     key: "searchQuery",
@@ -150,6 +168,9 @@ abstract final class AppState {
     scanImageUrl,
     scanName,
     scanQuantity,
+    scanReading,
+    scannedFoods,
+    scannedFrom,
     searchQuery,
     selectedCategory,
     wasteBinnedCount,

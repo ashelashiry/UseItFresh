@@ -57,9 +57,38 @@ abstract final class ScanAddPageWidgets {
                     text: "A quick photo, a barcode, or a few words.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Container_221th4ru",
+                    key: "Container_kvfzstpf",
                     type: "Container",
                     path: "ScanAddPage.body[0].children[0].children[2]",
+                    name: "ScanReading",
+                    children: <ffai.ProjectWidgetHandle>[
+                      ffai.ProjectWidgetHandle(
+                        key: "Row_9ufmg9nz",
+                        type: "Row",
+                        path: "ScanAddPage.body[0].children[0].children[2].children[0]",
+                        name: "Row",
+                        children: <ffai.ProjectWidgetHandle>[
+                          ffai.ProjectWidgetHandle(
+                            key: "ProgressBar_jwg0bey6",
+                            type: "ProgressBar",
+                            path: "ScanAddPage.body[0].children[0].children[2].children[0].children[0]",
+                            name: "ProgressBar",
+                          ),
+                          ffai.ProjectWidgetHandle(
+                            key: "Text_xhxsnt5h",
+                            type: "Text",
+                            path: "ScanAddPage.body[0].children[0].children[2].children[0].children[1]",
+                            name: "ScanReadingText",
+                            text: "Reading your photo. This takes a few seconds.",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_221th4ru",
+                    type: "Container",
+                    path: "ScanAddPage.body[0].children[0].children[3]",
                     name: "Mode_camera",
                     triggers: const <String>[
                       "ON_TAP",
@@ -68,7 +97,7 @@ abstract final class ScanAddPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_epdnamtk",
                         type: "Container",
-                        path: "ScanAddPage.body[0].children[0].children[2].children[0]",
+                        path: "ScanAddPage.body[0].children[0].children[3].children[0]",
                         name: "Mode_cameraRow",
                         componentName: "MenuRow",
                       ),
@@ -77,7 +106,7 @@ abstract final class ScanAddPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_hqur4q94",
                     type: "Container",
-                    path: "ScanAddPage.body[0].children[0].children[3]",
+                    path: "ScanAddPage.body[0].children[0].children[4]",
                     name: "Mode_barcode",
                     triggers: const <String>[
                       "ON_TAP",
@@ -86,7 +115,7 @@ abstract final class ScanAddPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_rcqm7fx4",
                         type: "Container",
-                        path: "ScanAddPage.body[0].children[0].children[3].children[0]",
+                        path: "ScanAddPage.body[0].children[0].children[4].children[0]",
                         name: "Mode_barcodeRow",
                         componentName: "MenuRow",
                       ),
@@ -95,7 +124,7 @@ abstract final class ScanAddPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_g7jwjr0v",
                     type: "Container",
-                    path: "ScanAddPage.body[0].children[0].children[4]",
+                    path: "ScanAddPage.body[0].children[0].children[5]",
                     name: "Mode_receipt",
                     triggers: const <String>[
                       "ON_TAP",
@@ -104,7 +133,7 @@ abstract final class ScanAddPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_t984ljsh",
                         type: "Container",
-                        path: "ScanAddPage.body[0].children[0].children[4].children[0]",
+                        path: "ScanAddPage.body[0].children[0].children[5].children[0]",
                         name: "Mode_receiptRow",
                         componentName: "MenuRow",
                       ),
@@ -113,7 +142,7 @@ abstract final class ScanAddPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_u78daphn",
                     type: "Container",
-                    path: "ScanAddPage.body[0].children[0].children[5]",
+                    path: "ScanAddPage.body[0].children[0].children[6]",
                     name: "Mode_fridge",
                     triggers: const <String>[
                       "ON_TAP",
@@ -122,7 +151,7 @@ abstract final class ScanAddPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_1eajl0m0",
                         type: "Container",
-                        path: "ScanAddPage.body[0].children[0].children[5].children[0]",
+                        path: "ScanAddPage.body[0].children[0].children[6].children[0]",
                         name: "Mode_fridgeRow",
                         componentName: "MenuRow",
                       ),
@@ -131,7 +160,7 @@ abstract final class ScanAddPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_qrmzs15z",
                     type: "Container",
-                    path: "ScanAddPage.body[0].children[0].children[6]",
+                    path: "ScanAddPage.body[0].children[0].children[7]",
                     name: "Mode_manual",
                     triggers: const <String>[
                       "ON_TAP",
@@ -140,7 +169,7 @@ abstract final class ScanAddPageWidgets {
                       ffai.ProjectWidgetHandle(
                         key: "Container_ogceshjv",
                         type: "Container",
-                        path: "ScanAddPage.body[0].children[0].children[6].children[0]",
+                        path: "ScanAddPage.body[0].children[0].children[7].children[0]",
                         name: "Mode_manualRow",
                         componentName: "MenuRow",
                       ),
@@ -149,13 +178,13 @@ abstract final class ScanAddPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_2in9cemq",
                     type: "Container",
-                    path: "ScanAddPage.body[0].children[0].children[7]",
+                    path: "ScanAddPage.body[0].children[0].children[8]",
                     name: "ScanReassurance",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Text_obbncl68",
                         type: "Text",
-                        path: "ScanAddPage.body[0].children[0].children[7].children[0]",
+                        path: "ScanAddPage.body[0].children[0].children[8].children[0]",
                         name: "ScanReassuranceText",
                         text: "You'll review every suggestion before anything is added.",
                       ),
@@ -164,7 +193,7 @@ abstract final class ScanAddPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Text_lddb5xy5",
                     type: "Text",
-                    path: "ScanAddPage.body[0].children[0].children[8]",
+                    path: "ScanAddPage.body[0].children[0].children[9]",
                     name: "ScanSmallPrint",
                     text: "Only scan food and packaging you want to add.",
                   ),

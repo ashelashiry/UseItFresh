@@ -11,7 +11,20 @@ abstract final class Enums {
 }
 
 abstract final class Structs {
-  static const all = <ffai.StructHandle>[];
+  static final ffai.StructHandle scannedFood = ffai.StructHandle(
+    "ScannedFood",
+    <String, ffai.DslType>{
+      "category": ffai.string,
+      "detail": ffai.string,
+      "name": ffai.string,
+      "place": ffai.string,
+      "quantity": ffai.int_,
+    },
+    description: ffai.generatedProjectStructDescription,
+  );
+  static final all = <ffai.StructHandle>[
+    scannedFood,
+  ];
 }
 
 abstract final class Collections {
@@ -2939,17 +2952,23 @@ abstract final class CustomCode {
     "hasRows",
     "heroImage",
     "hiLine",
+    "householdLine",
     "householdRole",
     "itemField",
     "itemPhoto",
     "kitchenCount",
+    "kitchenLine",
+    "kitchenState",
     "listCount",
     "listState",
+    "noScannedFoods",
+    "offerHouseholdSetup",
     "profileInitial",
     "profileIsImperial",
     "profileName",
     "quantityLabel",
     "reviewLine",
+    "scannedSummary",
     "shoppingEmpty",
     "urgentCount",
     "useFirstLine",
@@ -2958,13 +2977,16 @@ abstract final class CustomCode {
     "AddItemToShoppingList",
     "AddNameToShoppingList",
     "AskNotificationPermission",
+    "CanReachKitchen",
     "CaptureFoodPhoto",
     "CreateFoodItem",
     "CreateHousehold",
     "LetTapsThroughVideos",
     "LoadWasteSummary",
     "LookupBarcode",
+    "ReadPhotoFoods",
     "RecogniseFood",
+    "SaveScannedFoods",
     "ScheduleExpiryReminders",
     "SettleFoodItem",
     "WarmImageCache",

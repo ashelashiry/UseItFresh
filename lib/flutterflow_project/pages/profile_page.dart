@@ -25,11 +25,23 @@ final class ProfilePageState {
         key: "cqyzxb2m",
         typeName: "List<PostgresRow>",
       );
+  ffai.ProjectStateFieldHandle get loadedOk =>
+      const ffai.ProjectStateFieldHandle(
+        name: "loadedOk",
+        key: "6fi2z1dr",
+        typeName: "Boolean",
+      );
   ffai.ProjectStateFieldHandle get me =>
       const ffai.ProjectStateFieldHandle(
         name: "me",
         key: "28v6rr7u",
         typeName: "List<PostgresRow>",
+      );
+  ffai.ProjectStateFieldHandle get offline =>
+      const ffai.ProjectStateFieldHandle(
+        name: "offline",
+        key: "hppjwquy",
+        typeName: "Boolean",
       );
 }
 
