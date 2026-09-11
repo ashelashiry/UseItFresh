@@ -88,7 +88,6 @@
               margin-top:2px; }
   .ask.first .how { background:var(--accent-wash); color:var(--accent-deep); border-color:transparent; }
 
-  /* The testing checklist: things to do on the phone, in a sensible order */
   .tries { list-style:none; margin:0; padding:0; display:grid; gap:0;
            background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
   .tries li { display:grid; grid-template-columns:150px 1fr; gap:4px 18px; padding:13px 18px;
@@ -154,13 +153,14 @@
     <div>
       <p class="eyebrow">Status &middot; 11 September 2026</p>
       <h1>Use It Fresh</h1>
-      <p class="sub">Receipts, fridge photos and photo naming work end to end.
-      Build 2 is ready for your round of testing.</p>
+      <p class="sub">Receipts, fridge photos and photo naming work end to end,
+      and you can now fix a misread line before adding it. The next build is
+      ready for your round of testing.</p>
     </div>
     <div class="stamp">
       project <b>fridge-wise-gvpy0s</b><br>
       git <b>main</b> &middot; pushed to GitHub<br>
-      FlutterFlow <b>Yxq8am9Raz4030douzH8</b><br>
+      FlutterFlow <b>all changes pushed</b><br>
       app <b>localhost:8080</b> &middot; running
     </div>
   </header>
@@ -168,11 +168,13 @@
   <div class="verdict">
     <span class="lbl">Do this next</span>
     <div>
-      <p>Deploy Build 2. It&rsquo;s the build for your full round of testing.</p>
-      <p>The whole receipt flow ran in the app with no errors: from the tap on
-      Receipt, through the review list and a removed line, to the food in the
-      kitchen. Your &ldquo;Ash&rsquo;s kitchen&rdquo; was never touched: every
-      test now uses its own temporary household.</p>
+      <p>Deploy the next build. If Build 2 is already on your phone, deploy once
+      more as Build 3.</p>
+      <p>Fixing a line on the receipt list, &ldquo;Add food&rdquo; on Home and
+      &ldquo;2 items&rdquo; all came after I said Build 2 was ready. Each was
+      driven in the app with no errors, and your &ldquo;Ash&rsquo;s
+      kitchen&rdquo; was never touched: every test uses its own temporary
+      household.</p>
     </div>
   </div>
 
@@ -181,7 +183,7 @@
     <ol class="asks">
       <li class="ask first">
         <div>
-          <h3>Deploy Build 2</h3>
+          <h3>Deploy the next build</h3>
           <p>FlutterFlow &rarr; Mobile Deployment &rarr; raise the
           <b>Build Number</b> by one &rarr; Deploy to TestFlight. When
           TestFlight says it&rsquo;s ready, update the app on your phone.</p>
@@ -219,14 +221,15 @@
   </section>
 
   <section>
-    <h2>What to try in Build 2</h2>
+    <h2>What to try in the new build</h2>
     <p class="lede">The new things, in the order I&rsquo;d try them. Each photo
     costs a little of your Gemini credit.</p>
     <ul class="tries">
       <li><span class="where">Scan &rarr; Receipt</span>
           <span class="what">Photograph a real till receipt, flat and in good
-          light. Check the names and where each food will go. Remove anything
-          wrong, then tap <b>Add them to your kitchen</b>.</span></li>
+          light. Check the names and where each food will go. <b>Tap a line</b>
+          to fix a name, tap <b>&#10005;</b> to remove one, then tap <b>Add them
+          to your kitchen</b>.</span></li>
       <li><span class="where">Scan &rarr; Fridge photo</span>
           <span class="what">Photograph a shelf. It lists only what it can
           actually see.</span></li>
@@ -240,12 +243,11 @@
           <span class="what">Turn them on with <b>1 day before</b>, then add
           something dated <b>two days from now</b>. The reminder arrives
           tomorrow at 10am.</span></li>
-      <li><span class="where">Your kitchen</span>
-          <span class="what">Foods with no photo now show a plain plate, never a
-          blank box or another food&rsquo;s picture.</span></li>
+      <li><span class="where">Home</span>
+          <span class="what">&ldquo;Use these next&rdquo; appears once something
+          is close to its date. Until then Home shows your food, and a plain
+          plate for anything without a photo.</span></li>
     </ul>
-    <div class="note"><b>Known limit:</b> on the review list you can remove a
-    wrong line but not fix it yet. That&rsquo;s the next thing I&rsquo;m building.</div>
   </section>
 
   <section>
@@ -260,6 +262,12 @@
             are left out, repeated lines are merged, and each food gets a place.
             The photo is deleted once read.</td>
             <td><span class="state phone">Build 2</span></td>
+          </tr>
+          <tr>
+            <td><b>Fix a line before adding</b></td>
+            <td>Tap a line on the review list to correct its name. Its category
+            and place stay as they were.</td>
+            <td><span class="state wait">Next build</span></td>
           </tr>
           <tr>
             <td><b>Fridge photo</b></td>
@@ -286,6 +294,12 @@
             <td><span class="state phone">Build 2</span></td>
           </tr>
           <tr>
+            <td><b>&ldquo;Add food&rdquo;, &ldquo;2 items&rdquo;</b></td>
+            <td>Home said &ldquo;Add your first item&rdquo; with six foods in the
+            kitchen, and counts read &ldquo;2 item&rdquo;.</td>
+            <td><span class="state wait">Next build</span></td>
+          </tr>
+          <tr>
             <td><b>Reminders in a browser</b></td>
             <td>They threw an error on every kitchen visit at localhost. Reminders
             only exist on the phone, so the browser now skips them.</td>
@@ -303,18 +317,19 @@
   </section>
 
   <section>
-    <h2>My priorities after Build 2</h2>
+    <h2>My priorities</h2>
+    <p class="lede">Home turned out not to need a redesign. &ldquo;Use these
+    next&rdquo; was already there; it only shows when something is close to its
+    date.</p>
     <div class="t-scroll">
       <table>
         <thead><tr><th>&nbsp;</th><th>Job</th><th>Size</th><th>Why this order</th></tr></thead>
         <tbody>
-          <tr><td class="rank">1</td><td><b>Fix a line on the review list</b><span class="why">Being designed now</span></td><td><span class="size s">S</span></td>
-              <td>Tap a line to correct a misread name before adding it, instead of fixing each item afterwards.</td></tr>
-          <tr><td class="rank">2</td><td><b>Home screen refresh</b></td><td><span class="size m">M</span></td>
-              <td>&ldquo;Use these first&rdquo; at the top of Home, now there&rsquo;s real food to show.</td></tr>
-          <tr><td class="rank">3</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
+          <tr><td class="rank">1</td><td><b>Walk the fridge photo in the app</b></td><td><span class="size s">S</span></td>
+              <td>Receipts have been driven through the app end to end. Fridge photos have only been tested against the server so far.</td></tr>
+          <tr><td class="rank">2</td><td><b>No-signal states</b></td><td><span class="size s">S</span></td>
               <td>Kitchens and shops often have poor signal. Screens should say what happened instead of sitting blank.</td></tr>
-          <tr><td class="rank">4</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
+          <tr><td class="rank">3</td><td><b>Recipes</b></td><td><span class="size m">M</span></td>
               <td>Held on purpose until there&rsquo;s real recipe data. The design guide rules out suggesting ingredients from a stock photo.</td></tr>
         </tbody>
       </table>
