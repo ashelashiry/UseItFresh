@@ -153,90 +153,157 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The app says which build it is.
+/// The basket goes into the kitchen.
 ///
-/// A build number is only useful if you can tell which one you are holding.
-/// Until now nothing on screen said it: `pubspec.yaml` in this repository says
-/// 1.0.0+5 while build 6 is on the phone, because the shipped number is set in
-/// FlutterFlow's deploy dialog, not here. `package_info_plus` reads it from the
-/// installed app itself, so it is right by construction — and a screenshot of
-/// Profile now names the build it came from.
+/// The loop stopped half way: you could tick something into the basket, then
+/// had to type it in again as food. One button under the list now adds
+/// everything you ticked and clears it off the list.
 ///
-/// It sits under the safety note on Profile, where a version line belongs:
-/// quiet, and always in the same place.
+/// It started as a button on every line, which the compiler refused: a widget
+/// inserted into a list template cannot read the line's id ("Item field access
+/// \"id\" used outside a ListView builder"), and attaching the action by key
+/// afterwards would not bind either. One button for the whole basket is the
+/// better shape anyway — it matches how a shop ends, and it is one tap instead
+/// of ten. So the per-line button and its action are removed here.
+///
+/// Food goes in where the app puts anything it was not told about: the
+/// household's default location, as manually added, with no date, so it gets
+/// the typical keep time for its category. No category is guessed; the item
+/// screen is where that gets fixed.
 void buildStarterEditFlow(App app) {
-  app.pubDependency('package_info_plus', '^8.0.0');
+  app.removeCustomAction('AddBoughtToKitchen');
 
-  app.customWidget(
-    'AppVersion',
-    parameters: {},
+  app.customAction(
+    'AddBasketToKitchen',
+    args: {},
+    returns: string,
     description:
-        'The version and build number of the installed app, as "Version 1.0.0 '
-        '(6)". Read from the app itself, so it is never out of date.',
-    code: r'''
-import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
-/// "Version 1.0.0 (6)", read from the installed app.
-///
-/// Not from anything written down in the project: the build number is set when
-/// the app is deployed, so the only honest source is the app itself. Shows
-/// nothing at all if it cannot be read, rather than a wrong number.
-class AppVersion extends StatefulWidget {
-  const AppVersion({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<AppVersion> createState() => _AppVersionState();
-}
-
-class _AppVersionState extends State<AppVersion> {
-  String _said = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _read();
-  }
-
-  Future<void> _read() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      final build = info.buildNumber.trim();
-      if (!mounted) return;
-      setState(() => _said = build.isEmpty
-          ? 'Version ${info.version}'
-          : 'Version ${info.version} ($build)');
-    } catch (_) {
-      // Nothing to say is better than a number that might be wrong.
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_said.isEmpty) return const SizedBox.shrink();
-    final t = FlutterFlowTheme.of(context);
-    return SizedBox(
-      width: widget.width ?? double.infinity,
-      child: Text(
-        _said,
-        textAlign: TextAlign.center,
-        style: t.bodySmall.copyWith(color: t.secondaryText),
-      ),
-    );
-  }
-}
-''',
+        "Adds everything ticked on the shopping list to the kitchen and clears "
+        "those lines. Returns '' when done, or a message saying why not.",
+    code: _addBasketToKitchen,
   );
 
-  final profile = ff.Pages.profilePage;
-  app.editPage(profile, (page) {
+  final shopping = ff.Pages.shoppingListPage;
+  app.editPage(shopping, (page) {
+    page.ensureRemoved(shopping.widgets.byKey('Container_v9dh7zbk').single);
     page.ensureInsertedAfter(
-      profile.widgets.byKey('Text_47tb7tt1').single,
-      CustomWidget(
-          widgetName: 'AppVersion', name: 'ProfileAppVersion', arguments: {}),
+      shopping.widgets.byKey('ListView_omu6zj3c').single,
+      Button(
+        'Put the basket in my kitchen',
+        name: 'ShoppingBasketToKitchen',
+        width: double.infinity,
+        height: 50,
+        borderRadius: 14,
+        color: Colors.primary,
+        textColor: Colors.secondaryBackground,
+        onTap: [
+          CallCustomAction.named(
+            'AddBasketToKitchen',
+            args: {},
+            returnType: string,
+            arguments: {},
+            outputAs: 'basketSaid',
+          ),
+          If(
+            Equals(ActionOutput('basketSaid'), ''),
+            then: [
+              Snackbar('Added to your kitchen.'),
+              // Reopening reloads the list, now without those lines.
+              Navigate(ff.Pages.shoppingListPage, replaceRoute: true),
+            ],
+            orElse: [Snackbar(ActionOutput('basketSaid'))],
+          ),
+        ],
+      ),
     );
   });
 }
+
+const _addBasketToKitchen = r'''
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Adds everything ticked on the shopping list to the kitchen, then clears
+/// those lines off the list.
+///
+/// One insert for the lot, so it is all or nothing. The lines are only
+/// deleted after the food is safely in: a line that is still on the list is a
+/// smaller annoyance than food that vanished on the way.
+///
+/// Quantities are rounded to whole things, because food_items counts things.
+/// Nothing is guessed about category or dates.
+Future<String> addBasketToKitchen() async {
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one before adding food.';
+  }
+
+  try {
+    // Creating a household seeds exactly one list, so the oldest is the one.
+    final lists = await SupaFlow.client
+        .from('shopping_lists')
+        .select('id')
+        .eq('household_id', household)
+        .order('created_at')
+        .limit(1);
+    if ((lists as List).isEmpty) return 'This household has no shopping list yet.';
+
+    final rows = await SupaFlow.client
+        .from('shopping_list_items')
+        .select('id, name, quantity')
+        .eq('shopping_list_id', lists.first['id'])
+        .eq('is_purchased', true);
+    final bought = List<Map<String, dynamic>>.from(rows as List);
+    if (bought.isEmpty) {
+      return 'Tick what you have bought first, then this puts it away.';
+    }
+
+    // Where the household puts things by default; each can be moved after.
+    final places = await SupaFlow.client
+        .from('storage_locations')
+        .select('id, is_default')
+        .eq('household_id', household);
+    final locations = List<Map<String, dynamic>>.from(places as List);
+    String? where;
+    for (final l in locations) {
+      if (l['is_default'] == true) where = l['id'].toString();
+    }
+    if (where == null && locations.isNotEmpty) {
+      where = locations.first['id'].toString();
+    }
+
+    final uid = SupaFlow.client.auth.currentUser?.id;
+    final food = <Map<String, dynamic>>[];
+    final done = <String>[];
+    for (final line in bought) {
+      final name = (line['name'] ?? '').toString().trim();
+      if (name.isEmpty) continue;
+      final counted =
+          line['quantity'] is num ? (line['quantity'] as num).round() : 1;
+      food.add({
+        'household_id': household,
+        'storage_location_id': where,
+        'created_by': uid,
+        'name': name,
+        'quantity': counted < 1 ? 1 : counted,
+        'source_type': 'manual',
+      });
+      done.add(line['id'].toString());
+    }
+    if (food.isEmpty) return 'Those lines have no names to add.';
+
+    await SupaFlow.client.from('food_items').insert(food);
+    await SupaFlow.client
+        .from('shopping_list_items')
+        .delete()
+        .inFilter('id', done);
+    return '';
+  } on PostgrestException catch (error) {
+    if (error.code == '42501') {
+      return 'Your account is not allowed to add to this household.';
+    }
+    return error.message;
+  } catch (_) {
+    return 'Could not add them. Check your signal and try again.';
+  }
+}
+''';

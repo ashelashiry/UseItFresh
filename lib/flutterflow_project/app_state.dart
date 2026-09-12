@@ -35,6 +35,12 @@ abstract final class AppState {
     typeName: "Boolean",
     persisted: true,
   );
+  static const ideasAvoid = ffai.ProjectAppStateFieldHandle(
+    name: "ideasAvoid",
+    key: "mec5y09z",
+    typeName: "String",
+    persisted: true,
+  );
   static const ideasLeaveOut = ffai.ProjectAppStateFieldHandle(
     name: "ideasLeaveOut",
     key: "96n8z4ty",
@@ -227,6 +233,7 @@ abstract final class AppState {
     currentHouseholdId,
     expiryAlertDays,
     hasOpenedFridge,
+    ideasAvoid,
     ideasLeaveOut,
     ideasLoading,
     ideasMeal,

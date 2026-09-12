@@ -228,6 +228,16 @@ abstract final class ShoppingListPageWidgets {
                       ),
                     ],
                   ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Button_048pv1kp",
+                    type: "Button",
+                    path: "ShoppingListPage.body[0].children[0].children[7]",
+                    name: "ShoppingBasketToKitchen",
+                    text: "Put the basket in my kitchen",
+                    triggers: const <String>[
+                      "ON_TAP",
+                    ],
+                  ),
                 ],
               ),
             ],

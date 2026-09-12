@@ -131,7 +131,7 @@ abstract final class RecipesPageWidgets {
                     type: "Text",
                     path: "RecipesPage.body[0].children[0].children[6]",
                     name: "IdeasSmallPrint",
-                    text: "Ideas leave out anything past its date. Look over each food before you cook with it. Ideas do not check for allergies or diets.",
+                    text: "Ideas leave out anything past its date, and whatever you list under Profile → What you leave out. That is not a medical check: read the label on anything you cook with.",
                   ),
                 ],
               ),

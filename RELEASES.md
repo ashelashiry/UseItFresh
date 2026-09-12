@@ -3,10 +3,14 @@
 Every TestFlight build, and how to get back to it.
 
 A build number on the phone is only useful if it points at something. Each row
-below is anchored three ways: a **git tag** (this repository, including the
-generated Dart), a **FlutterFlow branch** of the same name (the project as it
-was, which is what a rollback actually redeploys), and the **photo function
-version** that was live when the build shipped.
+below is anchored three ways: a **git tag** (this repository: the DSL that
+built the project, the photo function, the migrations and the docs — but not
+`generated_code/`, which is gitignored), a **FlutterFlow branch** of the same
+name (the project as it was, and what a rollback actually redeploys), and the
+**photo function version** that was live when the build shipped.
+
+The FlutterFlow branch is therefore the load-bearing one: the git tag alone
+cannot rebuild an app, it can only tell you what the project was made from.
 
 Record a build the moment FlutterFlow finishes deploying:
 

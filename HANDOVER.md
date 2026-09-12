@@ -467,6 +467,16 @@ The minified stack was enough to find it: the failing function was an
 `async` whose first line read a `late` static (`$.x.bU()`, the "not
 initialized" getter) and whose next called `"cancelAll"` on a method channel.
 
+### An inserted widget cannot read the list row it lands in
+
+`ItemRef()['id']` compiles only inside a ListView builder the script itself
+declares. Inserting a widget into an existing list template and referencing the
+row fails with `Bad state: Item field access "id" used outside a ListView
+builder`, and attaching the action afterwards by key fails validation instead
+(`Custom action argument "itemId" is not set properly`). Either build the list
+in the same script, or design the action to need no row: one button for the
+whole list, as the shopping basket does.
+
 ### `bindText` does not replace a text that is already bound
 
 Pointing an existing Text at a new function with `page.bindText(...)` pushed
@@ -591,6 +601,30 @@ status or safety from a photograph**.
   any path without a file extension.
 - Status board: <https://claude.ai/code/artifact/b5a7bfe7-b7ac-446e-a846-679f567c21ab>
 - Screen kit: <https://claude.ai/code/artifact/68c33d07-6057-49f9-ae3d-e6686d2369d1>
+
+**Three more, built while build 6 was being tested (12 Sep).** They are on
+FlutterFlow main, not in build 6, so the test round marks their steps "needs
+build 7".
+- **Leaving a household.** `LeaveHousehold` deletes your own membership row
+  (the members delete policy is "an admin, or yourself") and clears
+  `currentHouseholdId`, so every screen falls back to the oldest household
+  still joined. The owner is refused: leaving would orphan everyone else, and
+  handing ownership over is not built. `LeaveHouseholdButton` shows nothing at
+  all to an owner, and takes a second tap to confirm.
+- **Allergies and diets** (spec §8.9, §184). `profiles.allergens` and
+  `dietary_preferences` were in the first migration and nothing ever set them.
+  `FoodPreferences` (on the new `FoodPreferencesPage`, reached from Profile)
+  saves them and writes the words to leave out into `ideasAvoid`, which
+  `GetMealIdeas` joins with the typed "Leave out" box. A diet is stored as the
+  ingredients it excludes, never as a claim that a dish suits it, and the
+  screen says plainly that this is not a medical check. **No function change,
+  so nothing to paste:** it rides the leave-out mechanism that was already
+  there. The words are deliberately over-broad ("milk" catches "buttermilk").
+- **The basket into the kitchen.** `AddBasketToKitchen` adds every ticked
+  shopping line as food (default location, `manual`, no guessed category or
+  date) in one insert, then deletes those lines. It started as a button per
+  line, which the compiler refused — see the ItemRef trap in section 5 — and
+  one button for the whole basket is the better shape anyway.
 
 ## 11. Releases: anchoring a build so it can be rolled back
 

@@ -235,6 +235,12 @@ abstract final class HouseholdSetupPageWidgets {
                       ),
                     ],
                   ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_uyrkg6p7",
+                    type: "Container",
+                    path: "HouseholdSetupPage.body[0].children[0].children[6]",
+                    name: "HouseholdLeave",
+                  ),
                 ],
               ),
             ],

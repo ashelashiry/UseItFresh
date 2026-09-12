@@ -7,6 +7,7 @@ import 'pages/add_food_item_page.dart' show addFoodItemPageHandle;
 import 'pages/add_food_review_page.dart' show addFoodReviewPageHandle;
 import 'pages/barcode_scan_page.dart' show barcodeScanPageHandle;
 import 'pages/food_item_page.dart' show foodItemPageHandle;
+import 'pages/food_preferences_page.dart' show foodPreferencesPageHandle;
 import 'pages/home_page.dart' show homePageHandle;
 import 'pages/household_setup_page.dart' show householdSetupPageHandle;
 import 'pages/inventory_page.dart' show inventoryPageHandle;
@@ -32,6 +33,7 @@ abstract final class Pages {
   static final addFoodReviewPage = addFoodReviewPageHandle;
   static final barcodeScanPage = barcodeScanPageHandle;
   static final foodItemPage = foodItemPageHandle;
+  static final foodPreferencesPage = foodPreferencesPageHandle;
   static final homePage = homePageHandle;
   static final householdSetupPage = householdSetupPageHandle;
   static final inventoryPage = inventoryPageHandle;
@@ -56,6 +58,7 @@ abstract final class Pages {
     addFoodReviewPage,
     barcodeScanPage,
     foodItemPage,
+    foodPreferencesPage,
     homePage,
     householdSetupPage,
     inventoryPage,
