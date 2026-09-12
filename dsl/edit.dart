@@ -153,176 +153,253 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The waste figures stop counting food that was put back.
+/// Design guide v4, Scan: the tiles use the supplied line icons.
 ///
-/// Putting a food back leaves its "used" or "thrown out" event in place, which
-/// is right — the history is append-only and it did happen. But the figures on
-/// "What you used" are about outcomes, and a food sitting in the kitchen is
-/// not an outcome. LoadWasteSummary now skips any event whose food has no
-/// `archived_at`, which is exactly the food that came back.
+/// The first version used stand-in Material icons because the kitchen icon
+/// set has no camera, barcode or receipt. The v3 visual pack does, as 24px
+/// line SVGs (1.8 stroke, round caps) — "use supplied SVGs", the guide says —
+/// so the app gains flutter_svg and the tiles draw those, in forest.
+///
+/// The fridge is the one exception: there is no fridge icon in that line style
+/// yet (only a differently drawn one in the kitchen set, which would look out
+/// of place beside these). It keeps a stand-in until the owner's designer
+/// supplies one; the icon list is in HANDOVER.
 void buildStarterEditFlow(App app) {
+  app.pubDependency('flutter_svg', '^2.0.10');
+
   app.raw((project) {
-    updateCustomAction(project, name: 'LoadWasteSummary', code: _loadWasteSummary);
+    updateCustomWidget(project, name: 'AddOptions', code: _addOptions);
   });
 }
 
-const _loadWasteSummary = r'''
-import 'package:supabase_flutter/supabase_flutter.dart';
+const _addOptions = r'''
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-/// Works out the household's use-versus-waste picture over the last 30 days.
+/// The four ways to add food, as large tiles, with "Enter manually" beneath.
 ///
-/// Reads events rather than the items table because an item's current status
-/// says what it is now; the event says what happened and when. Only the two
-/// settling events count — 'created' and 'moved' are not outcomes.
-///
-/// One exception to reading only events: food that was put back. The event
-/// stays, because the history is append-only and it did happen, but the food
-/// is in the kitchen again — counting it as used or thrown out would
-/// contradict what the kitchen shows. `archived_at` is what settling sets, so
-/// an item without one has come back and is skipped.
-Future<String> loadWasteSummary() async {
-  final household = FFAppState().currentHouseholdId;
-  if (household.isEmpty) {
-    return 'No household yet. Create or join one first.';
-  }
+/// Each tile does exactly what its row on the old Scan screen did:
+///   Photo    -> the Add food screen, which takes a single-item photo
+///   Barcode  -> the barcode screen
+///   Receipt  -> read a receipt photo, then review it (or say why not)
+///   Fridge   -> a fresh photo map of a shelf
+/// Labels stay next to the icons: icons alone are not enough.
+class AddOptions extends StatefulWidget {
+  const AddOptions({super.key, this.width, this.height});
 
-  // Reset first, so a failed reload cannot leave the previous household's
-  // numbers on screen looking like this one's.
-  FFAppState().wasteHeadline = '';
-  FFAppState().wasteDetail = '';
-  FFAppState().wasteWorst = '';
-  FFAppState().wasteTrend = '';
-  FFAppState().wasteUsedCount = 0;
-  FFAppState().wasteBinnedCount = 0;
-  FFAppState().wasteHasData = false;
+  final double? width;
+  final double? height;
 
-  final now = DateTime.now().toUtc();
-  final windowStart = now.subtract(const Duration(days: 30));
-  final priorStart = now.subtract(const Duration(days: 60));
-
-  List<dynamic> rows;
-  try {
-    // The embedded food_items select is what scopes this to the household and
-    // brings the category along; row security already limits it to households
-    // this person belongs to, and the filter picks the one they are looking at.
-    rows = await SupaFlow.client
-        .from('food_item_events')
-        .select(
-            'event_type, created_at, food_items!inner(category, household_id, archived_at)')
-        .eq('food_items.household_id', household)
-        .inFilter('event_type', ['consumed', 'discarded']).gte(
-            'created_at', priorStart.toIso8601String());
-  } on PostgrestException catch (error) {
-    return error.message;
-  } catch (error) {
-    return 'Could not read your history. $error';
-  }
-
-  var used = 0;
-  var binned = 0;
-  var priorUsed = 0;
-  var priorBinned = 0;
-  final binnedByCategory = <String, int>{};
-
-  for (final row in rows) {
-    final at = DateTime.tryParse((row['created_at'] ?? '').toString());
-    if (at == null) continue;
-    // Put back since: the event stands, the outcome does not.
-    final food = row['food_items'];
-    final settled = food is Map && (food['archived_at'] ?? '').toString().isNotEmpty;
-    if (!settled) continue;
-    final recent = at.isAfter(windowStart);
-    final consumed = row['event_type'] == 'consumed';
-
-    if (recent) {
-      if (consumed) {
-        used++;
-      } else {
-        binned++;
-        final item = row['food_items'];
-        final category =
-            (item is Map ? (item['category'] ?? '') : '').toString().trim();
-        if (category.isNotEmpty) {
-          binnedByCategory[category] = (binnedByCategory[category] ?? 0) + 1;
-        }
-      }
-    } else {
-      if (consumed) {
-        priorUsed++;
-      } else {
-        priorBinned++;
-      }
-    }
-  }
-
-  final settled = used + binned;
-  FFAppState().wasteUsedCount = used;
-  FFAppState().wasteBinnedCount = binned;
-  FFAppState().wasteHasData = settled > 0;
-
-  if (settled == 0) {
-    FFAppState().wasteHeadline = 'Nothing finished with yet.';
-    FFAppState().wasteDetail =
-        'When you mark something used up or thrown out, the pattern shows up '
-        'here.';
-    return '';
-  }
-
-  final pct = ((used / settled) * 100).round();
-  FFAppState().wasteHeadline = '$used of $settled used up.';
-  FFAppState().wasteDetail = settled == 1
-      ? 'One thing finished with in the last 30 days.'
-      : '$settled things finished with in the last 30 days. $pct% used, '
-          '${100 - pct}% thrown out.';
-
-  // The worst category, but only when there is enough to mean anything. Two
-  // thrown-out items is not a pattern, and naming one would be inventing a
-  // conclusion the data cannot carry.
-  if (binned >= 3 && binnedByCategory.isNotEmpty) {
-    final ranked = binnedByCategory.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final top = ranked.first;
-    // A tie is not a worst.
-    final tied = ranked.length > 1 && ranked[1].value == top.value;
-    if (!tied && top.value >= 2) {
-      FFAppState().wasteWorst = _label(top.key);
-    }
-  }
-
-  // A comparison needs a previous month with something in it, or the first
-  // month reads as a dramatic improvement over nothing.
-  final priorSettled = priorUsed + priorBinned;
-  if (priorSettled >= 3) {
-    final priorPct = (priorUsed / priorSettled) * 100;
-    final diff = pct - priorPct;
-    if (diff >= 5) {
-      FFAppState().wasteTrend = 'Better than the month before.';
-    } else if (diff <= -5) {
-      FFAppState().wasteTrend = 'Down on the month before.';
-    } else {
-      FFAppState().wasteTrend = 'About the same as the month before.';
-    }
-  }
-
-  return '';
+  @override
+  State<AddOptions> createState() => _AddOptionsState();
 }
 
-/// The words the picker offered, so this screen never shows a stored code.
-String _label(String code) {
-  const names = <String, String>{
-    'dairy': 'Dairy',
-    'meat_poultry': 'Meat & poultry',
-    'seafood': 'Seafood',
-    'eggs': 'Eggs',
-    'cooked_leftovers': 'Cooked leftovers',
-    'fruit': 'Fruit',
-    'vegetables': 'Vegetables',
-    'bread_bakery': 'Bread & bakery',
-    'pantry_dry': 'Pantry & dry goods',
-    'frozen': 'Frozen food',
-    'condiments_sauces': 'Condiments & sauces',
-    'infant_food': 'Infant food & formula',
-  };
-  return names[code] ?? code.replaceAll('_', ' ');
+class _AddOptionsState extends State<AddOptions> {
+  static const _forest = Color(0xFF07533A);
+  static const _ink = Color(0xFF202C24);
+  static const _sage = Color(0xFFEDF2E8);
+  static const _border = Color(0xFFDCE3D7);
+
+  // The supplied v3 line icons (24px grid, 1.8 stroke), drawn in forest.
+  static const _camera =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h5l2-3h4l2 3h5v15H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>';
+  static const _barcode =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v16m4-16v16m3-16v16m4-16v16m3-16v16m4-16v16"/></svg>';
+  static const _receipt =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 4 2 4-2 3 2V2l-3 2-4-2-4 2zM8 8h8m-8 4h8m-8 4h5"/></svg>';
+
+  // A camera is already opening: a second tap must not open another.
+  bool _busy = false;
+
+  Future<void> _run(Future<void> Function() go) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await go();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _receiptTap() async {
+    final said = await readPhotoFoods('receipt');
+    if (!mounted) return;
+    if (said == 'ok') {
+      context.pushNamed('ScanReviewPage');
+    } else if (said.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(said)));
+    }
+  }
+
+  Future<void> _fridgeTap() async {
+    await clearShelfScan();
+    if (!mounted) return;
+    context.pushNamed('MapReviewPage');
+  }
+
+  static Widget _svg(String source) =>
+      SvgPicture.string(source, width: 34, height: 34);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    return SizedBox(
+      width: widget.width,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          const gap = 12.0;
+          final tileWidth = (box.maxWidth - gap) / 2;
+          final tileHeight = (tileWidth * 0.9).clamp(140.0, 170.0);
+          Widget tile(String label, Widget icon, Future<void> Function() go) =>
+              _Tile(
+                width: tileWidth,
+                height: tileHeight,
+                label: label,
+                icon: icon,
+                enabled: !_busy,
+                onTap: () => _run(go),
+                labelStyle: t.titleMedium.copyWith(
+                    fontSize: 17, fontWeight: FontWeight.w700, color: _ink),
+                sage: _sage,
+                border: _border,
+              );
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  tile('Photo', _svg(_camera), () async {
+                    context.pushNamed('AddFoodItemPage');
+                  }),
+                  const SizedBox(width: gap),
+                  tile('Barcode', _svg(_barcode), () async {
+                    context.pushNamed('BarcodeScanPage');
+                  }),
+                ],
+              ),
+              const SizedBox(height: gap),
+              Row(
+                children: [
+                  tile('Receipt', _svg(_receipt), _receiptTap),
+                  const SizedBox(width: gap),
+                  // Stand-in until a fridge icon in the same line style exists.
+                  tile('Fridge',
+                      const Icon(Icons.kitchen_outlined, size: 34, color: _forest),
+                      _fridgeTap),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _busy
+                      ? null
+                      : () => context.pushNamed('AddFoodItemPage'),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    foregroundColor: _forest,
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text(
+                    'Enter manually',
+                    style: t.bodyLarge.copyWith(
+                        color: _forest, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// One large tile: an icon well above a short label, the whole card tappable,
+/// with an immediate pressed response (skipped when reduced motion is on).
+class _Tile extends StatefulWidget {
+  const _Tile({
+    required this.width,
+    required this.height,
+    required this.label,
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+    required this.labelStyle,
+    required this.sage,
+    required this.border,
+  });
+
+  final double width;
+  final double height;
+  final String label;
+  final Widget icon;
+  final bool enabled;
+  final VoidCallback onTap;
+  final TextStyle labelStyle;
+  final Color sage;
+  final Color border;
+
+  @override
+  State<_Tile> createState() => _TileState();
+}
+
+class _TileState extends State<_Tile> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.of(context).disableAnimations;
+    return Semantics(
+      button: true,
+      enabled: widget.enabled,
+      label: widget.label,
+      child: GestureDetector(
+        onTapDown: widget.enabled ? (_) => setState(() => _down = true) : null,
+        onTapCancel: () => setState(() => _down = false),
+        onTapUp: (_) => setState(() => _down = false),
+        onTap: widget.enabled ? widget.onTap : null,
+        child: AnimatedScale(
+          scale: (_down && !still) ? 0.97 : 1,
+          duration: const Duration(milliseconds: 150),
+          child: AnimatedOpacity(
+            opacity: widget.enabled ? 1 : 0.6,
+            duration: const Duration(milliseconds: 150),
+            child: Container(
+              width: widget.width,
+              height: widget.height,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: widget.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: widget.sage,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: widget.icon,
+                  ),
+                  const Spacer(),
+                  Text(widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: widget.labelStyle),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 ''';

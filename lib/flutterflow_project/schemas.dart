@@ -3037,6 +3037,7 @@ abstract final class CustomCode {
     "WarmImageCache",
   ];
   static const widgets = <String>[
+    "AddOptions",
     "AnimatedRemoteImage",
     "AppIcon",
     "AppVersion",
