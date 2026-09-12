@@ -3055,6 +3055,7 @@ abstract final class CustomCode {
     "LoopingRemoteImage",
     "MealIdeaCards",
     "PutItBack",
+    "RecipesHome",
     "ShelfReview",
     "StatusIcon",
   ];

@@ -51,13 +51,14 @@ export type Choices = {
   minutes: number; // 0 for any
   servings: number;
   leaveOut: string[]; // stems, lower case
+  kitchenOnly: boolean; // "Use my food": nothing beyond the kitchen and the basics
 };
 
 // Which copy of this file is deployed. Every reply carries it, the signed-out
 // one included, so a single unauthenticated call says whether a paste landed:
 //   curl -s -X POST <project>/functions/v1/recognise-food
 // Raise it with every change: date, then a count for that day.
-export const VERSION = "2026-09-12.2";
+export const VERSION = "2026-09-13.1";
 
 export function reply(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify({ ...body, version: VERSION }), {
@@ -117,5 +118,6 @@ export function readChoices(input: Record<string, unknown>): Choices {
     .filter((w) => w.length >= 2)
     .slice(0, 10)
     .map(stem);
-  return { meal, minutes, servings, leaveOut };
+  const kitchenOnly = input.kitchenOnly === true;
+  return { meal, minutes, servings, leaveOut, kitchenOnly };
 }

@@ -75,6 +75,9 @@ export async function ideas(
     choices.meal ? `Every idea must be a ${choices.meal} dish.` : "",
     choices.minutes ? `Every idea must take ${choices.minutes} minutes or less, start to finish.` : "",
     `Every idea serves ${people}: give amounts in the steps for that many.`,
+    choices.kitchenOnly
+      ? "Every idea must use only the food listed, plus salt, pepper, cooking oil and water: extras must be empty."
+      : "",
   ].filter(Boolean).join("\n");
   const list = foods.map((f) => `- ${f.name}${f.soon ? " (use first)" : ""}`).join("\n");
   const avoid = choices.leaveOut.length
@@ -135,10 +138,14 @@ export async function ideas(
       !mentionsAny([i.title, ...i.uses, ...i.extras, ...i.steps].join("\n"), choices.leaveOut)
     )
     .filter((i) => !choices.minutes || (i.minutes > 0 && i.minutes <= choices.minutes))
+    // "Use my food" is checked, not trusted, like everything the model says.
+    .filter((i) => !choices.kitchenOnly || i.extras.length === 0)
     .slice(0, 4);
   // Ideas that use up what goes off soonest come first; otherwise as given.
   made.sort((a, b) => Number(b.soon) - Number(a.soon));
   const note = made.length ? ""
+    : shaped.length && choices.kitchenOnly
+    ? "Nothing fits with only your food. Turn off Use my food to see ideas that need a few things."
     : shaped.length ? "No ideas fit those choices. Try a longer time, or leave out fewer foods."
     : IDEAS_WORDS.sorry;
   return reply({ ideas: made, note, model });

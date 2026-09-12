@@ -6,7 +6,7 @@
 //   "shelf"   a fridge shelf or cupboard → { items: [...], note }
 //   "ideas"   meal ideas from the household's own food, no photo
 //             → { ideas: [{ title, uses, extras, steps, minutes, servings, soon }], note }
-//             optional choices: meal, minutes, servings, leaveOut
+//             optional choices: meal, minutes, servings, leaveOut, kitchenOnly
 //
 // Deploy with "Verify JWT with legacy secret" OFF. This project signs user
 // sessions with the new ES256 keys, which that legacy check rejects, while it
