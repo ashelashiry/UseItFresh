@@ -983,16 +983,12 @@ the owner's own PowerShell alike. The cause was the machine's name lookup, not
 GitHub: `ping 1.1.1.1` timed out and no host resolved, while `nslookup` still
 answered from the router, and the Wi-Fi adapter listed DNS as
 `{192.168.1.1, 0.0.0.0}`. Diagnose before concluding anything is blocked: ping
-a raw IP, ping any hostname, then a specific one. So: commit every time,
-without being asked, and say plainly when commits are waiting to be pushed and
-what the command is:
+a raw IP, ping any hostname, then a specific one.
 
-```bash
-git push origin main && git push origin --tags
-```
-
-Everything else — the FlutterFlow snapshot branch, the tag, the ledger row —
-the agent does itself.
+**The agent runs the push. Do not hand the owner a git command to run.** When
+the network is down, say so, keep committing, and push as soon as it is back —
+`git push origin main` and `git push origin --tags`. The FlutterFlow snapshot
+branch, the tag and the ledger row are the agent's job too.
 
 `RELEASES.md` is the ledger of what shipped and how to roll back to it.
 

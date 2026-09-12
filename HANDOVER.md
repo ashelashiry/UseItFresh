@@ -594,9 +594,10 @@ status or safety from a photograph**.
 repository: `ping 1.1.1.1` timed out, no hostname resolved at all, and only
 `nslookup` worked because it asks the router directly. The adapter's DNS list
 was `{192.168.1.1, 0.0.0.0}` — the second entry is not a server. Check in this
-order: a raw IP, then any hostname, then the one you care about. The agent
-commits and tags locally either way, and FlutterFlow branches are made
-server-side, so a snapshot exists before any push.
+order: a raw IP, then any hostname, then the one you care about. The agent commits, tags AND pushes — the
+owner should never be handed a git command to run. While the network is down
+the agent keeps committing and pushes as soon as it is back; FlutterFlow
+branches are made server-side, so a snapshot exists meanwhile.
 
 
 **Snapshot, commit, test, re-snapshot** (their words, 12 Sep): any medium or
