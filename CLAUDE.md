@@ -977,10 +977,15 @@ rewrite of existing custom code, anything touching more than one screen:
 If a change turns out to be bigger than it looked, stop and take the snapshot
 before going further.
 
-**The agent cannot reach GitHub from this workspace** (`github.com` does not
-resolve for any process the session starts, sandbox off or on, while Supabase
-and the FlutterFlow API are fine). So: commit every time, without being asked,
-and say plainly when commits are waiting to be pushed and what the command is:
+**Pushes can fail for reasons that are not the repository.** On 12 Sep every
+push failed with "Could not resolve host: github.com", from the agent and from
+the owner's own PowerShell alike. The cause was the machine's name lookup, not
+GitHub: `ping 1.1.1.1` timed out and no host resolved, while `nslookup` still
+answered from the router, and the Wi-Fi adapter listed DNS as
+`{192.168.1.1, 0.0.0.0}`. Diagnose before concluding anything is blocked: ping
+a raw IP, ping any hostname, then a specific one. So: commit every time,
+without being asked, and say plainly when commits are waiting to be pushed and
+what the command is:
 
 ```bash
 git push origin main && git push origin --tags
