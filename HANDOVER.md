@@ -489,6 +489,28 @@ a fresh `Text(CustomFunction(...))`), and check the generated Dart for the new
 function name before believing a text binding changed. The DSL `Text` has no
 `fontSize`; a size override goes back on with a fast-lane patch afterwards.
 
+### Hiding an AppBar does not hide it
+
+A fast-lane `visible: false` on an `AppBar` returns ok and changes nothing in
+the generated Scaffold (13 Sep, Recipes). Remove it with
+`page.ensureRemoved(...)` instead. The page body keeps its own `SafeArea`.
+
+### Never sit inside `generated_code` while a push or fast-lane refresh runs
+
+Every push and every fast-lane patch re-exports `generated_code/` in the
+background. A shell whose working directory is inside it (a `flutter build web`
+started with `cd generated_code`, say) makes the export's rename fail and can
+leave the folder holding only `.dart_tool` and `pubspec.lock` (13 Sep). The fix
+is `flutterflow ai codegen refresh` from the workspace root. Build only when no
+push or patch is in flight, and wait for a patch's refresh to finish first.
+
+### Removing several siblings in one push
+
+On 12 Sep, eight `ensureRemoved` calls in one push removed every second
+widget. On 13 Sep, six (Recipes), five (Inventory) and eight (Profile), all
+listed bottom-up by key, each removed everything. List removals bottom-up and
+check the generated Dart afterwards either way.
+
 ---
 
 ## 6. The verification harness
@@ -571,7 +593,20 @@ directly holds a file lock that makes `flutterflow ai run` fail with
 
 ## 8. Design sources, in order of authority
 
-1. `design/Chat GPT/Use-It-Fresh-Visual-v3/` — **current.** Photographic
+0. `design/DESIGN-GUIDE-v4.md` — **the owner's guide, 13 Sep; it wins.** The
+   four main tabs and Scan are rebuilt to it, each as one custom widget under
+   the page title so the look is exact and the states are complete:
+   `HomeKitchen`, `AddOptions` (Scan), `RecipesHome`, `InventoryKitchen`,
+   `ProfileMenu`. They share one palette as constants (forest #07533A, ink
+   #202C24, muted #59665D, sage #EDF2E8, border #DCE3D7), radius 20 cards and
+   14 buttons, 48px+ tap targets, 150–250ms motion that stops under reduced
+   motion. A food's picture is its own photo or a photo of that very food,
+   otherwise a neutral tile: never another food standing in for a category.
+   Missing icons are listed in `design/ICONS-NEEDED.md`; each has a Material
+   stand-in until the files arrive. Old widgets left unused by the rebuild
+   (`MealIdeaCards`, `IdeaChoices`, `FoodCard`, `MenuRow`) are still in the
+   project and can be removed once the owner has tested the new screens.
+1. `design/Chat GPT/Use-It-Fresh-Visual-v3/` — Photographic
    direction: BUILD-GUIDE.md, tokens.json, the six food photographs, the logo.
 2. `design/Chat GPT/Use-It-Fresh-Kitchen-Icons/` — the icon set, with
    FF-INSTRUCTIONS.md. Applied.

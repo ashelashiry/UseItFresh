@@ -3055,6 +3055,7 @@ abstract final class CustomCode {
     "LeaveHouseholdButton",
     "LoopingRemoteImage",
     "MealIdeaCards",
+    "ProfileMenu",
     "PutItBack",
     "RecipesHome",
     "ShelfReview",
