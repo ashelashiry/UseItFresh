@@ -87,13 +87,6 @@ abstract final class HomePageWidgets {
                         path: "HomePage.body[0].children[0].children[0].children[0]",
                         name: "HomeHi",
                       ),
-                      ffai.ProjectWidgetHandle(
-                        key: "Text_oafkeib3",
-                        type: "Text",
-                        path: "HomePage.body[0].children[0].children[0].children[1]",
-                        name: "HomeHeadline",
-                        text: "Fresh today.",
-                      ),
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
@@ -204,83 +197,10 @@ abstract final class HomePageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Container_m5nwt3o5",
+                    key: "Container_t5blcs9w",
                     type: "Container",
                     path: "HomePage.body[0].children[0].children[3]",
-                    name: "UseNextHero",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
-                    children: <ffai.ProjectWidgetHandle>[
-                      ffai.ProjectWidgetHandle(
-                        key: "Stack_82vmib4z",
-                        type: "Stack",
-                        path: "HomePage.body[0].children[0].children[3].children[0]",
-                        name: "UseNextStack",
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Image_0k1wg65m",
-                            type: "Image",
-                            path: "HomePage.body[0].children[0].children[3].children[0].children[0]",
-                            name: "UseNextPhoto",
-                          ),
-                          ffai.ProjectWidgetHandle(
-                            key: "Container_2k3wzln6",
-                            type: "Container",
-                            path: "HomePage.body[0].children[0].children[3].children[0].children[1]",
-                            name: "UseNextCaption",
-                            children: <ffai.ProjectWidgetHandle>[
-                              ffai.ProjectWidgetHandle(
-                                key: "Column_dpcs26r2",
-                                type: "Column",
-                                path: "HomePage.body[0].children[0].children[3].children[0].children[1].children[0]",
-                                name: "Column",
-                                children: <ffai.ProjectWidgetHandle>[
-                                  ffai.ProjectWidgetHandle(
-                                    key: "Text_yivvkbqk",
-                                    type: "Text",
-                                    path: "HomePage.body[0].children[0].children[3].children[0].children[1].children[0].children[0]",
-                                    name: "UseNextTitle",
-                                    text: "Use these next",
-                                  ),
-                                  ffai.ProjectWidgetHandle(
-                                    key: "Text_8ju54nwh",
-                                    type: "Text",
-                                    path: "HomePage.body[0].children[0].children[3].children[0].children[1].children[0].children[1]",
-                                    name: "UseNextCount",
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "GridView_pmh36not",
-                    type: "GridView",
-                    path: "HomePage.body[0].children[0].children[4]",
-                    name: "UseFirstGrid",
-                    children: <ffai.ProjectWidgetHandle>[
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_9s4vzoib",
-                        type: "Container",
-                        path: "HomePage.body[0].children[0].children[4].children[0]",
-                        name: "UseFirstCard",
-                        componentName: "FoodCard",
-                      ),
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Button_gpb5q4p0",
-                    type: "Button",
-                    path: "HomePage.body[0].children[0].children[5]",
-                    name: "QuickAddManualButton",
-                    text: "Add food",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
+                    name: "HomeKitchenBody",
                   ),
                 ],
               ),

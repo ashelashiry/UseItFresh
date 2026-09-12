@@ -3045,6 +3045,7 @@ abstract final class CustomCode {
     "FoodPreferences",
     "FoodStatusBadge",
     "FridgeEntrance",
+    "HomeKitchen",
     "HouseholdMembers",
     "HouseholdSwitcher",
     "IdeaChoices",
