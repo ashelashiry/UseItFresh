@@ -153,157 +153,592 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The basket goes into the kitchen.
+/// Fixing a food after it has been added.
 ///
-/// The loop stopped half way: you could tick something into the basket, then
-/// had to type it in again as food. One button under the list now adds
-/// everything you ticked and clears it off the list.
+/// The photo map adds food deliberately fast: no date typed, and sometimes no
+/// category. Until now there was no way to correct any of it — the only route
+/// was to throw the item out and add it again, which also writes a "thrown
+/// out" event that never happened. That undercuts the whole photo-first idea,
+/// because the quick add is only quick if fixing it later is easy.
 ///
-/// It started as a button on every line, which the compiler refused: a widget
-/// inserted into a list template cannot read the line's id ("Item field access
-/// \"id\" used outside a ListView builder"), and attaching the action by key
-/// afterwards would not bind either. One button for the whole basket is the
-/// better shape anyway — it matches how a shop ends, and it is one tap instead
-/// of ten. So the per-line button and its action are removed here.
+/// One screen, reached from the food's own screen: name, category, where it is
+/// kept, how many, and the printed date with what kind of date it is. A date
+/// with no kind is not allowed to happen — the status engine reads the kind to
+/// decide what "past" means — so a date saved without one is stored as
+/// "unknown", which the engine already handles.
 ///
-/// Food goes in where the app puts anything it was not told about: the
-/// household's default location, as manually added, with no date, so it gets
-/// the typical keep time for its category. No category is guessed; the item
-/// screen is where that gets fixed.
+/// The fields live in app state and the page's buttons call actions, the same
+/// shape as the photo map: a custom widget cannot be read by the page, so the
+/// widget writes what it collects and the action reads it back.
 void buildStarterEditFlow(App app) {
-  app.removeCustomAction('AddBoughtToKitchen');
+  app.state('editItemId', string);
+  app.state('editName', string);
+  app.state('editCategory', string);
+  app.state('editLocationId', string);
+  app.state('editQuantity', int_.withDefault(1));
+  app.state('editPrintedDate', string);
+  app.state('editDateType', string);
 
   app.customAction(
-    'AddBasketToKitchen',
+    'LoadItemForEdit',
+    args: {'itemId': string},
+    returns: string,
+    description:
+        "Reads one food into the edit fields. Returns '' when loaded, or a "
+        'message saying why not.',
+    code: _loadItemForEdit,
+  );
+
+  app.customAction(
+    'SaveItemEdits',
     args: {},
     returns: string,
     description:
-        "Adds everything ticked on the shopping list to the kitchen and clears "
-        "those lines. Returns '' when done, or a message saying why not.",
-    code: _addBasketToKitchen,
+        "Writes the edit fields back to the food. Returns '' when saved, or a "
+        'message saying why not.',
+    code: _saveItemEdits,
   );
 
-  final shopping = ff.Pages.shoppingListPage;
-  app.editPage(shopping, (page) {
-    page.ensureRemoved(shopping.widgets.byKey('Container_v9dh7zbk').single);
-    page.ensureInsertedAfter(
-      shopping.widgets.byKey('ListView_omu6zj3c').single,
+  app.customWidget(
+    'ItemEditFields',
+    parameters: {},
+    description:
+        'The editable details of one food — name, category, where it is kept, '
+        'how many, and the printed date — held in app state.',
+    code: _itemEditFields,
+  );
+
+  app.ensurePage(
+    'EditItemPage',
+    description:
+        'Fix a food that is already in the kitchen: its name, category, place, '
+        'how many, and the date printed on it.',
+    route: 'edit-item',
+    params: {'itemId': string},
+    onLoad: [
+      CallCustomAction.named(
+        'LoadItemForEdit',
+        args: {'itemId': string},
+        returnType: string,
+        arguments: {'itemId': PageParam('itemId')},
+        outputAs: 'editLoaded',
+      ),
+      If(
+        Not(Equals(ActionOutput('editLoaded'), '')),
+        then: [Snackbar(ActionOutput('editLoaded')), NavigateBack()],
+      ),
+    ],
+    body: Scaffold(
+      body: Container(
+        name: 'EditItemBody',
+        padding:
+            const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 24),
+        child: Column(
+          scrollable: true,
+          crossAxis: CrossAxis.stretch,
+          spacing: 12,
+          children: [
+            Row(
+              name: 'EditItemBackRow',
+              mainAxis: MainAxis.start,
+              children: [
+                Container(
+                  name: 'EditItemBack',
+                  onTap: [NavigateBack()],
+                  width: 44,
+                  height: 44,
+                  color: Colors.secondaryBackground,
+                  borderColor: Colors.alternate,
+                  borderWidth: 1,
+                  borderRadius: 999,
+                  child: Icon('arrow_back', size: 20, color: Colors.primaryText),
+                ),
+              ],
+            ),
+            Text('Fix the details.',
+                name: 'EditItemHeadline',
+                style: Styles.headlineMedium,
+                color: Colors.primary),
+            Text(
+              'Anything the app guessed, or left blank when you added it in a '
+              'hurry.',
+              name: 'EditItemLede',
+              style: Styles.bodyMedium,
+              color: Colors.secondaryText,
+            ),
+            CustomWidget(
+              widgetName: 'ItemEditFields',
+              name: 'EditItemPanel',
+              arguments: {},
+            ),
+            Button(
+              'Save changes',
+              name: 'EditItemSave',
+              width: double.infinity,
+              height: 50,
+              borderRadius: 14,
+              color: Colors.primary,
+              textColor: Colors.secondaryBackground,
+              onTap: [
+                CallCustomAction.named(
+                  'SaveItemEdits',
+                  args: {},
+                  returnType: string,
+                  arguments: {},
+                  outputAs: 'editSaved',
+                ),
+                If(
+                  Equals(ActionOutput('editSaved'), ''),
+                  then: [
+                    Snackbar('Saved.'),
+                    // Reopening the food's screen so it shows what was saved,
+                    // and so Back does not land on the editor again.
+                    Navigate(
+                      ff.Pages.foodItemPage,
+                      params: {'itemId': PageParam('itemId')},
+                      replaceRoute: true,
+                    ),
+                  ],
+                  orElse: [Snackbar(ActionOutput('editSaved'))],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  final item = ff.Pages.foodItemPage;
+  app.editPage(item, (page) {
+    page.ensureInsertedBefore(
+      item.widgets.byKey('Button_q7rrsu3l').single,
       Button(
-        'Put the basket in my kitchen',
-        name: 'ShoppingBasketToKitchen',
+        'Edit details',
+        name: 'ItemEdit',
         width: double.infinity,
-        height: 50,
+        height: 48,
         borderRadius: 14,
-        color: Colors.primary,
-        textColor: Colors.secondaryBackground,
+        color: Colors.secondaryBackground,
+        textColor: Colors.primary,
         onTap: [
-          CallCustomAction.named(
-            'AddBasketToKitchen',
-            args: {},
-            returnType: string,
-            arguments: {},
-            outputAs: 'basketSaid',
-          ),
-          If(
-            Equals(ActionOutput('basketSaid'), ''),
-            then: [
-              Snackbar('Added to your kitchen.'),
-              // Reopening reloads the list, now without those lines.
-              Navigate(ff.Pages.shoppingListPage, replaceRoute: true),
-            ],
-            orElse: [Snackbar(ActionOutput('basketSaid'))],
-          ),
+          Navigate('EditItemPage', params: {'itemId': PageParam('itemId')}),
         ],
       ),
     );
   });
 }
 
-const _addBasketToKitchen = r'''
+const _loadItemForEdit = r'''
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Adds everything ticked on the shopping list to the kitchen, then clears
-/// those lines off the list.
+/// Reads one food into the edit fields.
 ///
-/// One insert for the lot, so it is all or nothing. The lines are only
-/// deleted after the food is safely in: a line that is still on the list is a
-/// smaller annoyance than food that vanished on the way.
-///
-/// Quantities are rounded to whole things, because food_items counts things.
-/// Nothing is guessed about category or dates.
-Future<String> addBasketToKitchen() async {
-  final household = FFAppState().currentHouseholdId;
-  if (household.isEmpty) {
-    return 'No household yet. Create or join one before adding food.';
+/// Everything is read as a string, including the date (Postgres hands back
+/// yyyy-mm-dd), because that is what the fields hold and what goes back.
+/// Returns '' when loaded, and otherwise a sentence saying why not.
+Future<String> loadItemForEdit(String? itemId) async {
+  final id = (itemId ?? '').trim();
+  if (id.isEmpty) return 'Could not find that food.';
+  try {
+    final row = await SupaFlow.client
+        .from('food_items')
+        .select(
+            'name, category, quantity, storage_location_id, printed_date, printed_date_type')
+        .eq('id', id)
+        .maybeSingle();
+    if (row == null) return 'Could not find that food.';
+    final counted =
+        row['quantity'] is num ? (row['quantity'] as num).round() : 1;
+    FFAppState().update(() {
+      FFAppState().editItemId = id;
+      FFAppState().editName = (row['name'] ?? '').toString();
+      FFAppState().editCategory = (row['category'] ?? '').toString();
+      FFAppState().editLocationId =
+          (row['storage_location_id'] ?? '').toString();
+      FFAppState().editQuantity = counted < 1 ? 1 : counted;
+      FFAppState().editPrintedDate = (row['printed_date'] ?? '').toString();
+      FFAppState().editDateType = (row['printed_date_type'] ?? '').toString();
+    });
+    return '';
+  } on PostgrestException catch (error) {
+    return error.message;
+  } catch (_) {
+    return 'Could not reach your kitchen. Check your signal and try again.';
   }
+}
+''';
+
+const _saveItemEdits = r'''
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Writes the edit fields back to the food.
+///
+/// A date saved without saying what kind it is becomes "unknown" rather than
+/// nothing: the status engine reads the kind to decide what being past it
+/// means, and a date it cannot interpret is worse than a date it knows it
+/// cannot interpret. Clearing the date clears the kind with it.
+///
+/// Returns '' when saved, and otherwise a sentence saying why not.
+Future<String> saveItemEdits() async {
+  final id = FFAppState().editItemId;
+  if (id.isEmpty) return 'Nothing to save.';
+  final name = FFAppState().editName.trim();
+  if (name.isEmpty) return 'Give it a name first.';
+
+  final date = FFAppState().editPrintedDate.trim();
+  final kind = FFAppState().editDateType.trim();
+  final category = FFAppState().editCategory.trim();
+  final place = FFAppState().editLocationId.trim();
+  final counted = FFAppState().editQuantity;
 
   try {
-    // Creating a household seeds exactly one list, so the oldest is the one.
-    final lists = await SupaFlow.client
-        .from('shopping_lists')
-        .select('id')
-        .eq('household_id', household)
-        .order('created_at')
-        .limit(1);
-    if ((lists as List).isEmpty) return 'This household has no shopping list yet.';
-
-    final rows = await SupaFlow.client
-        .from('shopping_list_items')
-        .select('id, name, quantity')
-        .eq('shopping_list_id', lists.first['id'])
-        .eq('is_purchased', true);
-    final bought = List<Map<String, dynamic>>.from(rows as List);
-    if (bought.isEmpty) {
-      return 'Tick what you have bought first, then this puts it away.';
-    }
-
-    // Where the household puts things by default; each can be moved after.
-    final places = await SupaFlow.client
-        .from('storage_locations')
-        .select('id, is_default')
-        .eq('household_id', household);
-    final locations = List<Map<String, dynamic>>.from(places as List);
-    String? where;
-    for (final l in locations) {
-      if (l['is_default'] == true) where = l['id'].toString();
-    }
-    if (where == null && locations.isNotEmpty) {
-      where = locations.first['id'].toString();
-    }
-
-    final uid = SupaFlow.client.auth.currentUser?.id;
-    final food = <Map<String, dynamic>>[];
-    final done = <String>[];
-    for (final line in bought) {
-      final name = (line['name'] ?? '').toString().trim();
-      if (name.isEmpty) continue;
-      final counted =
-          line['quantity'] is num ? (line['quantity'] as num).round() : 1;
-      food.add({
-        'household_id': household,
-        'storage_location_id': where,
-        'created_by': uid,
-        'name': name,
-        'quantity': counted < 1 ? 1 : counted,
-        'source_type': 'manual',
-      });
-      done.add(line['id'].toString());
-    }
-    if (food.isEmpty) return 'Those lines have no names to add.';
-
-    await SupaFlow.client.from('food_items').insert(food);
-    await SupaFlow.client
-        .from('shopping_list_items')
-        .delete()
-        .inFilter('id', done);
+    await SupaFlow.client.from('food_items').update({
+      'name': name,
+      'category': category.isEmpty ? null : category,
+      'storage_location_id': place.isEmpty ? null : place,
+      'quantity': counted < 1 ? 1 : counted,
+      'printed_date': date.isEmpty ? null : date,
+      'printed_date_type':
+          date.isEmpty ? null : (kind.isEmpty ? 'unknown' : kind),
+    }).eq('id', id);
     return '';
   } on PostgrestException catch (error) {
     if (error.code == '42501') {
-      return 'Your account is not allowed to add to this household.';
+      return 'Your account is not allowed to change this food.';
     }
     return error.message;
   } catch (_) {
-    return 'Could not add them. Check your signal and try again.';
+    return 'Could not save. Check your signal and try again.';
   }
+}
+''';
+
+const _itemEditFields = r'''
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+/// The editable details of one food, held in app state so the page's Save
+/// button can read them: FlutterFlow cannot read a custom widget.
+///
+/// The places come from the household's own storage locations, so this never
+/// offers somewhere the food cannot go.
+class ItemEditFields extends StatefulWidget {
+  const ItemEditFields({super.key, this.width, this.height});
+
+  final double? width;
+  final double? height;
+
+  @override
+  State<ItemEditFields> createState() => _ItemEditFieldsState();
+}
+
+class _ItemEditFieldsState extends State<ItemEditFields> {
+  // The same words the rest of the app uses for a category.
+  static const _categories = <String, String>{
+    'dairy': 'Dairy',
+    'meat_poultry': 'Meat & poultry',
+    'seafood': 'Seafood',
+    'eggs': 'Eggs',
+    'cooked_leftovers': 'Cooked leftovers',
+    'fruit': 'Fruit',
+    'vegetables': 'Vegetables',
+    'bread_bakery': 'Bread & bakery',
+    'pantry_dry': 'Pantry & dry goods',
+    'frozen': 'Frozen food',
+    'condiments_sauces': 'Condiments & sauces',
+    'infant_food': 'Infant food & formula',
+  };
+  static const _dateKinds = <String, String>{
+    'use_by': 'Use by',
+    'best_before': 'Best before',
+    'sell_by': 'Sell by',
+    'unknown': 'Not sure',
+  };
+  static const _months = <String>[
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  TextEditingController? _name;
+  String _nameFor = '';
+  List<Map<String, dynamic>> _places = const [];
+  String _placesFor = '';
+
+  @override
+  void dispose() {
+    _name?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPlaces(String household) async {
+    try {
+      final rows = await SupaFlow.client
+          .from('storage_locations')
+          .select('id, name, location_type')
+          .eq('household_id', household)
+          .order('location_type')
+          .order('name');
+      if (!mounted || household != _placesFor) return;
+      setState(() => _places = List<Map<String, dynamic>>.from(rows as List));
+    } catch (_) {
+      // No signal: the other fields still work, and saving keeps the place
+      // the food already had.
+    }
+  }
+
+  void _set(void Function() change) => FFAppState().update(change);
+
+  static String _iso(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  static String _said(String iso) {
+    final d = DateTime.tryParse(iso);
+    if (d == null) return '';
+    return '${d.day} ${_months[d.month - 1]} ${d.year}';
+  }
+
+  Future<void> _pickDate() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final now = DateTime.tryParse(FFAppState().editPrintedDate) ?? today;
+    final first = today.subtract(const Duration(days: 730));
+    final last = today.add(const Duration(days: 1095));
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: now.isBefore(first) ? first : (now.isAfter(last) ? last : now),
+      firstDate: first,
+      lastDate: last,
+      helpText: 'The date printed on the pack',
+    );
+    if (picked == null || !mounted) return;
+    _set(() {
+      FFAppState().editPrintedDate = _iso(picked);
+      if (FFAppState().editDateType.isEmpty) {
+        FFAppState().editDateType = 'use_by';
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+    final t = FlutterFlowTheme.of(context);
+    final household = FFAppState().currentHouseholdId;
+    if (household.isNotEmpty && household != _placesFor) {
+      _placesFor = household;
+      _loadPlaces(household);
+    }
+    // The controller follows whichever food was loaded, not every keystroke.
+    final id = FFAppState().editItemId;
+    if (id != _nameFor) {
+      _nameFor = id;
+      _name?.dispose();
+      _name = TextEditingController(text: FFAppState().editName);
+    }
+    final date = FFAppState().editPrintedDate;
+    final kind = FFAppState().editDateType;
+    final counted = FFAppState().editQuantity < 1 ? 1 : FFAppState().editQuantity;
+    final placeId = FFAppState().editLocationId;
+    final known = _places.any((p) => p['id'].toString() == placeId);
+
+    return SizedBox(
+      width: widget.width,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _label(t, 'Name'),
+          TextField(
+            controller: _name,
+            decoration: _look(t, 'What it is'),
+            onChanged: (v) => _set(() => FFAppState().editName = v),
+          ),
+          const SizedBox(height: 16),
+          _label(t, 'Category'),
+          DropdownButtonFormField<String>(
+            value: _categories.containsKey(FFAppState().editCategory)
+                ? FFAppState().editCategory
+                : null,
+            isExpanded: true,
+            decoration: _look(t, 'Not set'),
+            items: [
+              for (final e in _categories.entries)
+                DropdownMenuItem(
+                  value: e.key,
+                  child: Text(e.value, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (v) =>
+                _set(() => FFAppState().editCategory = v ?? ''),
+          ),
+          const SizedBox(height: 16),
+          _label(t, 'Where it is kept'),
+          DropdownButtonFormField<String>(
+            value: known ? placeId : null,
+            isExpanded: true,
+            decoration: _look(t, _places.isEmpty ? 'Loading…' : 'Not set'),
+            items: [
+              for (final p in _places)
+                DropdownMenuItem(
+                  value: p['id'].toString(),
+                  child: Text((p['name'] ?? '').toString(),
+                      overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (v) =>
+                _set(() => FFAppState().editLocationId = v ?? ''),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _label(t, 'How many')),
+              _step(t, Icons.remove, 'One fewer',
+                  counted > 1 ? () => _set(() => FFAppState().editQuantity = counted - 1) : null),
+              SizedBox(
+                width: 56,
+                child: Text('$counted',
+                    textAlign: TextAlign.center, style: t.titleSmall),
+              ),
+              _step(t, Icons.add, 'One more',
+                  counted < 99 ? () => _set(() => FFAppState().editQuantity = counted + 1) : null),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _label(t, 'Date on the pack'),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickDate,
+                  icon: Icon(Icons.event, size: 18, color: t.primary),
+                  label: Text(
+                    date.isEmpty ? 'No date' : _said(date),
+                    overflow: TextOverflow.ellipsis,
+                    style: t.bodyMedium.copyWith(color: t.primaryText),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    alignment: Alignment.centerLeft,
+                    minimumSize: const Size(0, 48),
+                    backgroundColor: t.secondaryBackground,
+                    side: BorderSide(color: t.alternate),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              if (date.isNotEmpty)
+                IconButton(
+                  tooltip: 'Take the date off',
+                  onPressed: () => _set(() {
+                    FFAppState().editPrintedDate = '';
+                    FFAppState().editDateType = '';
+                  }),
+                  icon: Icon(Icons.close, color: t.secondaryText),
+                ),
+            ],
+          ),
+          if (date.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final e in _dateKinds.entries)
+                  _chip(t, e.value, kind == e.key,
+                      () => _set(() => FFAppState().editDateType = e.key)),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            date.isEmpty
+                ? 'With no date, this food gets a typical keep time for its '
+                    'category.'
+                : 'Use by is a safety date; best before is about quality. The '
+                    'app treats them differently.',
+            style: t.bodySmall.copyWith(color: t.secondaryText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _look(FlutterFlowTheme t, String hint) => InputDecoration(
+        hintText: hint,
+        isDense: true,
+        filled: true,
+        fillColor: t.secondaryBackground,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: t.alternate),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: t.alternate),
+        ),
+      );
+
+  Widget _label(FlutterFlowTheme t, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(
+          text,
+          style: t.bodySmall
+              .copyWith(color: t.secondaryText, fontWeight: FontWeight.w700),
+        ),
+      );
+
+  Widget _chip(FlutterFlowTheme t, String text, bool on, VoidCallback onTap) =>
+      Semantics(
+        button: true,
+        selected: on,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color: on ? t.primary : t.secondaryBackground,
+              border: Border.all(color: on ? t.primary : t.alternate),
+            ),
+            child: Text(
+              text,
+              style: t.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                color: on ? Colors.white : t.primaryText,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget _step(FlutterFlowTheme t, IconData icon, String label,
+          VoidCallback? onTap) =>
+      Semantics(
+        button: true,
+        enabled: onTap != null,
+        label: label,
+        child: Opacity(
+          opacity: onTap == null ? 0.4 : 1,
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: t.secondaryBackground,
+                border: Border.all(color: t.alternate),
+              ),
+              child: Icon(icon, size: 20, color: t.primary),
+            ),
+          ),
+        ),
+      );
 }
 ''';

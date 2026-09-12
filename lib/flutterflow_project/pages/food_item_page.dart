@@ -432,9 +432,19 @@ abstract final class FoodItemPageWidgets {
                             ],
                           ),
                           ffai.ProjectWidgetHandle(
-                            key: "Button_q7rrsu3l",
+                            key: "Button_g0pi5nbw",
                             type: "Button",
                             path: "FoodItemPage.body[0].children[1].children[0].children[11].children[1]",
+                            name: "ItemEdit",
+                            text: "Edit details",
+                            triggers: const <String>[
+                              "ON_TAP",
+                            ],
+                          ),
+                          ffai.ProjectWidgetHandle(
+                            key: "Button_q7rrsu3l",
+                            type: "Button",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[11].children[2]",
                             name: "ItemUsed",
                             text: "I used it",
                             triggers: const <String>[
@@ -444,7 +454,7 @@ abstract final class FoodItemPageWidgets {
                           ffai.ProjectWidgetHandle(
                             key: "Button_fdabmnbe",
                             type: "Button",
-                            path: "FoodItemPage.body[0].children[1].children[0].children[11].children[2]",
+                            path: "FoodItemPage.body[0].children[1].children[0].children[11].children[3]",
                             name: "ItemDiscarded",
                             text: "Throw it out",
                             triggers: const <String>[

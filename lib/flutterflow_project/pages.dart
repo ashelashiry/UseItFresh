@@ -6,6 +6,7 @@ import 'package:flutterflow_ai/flutterflow_ai.dart' as ffai;
 import 'pages/add_food_item_page.dart' show addFoodItemPageHandle;
 import 'pages/add_food_review_page.dart' show addFoodReviewPageHandle;
 import 'pages/barcode_scan_page.dart' show barcodeScanPageHandle;
+import 'pages/edit_item_page.dart' show editItemPageHandle;
 import 'pages/food_item_page.dart' show foodItemPageHandle;
 import 'pages/food_preferences_page.dart' show foodPreferencesPageHandle;
 import 'pages/home_page.dart' show homePageHandle;
@@ -32,6 +33,7 @@ abstract final class Pages {
   static final addFoodItemPage = addFoodItemPageHandle;
   static final addFoodReviewPage = addFoodReviewPageHandle;
   static final barcodeScanPage = barcodeScanPageHandle;
+  static final editItemPage = editItemPageHandle;
   static final foodItemPage = foodItemPageHandle;
   static final foodPreferencesPage = foodPreferencesPageHandle;
   static final homePage = homePageHandle;
@@ -57,6 +59,7 @@ abstract final class Pages {
     addFoodItemPage,
     addFoodReviewPage,
     barcodeScanPage,
+    editItemPage,
     foodItemPage,
     foodPreferencesPage,
     homePage,

@@ -647,6 +647,18 @@ build 7".
   line, which the compiler refused — see the ItemRef trap in section 5 — and
   one button for the whole basket is the better shape anyway.
 
+**Fixing a food after adding it** (12 Sep, build 7). The photo map adds food
+with no date and sometimes no category, and nothing could correct it
+afterwards: the only route was "Throw it out" and add again, which also wrote
+a discard event that never happened. `EditItemPage(itemId)` now edits name,
+category, place, quantity and the printed date. `LoadItemForEdit` fills seven
+app-state fields, `ItemEditFields` edits them (a custom widget cannot be read
+by the page, so the widget writes and the action reads back — same shape as
+the photo map), `SaveItemEdits` writes them. A date saved with no kind becomes
+`unknown` rather than null: the status engine reads the kind to decide what
+"past" means. Saving reopens the food's screen with `replaceRoute`, so it
+shows the new values and Back does not land on the editor.
+
 ## 11. Releases: anchoring a build so it can be rolled back
 
 Decided 12 Sep, after the owner pointed out that a build number on the phone

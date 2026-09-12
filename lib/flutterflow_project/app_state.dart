@@ -23,6 +23,48 @@ abstract final class AppState {
     typeName: "String",
     persisted: true,
   );
+  static const editCategory = ffai.ProjectAppStateFieldHandle(
+    name: "editCategory",
+    key: "y8jdta11",
+    typeName: "String",
+    persisted: false,
+  );
+  static const editDateType = ffai.ProjectAppStateFieldHandle(
+    name: "editDateType",
+    key: "1ma0ziop",
+    typeName: "String",
+    persisted: false,
+  );
+  static const editItemId = ffai.ProjectAppStateFieldHandle(
+    name: "editItemId",
+    key: "1gxrwr9o",
+    typeName: "String",
+    persisted: false,
+  );
+  static const editLocationId = ffai.ProjectAppStateFieldHandle(
+    name: "editLocationId",
+    key: "xx3vcxjq",
+    typeName: "String",
+    persisted: false,
+  );
+  static const editName = ffai.ProjectAppStateFieldHandle(
+    name: "editName",
+    key: "1am4nn22",
+    typeName: "String",
+    persisted: false,
+  );
+  static const editPrintedDate = ffai.ProjectAppStateFieldHandle(
+    name: "editPrintedDate",
+    key: "dwi3shp3",
+    typeName: "String",
+    persisted: false,
+  );
+  static const editQuantity = ffai.ProjectAppStateFieldHandle(
+    name: "editQuantity",
+    key: "o55qfbfi",
+    typeName: "Integer",
+    persisted: false,
+  );
   static const expiryAlertDays = ffai.ProjectAppStateFieldHandle(
     name: "expiryAlertDays",
     key: "expiryAlertDays",
@@ -231,6 +273,13 @@ abstract final class AppState {
     aiCategory,
     aiName,
     currentHouseholdId,
+    editCategory,
+    editDateType,
+    editItemId,
+    editLocationId,
+    editName,
+    editPrintedDate,
+    editQuantity,
     expiryAlertDays,
     hasOpenedFridge,
     ideasAvoid,
