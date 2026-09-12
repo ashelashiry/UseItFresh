@@ -950,6 +950,35 @@ Actions.conditionalMulti(
 The general rule: any field with `[deprecated = true]` or a name starting with `legacy_` is for backwards-compatible reads by other consumers — never write to them. If you're not sure, use the typed DSL/helper surface. If the typed surface really doesn't cover what you need, ask first; don't poke deprecated proto fields.
 
 
+## Working agreement with the owner
+
+**This is how the owner works. Follow it without being asked.**
+
+Commit and push as a matter of course. Never wait to be told; never leave work
+sitting only on this machine.
+
+For any **medium or major** change — a new feature, a data-shape change, a
+rewrite of existing custom code, anything touching more than one screen:
+
+1. **Snapshot first, before touching anything.** GitHub: everything committed
+   and pushed. FlutterFlow: `flutterflow ai branch create <name>` so the
+   project can be reopened as it was. A snapshot taken after the work has
+   started is not a fallback.
+2. **Commit as soon as it builds, before any testing.** The point is that work
+   cannot be lost, so this commit happens whether or not the change is proven.
+   Push it.
+3. **Then test** — the owner tests on the phone, from the test round.
+4. **After it passes, replace the snapshot with a clean one that includes the
+   change**, so the fallback is always the newest *tested* state:
+   `python scripts/release.py <build> --note "..."` for a shipped build, or a
+   fresh FlutterFlow branch plus a tag for work between builds. Say plainly
+   which snapshot is now the fallback.
+
+If a change turns out to be bigger than it looked, stop and take the snapshot
+before going further.
+
+`RELEASES.md` is the ledger of what shipped and how to roll back to it.
+
 ## Project
 
 - `projectId`: `fridge-wise-gvpy0s`

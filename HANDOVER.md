@@ -588,6 +588,15 @@ status or safety from a photograph**.
 
 ## 9. How the owner works
 
+**Snapshot, commit, test, re-snapshot** (their words, 12 Sep): any medium or
+major change gets a backup and snapshot first — GitHub pushed, a FlutterFlow
+branch created — then a commit as soon as it builds, *before* testing, so the
+work cannot be lost; then testing; then the snapshot is replaced by a clean one
+that includes the change, which becomes the new fallback. Commit and push
+without being asked. The same words are in `CLAUDE.md` so every session starts
+with them.
+
+
 - Screenshots go to `C:\Users\ashel\OneDrive\Pictures\Screenshots`; they cannot
   paste images, so read the newest file yourself.
 - Screen recordings go to `design/Screen Recordings/`. Read the DevTools console
