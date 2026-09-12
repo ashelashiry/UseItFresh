@@ -588,6 +588,15 @@ status or safety from a photograph**.
 
 ## 9. How the owner works
 
+**GitHub is not reachable from the agent's session** (12 Sep): `github.com`
+does not resolve for git, curl or PowerShell started by the agent, with the
+sandbox on or off, while `supabase.co` and `api.flutterflow.io` resolve
+normally. The agent commits and tags locally; the owner runs
+`git push origin main && git push origin --tags`. Tags and FlutterFlow
+branches are still made by the agent, so a snapshot exists even before the
+push.
+
+
 **Snapshot, commit, test, re-snapshot** (their words, 12 Sep): any medium or
 major change gets a backup and snapshot first — GitHub pushed, a FlutterFlow
 branch created — then a commit as soon as it builds, *before* testing, so the

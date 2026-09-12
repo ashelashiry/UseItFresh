@@ -977,6 +977,18 @@ rewrite of existing custom code, anything touching more than one screen:
 If a change turns out to be bigger than it looked, stop and take the snapshot
 before going further.
 
+**The agent cannot reach GitHub from this workspace** (`github.com` does not
+resolve for any process the session starts, sandbox off or on, while Supabase
+and the FlutterFlow API are fine). So: commit every time, without being asked,
+and say plainly when commits are waiting to be pushed and what the command is:
+
+```bash
+git push origin main && git push origin --tags
+```
+
+Everything else — the FlutterFlow snapshot branch, the tag, the ledger row —
+the agent does itself.
+
 `RELEASES.md` is the ledger of what shipped and how to roll back to it.
 
 ## Project
