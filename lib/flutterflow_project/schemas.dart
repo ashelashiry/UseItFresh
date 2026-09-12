@@ -3049,6 +3049,7 @@ abstract final class CustomCode {
     "HouseholdMembers",
     "HouseholdSwitcher",
     "IdeaChoices",
+    "InventoryKitchen",
     "ItemEditFields",
     "KitchenIcon",
     "LeaveHouseholdButton",
