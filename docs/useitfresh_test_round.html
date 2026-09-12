@@ -159,8 +159,8 @@
       <b>what to do</b> and <b>what you should see</b>. Mark it <b>Works</b>, <b>Problem</b> or
       <b>Skip</b>. For a problem, say what happened and take a screenshot. Your marks save as you go,
       so you can stop and come back. When you finish, tell me <b>“done”</b> and I’ll read them.</p>
-    <p class="intro">A few steps are marked <b>Needs build 7</b>: they are built but not in
-      the build on your phone. Skip those this round.</p>
+    <p class="intro">Steps marked <b>New</b> have never been tried on a phone by
+      anyone. They are where the surprises will be.</p>
     <div class="meta">
       <label>Build number you’re testing<input id="build" inputmode="numeric" autocomplete="off" placeholder="e.g. 7"></label>
       <label>Phone<input id="phone" autocomplete="off" placeholder="e.g. iPhone 15"></label>
@@ -248,7 +248,7 @@ const JOURNEYS = [
       ["3.18","Scan tab → take a photo → on the map, tap the ← arrow at the top.","You leave the map and nothing is added to your kitchen."],
       ["3.19","Scan tab → close the camera without taking a photo.","«What are we adding?» with the other ways in: a receipt, a barcode, or typing.",1],
       ["3.20","Scan tab → photograph something with no food in it, like a wall.","A plain message such as «No food I could name in that photo.», then back to Scan. No crash."],
-      ["3.21","Photograph a shelf holding something that is already in your kitchen (milk, say).","That row carries a small «Already in your kitchen» tag. It still lets you add it: a second milk is often right.",2],
+      ["3.21","Photograph a shelf holding something that is already in your kitchen (milk, say).","That row carries a small «Already in your kitchen» tag. It still lets you add it: a second milk is often right.",1],
     ]},
   { n:4, t:"A receipt", w:"Scan → receipt", tag:"core",
     why:"The quick way to add a whole shop.",
@@ -291,11 +291,11 @@ const JOURNEYS = [
       ["8.2","Tap «Put it on the shopping list».","A confirmation. It’s on your shopping list."],
       ["8.3","Tap «I used it».","«Good. Nothing wasted.» and it leaves your kitchen."],
       ["8.4","Add one more test food by typing (as in 6.3), open it, tap «Throw it out».","«Thrown out and recorded.» and it leaves your kitchen."],
-      ["8.5","Open any food still in your kitchen, ideally one added from a photo, and tap «Edit details».","A screen with Name, Category, Where it is kept, How many, and Date on the pack, filled in with what it already has.",2],
-      ["8.6","Change the name, pick a category, tap «Save changes».","«Saved.» and the food’s own screen shows the new name and category straight away.",2],
-      ["8.7","«Edit details» again: set the date on the pack, choose «Use by», Save.","«THE DATE» shows your date and «WHERE THAT CAME FROM» says it is the printed use-by.",2],
-      ["8.8","«Edit details» again: tap the × next to the date, Save.","Back to a typical keep time for its category, with no date.",2],
-      ["8.9","«Edit details», clear the name, tap «Save changes».","«Give it a name first.» and nothing is changed.",2],
+      ["8.5","Open any food still in your kitchen, ideally one added from a photo, and tap «Edit details».","A screen with Name, Category, Where it is kept, How many, and Date on the pack, filled in with what it already has.",1],
+      ["8.6","Change the name, pick a category, tap «Save changes».","«Saved.» and the food’s own screen shows the new name and category straight away.",1],
+      ["8.7","«Edit details» again: set the date on the pack, choose «Use by», Save.","«THE DATE» shows your date and «WHERE THAT CAME FROM» says it is the printed use-by.",1],
+      ["8.8","«Edit details» again: tap the × next to the date, Save.","Back to a typical keep time for its category, with no date.",1],
+      ["8.9","«Edit details», clear the name, tap «Save changes».","«Give it a name first.» and nothing is changed.",1],
     ]},
   { n:9, t:"What can I make?", w:"Recipes tab", tag:"core", isNew:1,
     why:"Meal ideas built only from food you have, whatever needs using first at the top. Text only; it never says whether food is safe.",
@@ -320,11 +320,11 @@ const JOURNEYS = [
       ["10.4","In «Leave out», type a food that is in your kitchen (eggs, say), then «Get ideas».","No card uses it: not in its name, not under «From your kitchen», not under «You would also need»."],
       ["10.5","Swipe the app away, open it again, go to Recipes.","Your choices are still set."],
       ["10.6","Set Meal and Time back to Any, clear «Leave out», «Get ideas».","Ideas of any kind again."],
-      ["10.7","Profile tab → «What you leave out».","A screen with «Allergies», a «Diet» row of chips, and a plain note that this is not a medical check.",2],
-      ["10.8","Type a food you actually have in your kitchen (eggs, say) under «Allergies», then «Save».","«Saved. Ideas will leave those out.» and a line underneath listing what gets left out.",2],
-      ["10.9","Recipes → «Get ideas», with the «Leave out» box on Recipes empty.","No idea uses that food: not in a name, not under «From your kitchen», not under «You would also need».",2],
-      ["10.10","Back on «What you leave out», tap «Vegetarian», «Save», then Recipes → «Get ideas».","No meat or fish in any idea. The line under the chips lists the words being left out.",2],
-      ["10.11","Clear the allergy box, unpick «Vegetarian», «Save».","«Saved. Ideas can use anything in your kitchen.» Normal ideas again.",2],
+      ["10.7","Profile tab → «What you leave out».","A screen with «Allergies», a «Diet» row of chips, and a plain note that this is not a medical check.",1],
+      ["10.8","Type a food you actually have in your kitchen (eggs, say) under «Allergies», then «Save».","«Saved. Ideas will leave those out.» and a line underneath listing what gets left out.",1],
+      ["10.9","Recipes → «Get ideas», with the «Leave out» box on Recipes empty.","No idea uses that food: not in a name, not under «From your kitchen», not under «You would also need».",1],
+      ["10.10","Back on «What you leave out», tap «Vegetarian», «Save», then Recipes → «Get ideas».","No meat or fish in any idea. The line under the chips lists the words being left out.",1],
+      ["10.11","Clear the allergy box, unpick «Vegetarian», «Save».","«Saved. Ideas can use anything in your kitchen.» Normal ideas again.",1],
     ]},
   { n:11, t:"Keep an idea", w:"Recipes tab", tag:"core", isNew:1,
     why:"Arrives in this build: keep the ideas you liked, so they’re there next week. Kept ideas are shared with everyone in your household.",
@@ -340,18 +340,18 @@ const JOURNEYS = [
       ["12.1","Profile tab → Shopping list.","«Shopping list.» with what you added in 5.4, 8.2 and 9.7."],
       ["12.2","Type Test bread and tap «Add to the list».","It appears on the list."],
       ["12.3","Tick Test bread.","It moves down to «In the basket»."],
-      ["12.4","Tick one more thing, then tap «Put the basket in my kitchen».","«Added to your kitchen.» Both ticked lines leave the list.",2],
-      ["12.5","Inventory tab.","Both are there as food, in your usual place, with a typical keep time rather than a date.",2],
-      ["12.6","With nothing ticked, tap «Put the basket in my kitchen» again.","«Tick what you have bought first, then this puts it away.» Nothing is added.",2],
+      ["12.4","Tick one more thing, then tap «Put the basket in my kitchen».","«Added to your kitchen.» Both ticked lines leave the list.",1],
+      ["12.5","Inventory tab.","Both are there as food, in your usual place, with a typical keep time rather than a date.",1],
+      ["12.6","With nothing ticked, tap «Put the basket in my kitchen» again.","«Tick what you have bought first, then this puts it away.» Nothing is added.",1],
     ]},
   { n:13, t:"What you used", w:"Profile → waste history", tag:"also",
     why:"The last thirty days of what was used up and what was thrown out.",
     s:[
       ["13.1","Profile tab → the row that says «Used up and thrown out, over the last thirty days».","«What you used.» includes Test yoghurt (used) and the food you threw out in 8.4."],
       ["13.2","Look for «MOST OFTEN THROWN OUT».","A short list of what you throw out most. With little history it may be short or empty."],
-      ["13.3","Under the figures, find «Changed your mind?» with the last few you marked used or thrown out.","The food from 8.3 and 8.4 is listed, each saying «Used» or «Thrown out» and how long ago.",2],
-      ["13.4","Tap «Put it back» on one of them.","«… is back in your kitchen.» and it leaves that list.",2],
-      ["13.5","Inventory tab, then back to «What you used».","It is in your kitchen again, and the used/thrown figures no longer count it.",2],
+      ["13.3","Under the figures, find «Changed your mind?» with the last few you marked used or thrown out.","The food from 8.3 and 8.4 is listed, each saying «Used» or «Thrown out» and how long ago.",1],
+      ["13.4","Tap «Put it back» on one of them.","«… is back in your kitchen.» and it leaves that list.",1],
+      ["13.5","Inventory tab, then back to «What you used».","It is in your kitchen again, and the used/thrown figures no longer count it.",1],
     ]},
   { n:14, t:"Reminders", w:"Profile → Reminders", tag:"also",
     why:"A nudge on the phone before food needs using. It works without signal.",
@@ -377,8 +377,8 @@ const JOURNEYS = [
       ["15.12","Second person: under «Your households», tap your kitchen’s name.","«Now showing …» and your food is back on Home and Inventory. On Profile, the line under their name names your kitchen and says «Member»."],
       ["15.13","Second person: switch to Test kitchen, then Profile → Storage locations, add one called Test shelf.","«Location added.» and Test shelf is listed."],
       ["15.14","You: Profile → Storage locations.","Fridge, Freezer and Pantry. No Test shelf: it belongs to the other kitchen."],
-      ["15.15","Second person: switch to your kitchen, then Profile → the household row → «Leave this household», then tap again to confirm.","«You have left that household.» Your food is no longer on their phone.",2],
-      ["15.16","You, on the same screen.","No «Leave this household» button at all: you own this kitchen, and leaving would strand everyone else in it.",2],
+      ["15.15","Second person: switch to your kitchen, then Profile → the household row → «Leave this household», then tap again to confirm.","«You have left that household.» Your food is no longer on their phone.",1],
+      ["15.16","You, on the same screen.","No «Leave this household» button at all: you own this kitchen, and leaving would strand everyone else in it.",1],
     ]},
   { n:16, t:"No signal", w:"Airplane mode", tag:"core",
     why:"With no signal the app should say it can’t reach your kitchen, never that your kitchen is empty.",
@@ -395,6 +395,7 @@ const JOURNEYS = [
       ["17.1","iPhone Settings → Accessibility → Display & Text Size → Larger Text: two steps bigger. Open Home, Inventory, the photo map and Recipes. Put it back afterwards.","Bigger text, and nothing cut off or overlapping."],
       ["17.2","Think back over the round.","Every loading ring you saw was spinning, never a still grey circle.",1],
       ["17.3","Look at the tab bar.","Home, Inventory, Scan, Recipes and Profile, each labelled, clear of the bar at the bottom of the screen."],
+      ["17.4","Profile tab, scroll to the bottom, under the safety note.","«Version 1.0.0 (7)» — the build you are actually running. Worth a screenshot: from now on any screenshot says which build it came from.",1],
     ]},
 ];
 
