@@ -659,6 +659,22 @@ the photo map), `SaveItemEdits` writes them. A date saved with no kind becomes
 "past" means. Saving reopens the food's screen with `replaceRoute`, so it
 shows the new values and Back does not land on the editor.
 
+**Duplicates, and changing your mind** (12 Sep, build 7).
+- **"Already in your kitchen"** on each photo-map row. ShelfReview reads the
+  household's current names once per household and matches on a lower-cased,
+  plural-dropped form ("Eggs" vs "Egg"). It says it rather than deciding: a
+  second milk is often right, and only the person knows.
+- **Putting a settled food back.** `UnsettleFoodItem` clears `archived_at` and
+  returns the status to `fresh`; the kitchen view hides anything archived, so
+  that is the whole of it. The restore is logged as an `updated` event rather
+  than by deleting the settling event: the history is append-only by design,
+  and "used it, then put it back" is what happened. `PutItBack` lists the last
+  five settled foods on "What you used" — a custom widget, because a button
+  inserted into a FlutterFlow list cannot read its row (section 5).
+- **The waste figures follow.** `LoadWasteSummary` now skips events whose food
+  has no `archived_at`: the event stands, but a food back in the kitchen is
+  not an outcome, and the figures would otherwise contradict the kitchen.
+
 ## 11. Releases: anchoring a build so it can be rolled back
 
 Decided 12 Sep, after the owner pointed out that a build number on the phone

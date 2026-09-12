@@ -248,6 +248,7 @@ const JOURNEYS = [
       ["3.18","Scan tab → take a photo → on the map, tap the ← arrow at the top.","You leave the map and nothing is added to your kitchen."],
       ["3.19","Scan tab → close the camera without taking a photo.","«What are we adding?» with the other ways in: a receipt, a barcode, or typing.",1],
       ["3.20","Scan tab → photograph something with no food in it, like a wall.","A plain message such as «No food I could name in that photo.», then back to Scan. No crash."],
+      ["3.21","Photograph a shelf holding something that is already in your kitchen (milk, say).","That row carries a small «Already in your kitchen» tag. It still lets you add it: a second milk is often right.",2],
     ]},
   { n:4, t:"A receipt", w:"Scan → receipt", tag:"core",
     why:"The quick way to add a whole shop.",
@@ -348,6 +349,9 @@ const JOURNEYS = [
     s:[
       ["13.1","Profile tab → the row that says «Used up and thrown out, over the last thirty days».","«What you used.» includes Test yoghurt (used) and the food you threw out in 8.4."],
       ["13.2","Look for «MOST OFTEN THROWN OUT».","A short list of what you throw out most. With little history it may be short or empty."],
+      ["13.3","Under the figures, find «Changed your mind?» with the last few you marked used or thrown out.","The food from 8.3 and 8.4 is listed, each saying «Used» or «Thrown out» and how long ago.",2],
+      ["13.4","Tap «Put it back» on one of them.","«… is back in your kitchen.» and it leaves that list.",2],
+      ["13.5","Inventory tab, then back to «What you used».","It is in your kitchen again, and the used/thrown figures no longer count it.",2],
     ]},
   { n:14, t:"Reminders", w:"Profile → Reminders", tag:"also",
     why:"A nudge on the phone before food needs using. It works without signal.",

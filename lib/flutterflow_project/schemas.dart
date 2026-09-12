@@ -3033,6 +3033,7 @@ abstract final class CustomCode {
     "SaveScannedFoods",
     "ScheduleExpiryReminders",
     "SettleFoodItem",
+    "UnsettleFoodItem",
     "WarmImageCache",
   ];
   static const widgets = <String>[
@@ -3051,6 +3052,7 @@ abstract final class CustomCode {
     "LeaveHouseholdButton",
     "LoopingRemoteImage",
     "MealIdeaCards",
+    "PutItBack",
     "ShelfReview",
     "StatusIcon",
   ];
