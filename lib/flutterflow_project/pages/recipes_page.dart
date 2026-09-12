@@ -29,25 +29,6 @@ abstract final class RecipesPageWidgets {
       path: "RecipesPage",
       name: "RecipesPage",
       slots: <String, List<ffai.ProjectWidgetHandle>>{
-        "appBar": <ffai.ProjectWidgetHandle>[
-          ffai.ProjectWidgetHandle(
-            key: "AppBar_tkuj2pby",
-            type: "AppBar",
-            path: "RecipesPage.appBar[0]",
-            name: "AppBar",
-            slots: <String, List<ffai.ProjectWidgetHandle>>{
-              "title": <ffai.ProjectWidgetHandle>[
-                ffai.ProjectWidgetHandle(
-                  key: "Text_ljff3bhv",
-                  type: "Text",
-                  path: "RecipesPage.appBar[0].title[0]",
-                  name: "AppBar Title",
-                  text: "Recipes",
-                ),
-              ],
-            },
-          ),
-        ],
         "body": <ffai.ProjectWidgetHandle>[
           ffai.ProjectWidgetHandle(
             key: "Container_m6w557p6",
