@@ -157,13 +157,13 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// A receipt that cannot be read says why in a dialog, not a snack bar.
+/// The receipt read keeps its result after the Scan page rebuilds.
 ///
-/// 13 Sep: the owner tapped Receipt on build 7, saw "Reading your photo", and
-/// then nothing. The function answered 200, and the only 200 answers that do
-/// not open the review are a note ("No food found on that receipt.", "That
-/// does not look like a receipt.") shown as a four-second snack bar while the
-/// camera was still closing. Both places that read a receipt now use a dialog.
+/// 13 Sep, build 8: Receipt tile → "Reading your photo" → nothing, with the
+/// function answering 200. The banner that appears above the tiles makes the
+/// page's column rebuild this widget as a new State, so the old State's
+/// `if (!mounted) return;` after the read discarded the answer. The router and
+/// root navigator are now taken before the read and used after it.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
     updateCustomWidget(project, name: 'AddOptions', code: _addOptions);
@@ -173,6 +173,7 @@ void buildStarterEditFlow(App app) {
 
 const _addOptions = r'''
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// The four ways to add food, as large tiles, with "Enter manually" beneath.
@@ -221,22 +222,27 @@ class _AddOptionsState extends State<AddOptions> {
   }
 
   Future<void> _receiptTap() async {
+    // Taken before the read, because this State does not survive it. While
+    // the photo is read, the Scan page puts its "Reading your photo" banner
+    // above this widget; the page's column then reuses this widget's slot for
+    // the banner and builds a fresh copy of this widget below it. After the
+    // await, `mounted` is false here, and checking it (as build 8 did) threw
+    // the result away: the reading ring, then nothing. The router and the
+    // root navigator outlive the rebuild.
+    final router = GoRouter.of(context);
+    final root = Navigator.of(context, rootNavigator: true);
     final said = await readPhotoFoods('receipt');
-    if (!mounted) return;
     if (said == 'ok') {
-      context.pushNamed('ScanReviewPage');
-    } else if (said.isNotEmpty) {
-      await _explainReceipt(said);
+      router.pushNamed('ScanReviewPage');
+    } else if (said.isNotEmpty && root.mounted) {
+      await _explainReceipt(root.context, said);
     }
   }
 
   /// Why a receipt was not read, in the middle of the screen until dismissed.
-  /// A snack bar was too easy to miss while the camera was still closing: the
-  /// owner saw the reading ring, then nothing.
-  Future<void> _explainReceipt(String said) async {
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
+  static Future<void> _explainReceipt(BuildContext host, String said) {
+    return showDialog<void>(
+      context: host,
       builder: (dialog) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -429,6 +435,7 @@ class _TileState extends State<_Tile> {
 
 const _homeKitchen = r'''
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
@@ -532,22 +539,27 @@ class _HomeKitchenState extends State<HomeKitchen> {
   }
 
   Future<void> _receiptTap() async {
+    // Taken before the read, because this State does not survive it. While
+    // the photo is read, the Scan page puts its "Reading your photo" banner
+    // above this widget; the page's column then reuses this widget's slot for
+    // the banner and builds a fresh copy of this widget below it. After the
+    // await, `mounted` is false here, and checking it (as build 8 did) threw
+    // the result away: the reading ring, then nothing. The router and the
+    // root navigator outlive the rebuild.
+    final router = GoRouter.of(context);
+    final root = Navigator.of(context, rootNavigator: true);
     final said = await readPhotoFoods('receipt');
-    if (!mounted) return;
     if (said == 'ok') {
-      context.pushNamed('ScanReviewPage');
-    } else if (said.isNotEmpty) {
-      await _explainReceipt(said);
+      router.pushNamed('ScanReviewPage');
+    } else if (said.isNotEmpty && root.mounted) {
+      await _explainReceipt(root.context, said);
     }
   }
 
   /// Why a receipt was not read, in the middle of the screen until dismissed.
-  /// A snack bar was too easy to miss while the camera was still closing: the
-  /// owner saw the reading ring, then nothing.
-  Future<void> _explainReceipt(String said) async {
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
+  static Future<void> _explainReceipt(BuildContext host, String said) {
+    return showDialog<void>(
+      context: host,
       builder: (dialog) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
