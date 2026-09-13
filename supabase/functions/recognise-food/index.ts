@@ -163,6 +163,7 @@ Deno.serve(async (req) => {
   }
 
   if (mode === "receipt" && out.isReceipt === false) {
+    console.log("read", mode, "not a receipt", model);
     return reply({ items: [], note: "That does not look like a receipt." });
   }
   const items = (out.items ?? [])
@@ -179,5 +180,8 @@ Deno.serve(async (req) => {
   const none = mode === "receipt"
     ? "No food found on that receipt."
     : "No food I could name in that photo.";
+  // What went back, so a read that shows nothing on the phone can be traced
+  // from the logs. Counts only: no food names, no receipt text.
+  console.log("read", mode, `${items.length} items`, `${(out.items ?? []).length} from model`, model);
   return reply({ items, note: items.length ? "" : none, model });
 });
