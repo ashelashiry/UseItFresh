@@ -21,6 +21,7 @@ python scripts/release.py 7 --note "what this build is"
 <!-- releases: newest first -->
 | Build | Date | Git tag | FlutterFlow commit | Photo function | What it is |
 |---|---|---|---|---|---|
+| 9 | 2026-09-14 | `build-9-ios` | `TCxvmSLyfP6UT2MYDIhJ` | `2026-09-13.2` | Design v4 for Home, Scan, Recipes, Inventory and Profile; Use my food; receipt reads keep their result (tested: a receipt photo read into the list). Build 8 went out between builds but was not recorded, and is superseded |
 | 7 | 2026-09-12 | `build-7-ios` | `Pwa4ceUHR00QnG0Zw5vf` | `2026-09-12.2` | Leave a household; allergies and diets in the ideas; basket into the kitchen; fix a food after adding it; 'already in your kitchen'; put back a settled food; the app shows its build |
 | 6 | 2026-09-12 | `build-6-ios` | `WeJKE7HXMmAfevQmf5NR` | `2026-09-12.2` | Camera-first Scan; meal ideas with meal, time, servings and leave-out; use-by dates on the photo map; joining a household; kept ideas shared; a choice of household; loading rings that turn |
 | 5 | 2026-09-11 | `build-5-ios` | `DtQumQwwU4UY9uUudVRl` | pre-version | The photo map, and the no-signal fixes for the item screen, Add food and the greeting |
