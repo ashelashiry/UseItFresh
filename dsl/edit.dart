@@ -157,20 +157,179 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Design guide v4: two sentences that say nothing the screen does not.
+/// Design guide v4: "Ready to add?" loses its four separate boxes.
 ///
-/// Reminders: "A nudge before something needs using…" sits under the title
-/// "Reminders." and above a switch that reads "Remind me before food goes off".
-/// Onboarding: "Dietary preferences and allergies arrive with recipe
-/// features…" is out of date — Diet & allergies has existed since build 6.
+/// WHAT IT IS, CATEGORY, WHERE IT GOES and THE DATE were four bordered boxes,
+/// with the missing-date note as a fifth. They become one card of rows, the
+/// same shape as a food's own screen, with the note beneath. Every line still
+/// comes from `reviewLine`, so the wording is unchanged.
 void buildStarterEditFlow(App app) {
-  final reminders = ff.Pages.remindersPage;
-  app.editPage(reminders, (page) {
-    page.ensureRemoved(reminders.widgets.byKey('Text_ynqtb18p').single);
-  });
+  app.customWidget(
+    'ReviewSummary',
+    parameters: {
+      'foodName': string,
+      'category': string,
+      'locationLabel': string,
+      'printedDate': dateTime,
+      'printedDateType': string,
+    },
+    description:
+        'What will be recorded for a new food, as one card of rows, with the '
+        'note about a missing date.',
+    code: _reviewSummary,
+  );
 
-  final onboarding = ff.Pages.onboardingPage;
-  app.editPage(onboarding, (page) {
-    page.ensureRemoved(onboarding.widgets.byKey('Text_6jkuvt4l').single);
+  final review = ff.Pages.addFoodReviewPage;
+  app.editPage(review, (page) {
+    for (final key in [
+      'Container_xkib7ah7', // the date note
+      'Container_o9vo7l5m', // THE DATE
+      'Container_40ouo8us', // WHERE IT GOES
+      'Container_b259xmmb', // CATEGORY
+    ]) {
+      page.ensureRemoved(review.widgets.byKey(key).single);
+    }
+    page.ensureReplaced(
+      review.widgets.byKey('Container_htyl8fk4').single, // WHAT IT IS
+      CustomWidget(
+        widgetName: 'ReviewSummary',
+        name: 'ReviewCard',
+        arguments: {
+          'foodName': PageParam('name'),
+          'category': PageParam('category'),
+          'locationLabel': PageParam('locationLabel'),
+          'printedDate': PageParam('printedDate'),
+          'printedDateType': PageParam('printedDateType'),
+        },
+      ),
+    );
   });
 }
+
+const _reviewSummary = r'''
+import 'package:flutter/material.dart';
+
+/// What will be recorded, as one card.
+class ReviewSummary extends StatelessWidget {
+  const ReviewSummary({
+    super.key,
+    this.width,
+    this.height,
+    this.foodName,
+    this.category,
+    this.locationLabel,
+    this.printedDate,
+    this.printedDateType,
+  });
+
+  final double? width;
+  final double? height;
+  final String? foodName;
+  final String? category;
+  final String? locationLabel;
+  final DateTime? printedDate;
+  final String? printedDateType;
+
+  static const _forest = Color(0xFF07533A);
+  static const _ink = Color(0xFF202C24);
+  static const _muted = Color(0xFF59665D);
+  static const _sage = Color(0xFFEDF2E8);
+  static const _border = Color(0xFFDCE3D7);
+
+  String _line(String field) =>
+      reviewLine(field, foodName, category, locationLabel, printedDate,
+          printedDateType) ??
+      '';
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    final rows = <(IconData, String, String)>[
+      (Icons.restaurant, 'What it is', _line('name')),
+      (Icons.category_outlined, 'Category', _line('category')),
+      (Icons.kitchen_outlined, 'Where it goes', _line('where')),
+      (Icons.calendar_today_outlined, 'The date', _line('date')),
+    ];
+    final note = _line('dateNote');
+
+    return SizedBox(
+      width: width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _border),
+            ),
+            child: Column(
+              children: [
+                for (var i = 0; i < rows.length; i++) ...[
+                  if (i > 0)
+                    const Divider(
+                        height: 1, thickness: 1, indent: 52, color: _border),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(rows[i].$1, color: _forest, size: 20),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(rows[i].$2,
+                                  style: t.bodySmall.copyWith(
+                                      fontSize: 13,
+                                      color: _muted,
+                                      fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 2),
+                              Text(
+                                  rows[i].$3.isEmpty ? 'Not set' : rows[i].$3,
+                                  style: t.bodyLarge.copyWith(
+                                      fontSize: i == 0 ? 18 : 16,
+                                      fontWeight:
+                                          i == 0 ? FontWeight.w700 : FontWeight.w400,
+                                      color: _ink)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (note.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _sage,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline, color: _forest, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(note,
+                        style: t.bodyMedium
+                            .copyWith(fontSize: 14, color: _ink, height: 1.4)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+''';
