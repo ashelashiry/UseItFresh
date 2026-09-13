@@ -4,6 +4,8 @@
 //   "item"    (default) one food → { name, category, note }
 //   "receipt" a till receipt     → { items: [{ name, category, quantity }], note }
 //   "shelf"   a fridge shelf or cupboard → { items: [...], note }
+//             with detectReceipt: true, a receipt photo is read as a receipt
+//             instead and the answer carries receipt: true
 //   "ideas"   meal ideas from the household's own food, no photo
 //             → { ideas: [{ title, uses, extras, steps, minutes, servings, soon }], note }
 //             optional choices: meal, minutes, servings, leaveOut, kitchenOnly
@@ -44,6 +46,8 @@ import {
   RECEIPT_PROMPT,
   RECEIPT_SCHEMA,
   SHELF_PROMPT,
+  RECEIPT_CHECK,
+  SHELF_OR_RECEIPT_SCHEMA,
   SHELF_SCHEMA,
 } from "./prompts.ts";
 import { answer, callGemini, failed } from "./gemini.ts";
@@ -107,31 +111,7 @@ Deno.serve(async (req) => {
   }
   const mime = img.headers.get("content-type") ?? "image/jpeg";
 
-  const prompt = mode === "receipt" ? RECEIPT_PROMPT
-    : mode === "shelf" ? SHELF_PROMPT : ITEM_PROMPT;
-  const schema = mode === "receipt" ? RECEIPT_SCHEMA
-    : mode === "shelf" ? SHELF_SCHEMA : ITEM_SCHEMA;
-
-  const body = JSON.stringify({
-    contents: [{
-      parts: [
-        { text: prompt },
-        { inline_data: { mime_type: mime, data: toBase64(bytes) } },
-      ],
-    }],
-    generationConfig: {
-      temperature: 0.1,
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    },
-  });
-
-  const { res, model } = await callGemini(key, body);
-
-  if (!res || !res.ok) return await failed(res, model, { sorry, ...PHOTO_WORDS });
-
-  const text = answer(await res.json());
-  let out: {
+  type Out = {
     name?: string;
     category?: string;
     isFood?: boolean;
@@ -144,11 +124,52 @@ Deno.serve(async (req) => {
       box_2d?: number[];
     }[];
   };
-  try {
-    out = JSON.parse(text);
-  } catch {
-    console.error("unparsed", model, text.slice(0, 200));
-    return reply({ error: sorry, detail: `unparsed ${model}` }, 502);
+  const image = { inline_data: { mime_type: mime, data: toBase64(bytes) } };
+
+  // One read of this photo. A Response when it failed, to send straight back.
+  const read = async (
+    prompt: string,
+    schema: unknown,
+    words: string,
+  ): Promise<{ out: Out; model: string } | Response> => {
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }, image] }],
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: schema,
+      },
+    });
+    const { res, model } = await callGemini(key, body);
+    if (!res || !res.ok) return await failed(res, model, { sorry: words, ...PHOTO_WORDS });
+    const text = answer(await res.json());
+    try {
+      return { out: JSON.parse(text) as Out, model };
+    } catch {
+      console.error("unparsed", model, text.slice(0, 200));
+      return reply({ error: words, detail: `unparsed ${model}` }, 502);
+    }
+  };
+
+  // The Scan tab's first photo may be a receipt: ask, and if so read it as one.
+  const detectReceipt = mode === "shelf" && input.detectReceipt === true;
+  const first = await read(
+    mode === "receipt" ? RECEIPT_PROMPT
+      : mode === "shelf" ? SHELF_PROMPT + (detectReceipt ? RECEIPT_CHECK : "")
+      : ITEM_PROMPT,
+    mode === "receipt" ? RECEIPT_SCHEMA
+      : mode === "shelf" ? (detectReceipt ? SHELF_OR_RECEIPT_SCHEMA : SHELF_SCHEMA)
+      : ITEM_SCHEMA,
+    sorry,
+  );
+  if (first instanceof Response) return first;
+  let { out, model } = first;
+  let kind = mode;
+  if (detectReceipt && out.isReceipt === true) {
+    const again = await read(RECEIPT_PROMPT, RECEIPT_SCHEMA, SORRY.receipt);
+    if (again instanceof Response) return again;
+    ({ out, model } = again);
+    kind = "receipt";
   }
 
   const clean = (c: unknown) =>
@@ -162,8 +183,8 @@ Deno.serve(async (req) => {
     return reply({ name, category: clean(out.category), note: "", model });
   }
 
-  if (mode === "receipt" && out.isReceipt === false) {
-    console.log("read", mode, "not a receipt", model);
+  if (kind === "receipt" && out.isReceipt === false) {
+    console.log("read", kind, "not a receipt", model);
     return reply({ items: [], note: "That does not look like a receipt." });
   }
   const items = (out.items ?? [])
@@ -172,16 +193,17 @@ Deno.serve(async (req) => {
       category: clean(i.category),
       quantity: Math.min(Math.max(Math.round(Number(i.quantity) || 1), 1), 24),
       // Shelf photos only: what it comes in, and where it is on the photo.
-      ...(mode === "shelf" ? { kind: KINDS.includes(String(i.kind)) ? String(i.kind) : "",
+      ...(kind === "shelf" ? { kind: KINDS.includes(String(i.kind)) ? String(i.kind) : "",
         box: outline(i.box_2d) } : {}),
     }))
     .filter((i) => i.name)
     .slice(0, 40);
-  const none = mode === "receipt"
+  const none = kind === "receipt"
     ? "No food found on that receipt."
     : "No food I could name in that photo.";
   // What went back, so a read that shows nothing on the phone can be traced
   // from the logs. Counts only: no food names, no receipt text.
-  console.log("read", mode, `${items.length} items`, `${(out.items ?? []).length} from model`, model);
-  return reply({ items, note: items.length ? "" : none, model });
+  console.log("read", kind, detectReceipt ? "(camera)" : "", `${items.length} items`, `${(out.items ?? []).length} from model`, model);
+  // `receipt` tells the Scan camera to open the receipt list, not the photo map.
+  return reply({ items, note: items.length ? "" : none, model, receipt: kind === "receipt" && mode === "shelf" });
 });

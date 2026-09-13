@@ -118,6 +118,19 @@ export const SHELF_SCHEMA = {
   required: ["items"],
 };
 
+// The Scan tab's camera takes whatever it is pointed at. On its first photo
+// the shelf read also says whether it is really a receipt, and the photo is
+// then read again as one — so nobody has to choose "Receipt" first.
+export const RECEIPT_CHECK = `
+If the photo is a shop receipt or a printed till slip rather than food, set
+isReceipt to true and return no items. Otherwise set isReceipt to false.`;
+
+export const SHELF_OR_RECEIPT_SCHEMA = {
+  type: "OBJECT",
+  properties: { isReceipt: { type: "BOOLEAN" }, items: SHELF_ITEMS },
+  required: ["isReceipt", "items"],
+};
+
 export const WORDS = { type: "ARRAY", items: { type: "STRING" } };
 
 export const IDEAS_SCHEMA = {
