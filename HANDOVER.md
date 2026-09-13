@@ -504,6 +504,31 @@ leave the folder holding only `.dart_tool` and `pubspec.lock` (13 Sep). The fix
 is `flutterflow ai codegen refresh` from the workspace root. Build only when no
 push or patch is in flight, and wait for a patch's refresh to finish first.
 
+### A custom widget that awaits must not bail on `mounted` if its page can rebuild it
+
+14 Sep, the receipt that did nothing: the Receipt tile awaited `readPhotoFoods`
+and then returned early on `if (!mounted)`. While the photo was read, the Scan
+page inserted its "Reading your photo" banner **above** the tile in the same
+Column. Flutter matched the old tile's slot to the banner (both `Container`,
+no keys), threw the tile's State away and built a new one below, so the
+awaiting State was always unmounted and the answer was discarded — ring, then
+nothing, with the function answering 200. Take `GoRouter.of(context)` and
+`Navigator.of(context, rootNavigator: true)` **before** the await and use them
+after. Any FlutterFlow page with an `if (...)` widget above a custom widget has
+this shape.
+
+### Parallel fast-lane patches can empty `generated_code`
+
+Five text patches sent at once each started a background re-export; they
+clobbered each other and left only `pubspec.lock`. Send fast-lane patches one
+at a time, and if the folder is empty, `flutterflow ai codegen refresh` from
+the workspace root restores it.
+
+### `name` and `visible` cannot be custom widget parameters
+
+They are reserved (`name` is instance metadata at the call site). Use
+`foodName` or similar.
+
 ### Removing several siblings in one push
 
 On 12 Sep, eight `ensureRemoved` calls in one push removed every second
@@ -603,9 +628,19 @@ directly holds a file lock that makes `flutterflow ai run` fail with
    motion. A food's picture is its own photo or a photo of that very food,
    otherwise a neutral tile: never another food standing in for a category.
    Missing icons are listed in `design/ICONS-NEEDED.md`; each has a Material
-   stand-in until the files arrive. Old widgets left unused by the rebuild
-   (`MealIdeaCards`, `IdeaChoices`, `FoodCard`, `MenuRow`) are still in the
-   project and can be removed once the owner has tested the new screens.
+   stand-in until the files arrive.
+
+   14 Sep, on FlutterFlow branch `screens-v4-14sep` (main stayed as build 9):
+   a food's own screen is `FoodDetail` (photo, one date card, one facts card,
+   Undo after used/thrown out); "Ready to add?" is `ReviewSummary`; the theme's
+   Headline Medium is 32px extra bold, so every page title follows the guide;
+   body styles are Nunito; restating ledes are shortened or gone; the Scan
+   camera recognises a receipt (`readShelfPhoto` asks with `detectReceipt` on
+   the first photo, function 2026-09-14.1 reads it again as a receipt, and
+   `ShelfReview` hands over to the receipt review via `receiptFromCamera`);
+   6 components, 6 custom widgets and 18 functions nothing used were removed,
+   including `foodImage`/`itemPhoto` with their category-photo fallback. The
+   sign-in screens already met v4 and were left alone.
 1. `design/Chat GPT/Use-It-Fresh-Visual-v3/` — Photographic
    direction: BUILD-GUIDE.md, tokens.json, the six food photographs, the logo.
 2. `design/Chat GPT/Use-It-Fresh-Kitchen-Icons/` — the icon set, with
