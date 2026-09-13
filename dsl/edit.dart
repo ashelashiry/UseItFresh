@@ -157,304 +157,60 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// The receipt read keeps its result after the Scan page rebuilds.
+/// Design guide v4, applied to a food's own screen.
 ///
-/// 13 Sep, build 8: Receipt tile → "Reading your photo" → nothing, with the
-/// function answering 200. The banner that appears above the tiles makes the
-/// page's column rebuild this widget as a new State, so the old State's
-/// `if (!mounted) return;` after the read discarded the answer. The router and
-/// root navigator are now taken before the read and used after it.
+/// The screen people open most was a photo and then seven separate labelled
+/// boxes. It becomes one photo-led view: the food's picture (its own photo or
+/// a photo of that very food — never another food for its category, which put
+/// spinach on carrots), its name and status over the picture, the date that
+/// matters in one card, the other facts as short rows in one card, and the
+/// actions beneath. Every fact's wording still comes from `itemField`, so the
+/// screen says exactly what it said before.
+///
+/// Marking a food used or thrown out keeps its behaviour — the shopping list
+/// option, the same messages, back to the kitchen — and adds Undo, which puts
+/// the food back and reopens it (guide: "with Undo where supported").
 void buildStarterEditFlow(App app) {
-  app.raw((project) {
-    updateCustomWidget(project, name: 'AddOptions', code: _addOptions);
-    updateCustomWidget(project, name: 'HomeKitchen', code: _homeKitchen);
+  app.customWidget(
+    'FoodDetail',
+    parameters: {'itemId': string},
+    description:
+        'One food: photo, name and status, its date, its details, and the '
+        'actions to mark it used or thrown out, with Undo.',
+    code: _foodDetail,
+  );
+
+  final item = ff.Pages.foodItemPage;
+  app.editPage(item, (page) {
+    page.ensureRemoved(item.widgets.byKey('Container_xst4bt2r').single); // facts and buttons
+    page.ensureReplaced(
+      item.widgets.byKey('Stack_5f32p9ma').single, // photo and back button
+      CustomWidget(
+        widgetName: 'FoodDetail',
+        name: 'ItemDetailView',
+        arguments: {'itemId': PageParam('itemId')},
+      ),
+    );
   });
 }
 
-const _addOptions = r'''
+const _foodDetail = r'''
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-/// The four ways to add food, as large tiles, with "Enter manually" beneath.
-///
-/// Each tile does exactly what its row on the old Scan screen did:
-///   Photo    -> the Add food screen, which takes a single-item photo
-///   Barcode  -> the barcode screen
-///   Receipt  -> read a receipt photo, then review it (or say why not)
-///   Fridge   -> a fresh photo map of a shelf
-/// Labels stay next to the icons: icons alone are not enough.
-class AddOptions extends StatefulWidget {
-  const AddOptions({super.key, this.width, this.height});
+/// Everything about one food, photo first.
+class FoodDetail extends StatefulWidget {
+  const FoodDetail({super.key, this.width, this.height, this.itemId});
 
   final double? width;
   final double? height;
+  final String? itemId;
 
   @override
-  State<AddOptions> createState() => _AddOptionsState();
+  State<FoodDetail> createState() => _FoodDetailState();
 }
 
-class _AddOptionsState extends State<AddOptions> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  // The supplied v3 line icons (24px grid, 1.8 stroke), drawn in forest.
-  static const _camera =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h5l2-3h4l2 3h5v15H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>';
-  static const _barcode =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v16m4-16v16m3-16v16m4-16v16m3-16v16m4-16v16"/></svg>';
-  static const _receipt =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 4 2 4-2 3 2V2l-3 2-4-2-4 2zM8 8h8m-8 4h8m-8 4h5"/></svg>';
-
-  // A camera is already opening: a second tap must not open another.
-  bool _busy = false;
-
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await go();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _receiptTap() async {
-    // Taken before the read, because this State does not survive it. While
-    // the photo is read, the Scan page puts its "Reading your photo" banner
-    // above this widget; the page's column then reuses this widget's slot for
-    // the banner and builds a fresh copy of this widget below it. After the
-    // await, `mounted` is false here, and checking it (as build 8 did) threw
-    // the result away: the reading ring, then nothing. The router and the
-    // root navigator outlive the rebuild.
-    final router = GoRouter.of(context);
-    final root = Navigator.of(context, rootNavigator: true);
-    final said = await readPhotoFoods('receipt');
-    if (said == 'ok') {
-      router.pushNamed('ScanReviewPage');
-    } else if (said.isNotEmpty && root.mounted) {
-      await _explainReceipt(root.context, said);
-    }
-  }
-
-  /// Why a receipt was not read, in the middle of the screen until dismissed.
-  static Future<void> _explainReceipt(BuildContext host, String said) {
-    return showDialog<void>(
-      context: host,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Receipt not added'),
-        content: Text(said),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _fridgeTap() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    context.pushNamed('MapReviewPage');
-  }
-
-  static Widget _svg(String source) =>
-      SvgPicture.string(source, width: 34, height: 34);
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    return SizedBox(
-      width: widget.width,
-      child: LayoutBuilder(
-        builder: (context, box) {
-          const gap = 12.0;
-          final tileWidth = (box.maxWidth - gap) / 2;
-          final tileHeight = (tileWidth * 0.9).clamp(140.0, 170.0);
-          Widget tile(String label, Widget icon, Future<void> Function() go) =>
-              _Tile(
-                width: tileWidth,
-                height: tileHeight,
-                label: label,
-                icon: icon,
-                enabled: !_busy,
-                onTap: () => _run(go),
-                labelStyle: t.titleMedium.copyWith(
-                    fontSize: 17, fontWeight: FontWeight.w700, color: _ink),
-                sage: _sage,
-                border: _border,
-              );
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  tile('Photo', _svg(_camera), () async {
-                    context.pushNamed('AddFoodItemPage');
-                  }),
-                  const SizedBox(width: gap),
-                  tile('Barcode', _svg(_barcode), () async {
-                    context.pushNamed('BarcodeScanPage');
-                  }),
-                ],
-              ),
-              const SizedBox(height: gap),
-              Row(
-                children: [
-                  tile('Receipt', _svg(_receipt), _receiptTap),
-                  const SizedBox(width: gap),
-                  // Stand-in until a fridge icon in the same line style exists.
-                  tile(
-                      'Fridge',
-                      const Icon(Icons.kitchen_outlined,
-                          size: 34, color: _forest),
-                      _fridgeTap),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: TextButton.icon(
-                  onPressed:
-                      _busy ? null : () => context.pushNamed('AddFoodItemPage'),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    foregroundColor: _forest,
-                  ),
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: Text(
-                    'Enter manually',
-                    style: t.bodyLarge
-                        .copyWith(color: _forest, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// One large tile: an icon well above a short label, the whole card tappable,
-/// with an immediate pressed response (skipped when reduced motion is on).
-class _Tile extends StatefulWidget {
-  const _Tile({
-    required this.width,
-    required this.height,
-    required this.label,
-    required this.icon,
-    required this.enabled,
-    required this.onTap,
-    required this.labelStyle,
-    required this.sage,
-    required this.border,
-  });
-
-  final double width;
-  final double height;
-  final String label;
-  final Widget icon;
-  final bool enabled;
-  final VoidCallback onTap;
-  final TextStyle labelStyle;
-  final Color sage;
-  final Color border;
-
-  @override
-  State<_Tile> createState() => _TileState();
-}
-
-class _TileState extends State<_Tile> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = MediaQuery.of(context).disableAnimations;
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        onTapDown: widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapCancel: () => setState(() => _down = false),
-        onTapUp: (_) => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedScale(
-          scale: (_down && !still) ? 0.97 : 1,
-          duration: const Duration(milliseconds: 150),
-          child: AnimatedOpacity(
-            opacity: widget.enabled ? 1 : 0.6,
-            duration: const Duration(milliseconds: 150),
-            child: Container(
-              width: widget.width,
-              height: widget.height,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: widget.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: widget.sage,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: widget.icon,
-                  ),
-                  const Spacer(),
-                  Text(widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: widget.labelStyle),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-''';
-
-const _homeKitchen = r'''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
-
-/// Home below the greeting, in the two states design guide v4 describes.
-///
-/// Reads the household's food itself (the page's own lists cannot be passed
-/// to a custom widget) and stays silent when there is no household or no
-/// signal: the page already has a card for each of those.
-class HomeKitchen extends StatefulWidget {
-  const HomeKitchen({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<HomeKitchen> createState() => _HomeKitchenState();
-}
-
-class _HomeKitchenState extends State<HomeKitchen> {
+class _FoodDetailState extends State<FoodDetail> {
   static const _forest = Color(0xFF07533A);
   static const _ink = Color(0xFF202C24);
   static const _muted = Color(0xFF59665D);
@@ -464,124 +220,54 @@ class _HomeKitchenState extends State<HomeKitchen> {
   static const _food =
       'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
 
-  // The supplied v3 line icons, drawn in forest.
-  static const _camera =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h5l2-3h4l2 3h5v15H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>';
-  static const _receipt =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 4 2 4-2 3 2V2l-3 2-4-2-4 2zM8 8h8m-8 4h8m-8 4h5"/></svg>';
-
-  String _for = '';
+  List<FoodItemsStatusRow> _rows = const [];
   bool _loading = true;
-  bool _failed = false;
+  bool _offline = false;
+  bool _replace = false;
   bool _busy = false;
-  List<Map<String, dynamic>> _items = const [];
-  Map<String, dynamic>? _kept;
 
-  Future<void> _load(String household) async {
-    if (mounted) {
+  String get _id => (widget.itemId ?? '').trim();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load({bool quiet = false}) async {
+    if (!quiet && mounted) {
       setState(() {
         _loading = true;
-        _failed = false;
+        _offline = false;
       });
     }
     try {
-      final rows = await SupaFlow.client
-          .from('food_items_status')
-          .select(
-              'id, name, category, quantity, unit, image_url, computed_status, status_label, status_detail')
-          .eq('household_id', household)
-          .order('urgency_rank', ascending: true)
-          .order('days_left', ascending: true)
-          .limit(12);
-      Map<String, dynamic>? kept;
-      try {
-        final ideas = await SupaFlow.client
-            .from('saved_recipes')
-            .select('title, recipe_data')
-            .eq('household_id', household)
-            .order('created_at', ascending: false)
-            .limit(1);
-        if ((ideas as List).isNotEmpty) {
-          kept = Map<String, dynamic>.from(ideas.first as Map);
-        }
-      } catch (_) {
-        // A kept idea is a nicety; the kitchen still shows without one.
-      }
-      if (!mounted || household != _for) return;
+      final rows = await FoodItemsStatusTable()
+          .queryRows(queryFn: (q) => q.eqOrNull('id', _id));
+      if (!mounted) return;
       setState(() {
-        _items = List<Map<String, dynamic>>.from(rows as List);
-        _kept = kept;
+        _rows = rows;
         _loading = false;
+        _offline = false;
       });
     } catch (_) {
       if (!mounted) return;
+      if (quiet && _rows.isNotEmpty) return;
       setState(() {
-        _failed = true;
         _loading = false;
+        _offline = true;
       });
     }
   }
 
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await go();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
+  String _field(String name) => itemField(_rows, name) ?? '';
 
-  Future<void> _addFood() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    context.pushNamed('MapReviewPage');
-  }
-
-  Future<void> _receiptTap() async {
-    // Taken before the read, because this State does not survive it. While
-    // the photo is read, the Scan page puts its "Reading your photo" banner
-    // above this widget; the page's column then reuses this widget's slot for
-    // the banner and builds a fresh copy of this widget below it. After the
-    // await, `mounted` is false here, and checking it (as build 8 did) threw
-    // the result away: the reading ring, then nothing. The router and the
-    // root navigator outlive the rebuild.
-    final router = GoRouter.of(context);
-    final root = Navigator.of(context, rootNavigator: true);
-    final said = await readPhotoFoods('receipt');
-    if (said == 'ok') {
-      router.pushNamed('ScanReviewPage');
-    } else if (said.isNotEmpty && root.mounted) {
-      await _explainReceipt(root.context, said);
-    }
-  }
-
-  /// Why a receipt was not read, in the middle of the screen until dismissed.
-  static Future<void> _explainReceipt(BuildContext host, String said) {
-    return showDialog<void>(
-      context: host,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Receipt not added'),
-        content: Text(said),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// The food's own photo, or a photo of that very food; otherwise null, and
-  /// the card draws a neutral tile. Never a different food for its category.
-  static String? _photoFor(Map<String, dynamic> item) {
-    final own = (item['image_url'] ?? '').toString().trim();
+  String? get _photo {
+    if (_rows.isEmpty) return null;
+    final r = _rows.first;
+    final own = (r.imageUrl ?? '').trim();
     if (own.isNotEmpty) return own;
-    final n = (item['name'] ?? '').toString().toLowerCase();
+    final n = (r.name ?? '').toLowerCase();
     const exact = {
       'spinach': 'spinach',
       'mushroom': 'mushrooms',
@@ -597,563 +283,503 @@ class _HomeKitchenState extends State<HomeKitchen> {
     return null;
   }
 
-  static Color _statusColour(String status) {
+  static (Color, Color) _statusColours(String status) {
     switch (status) {
-      case 'past_use_by':
-        return const Color(0xFFC44536);
-      case 'use_today':
-      case 'use_soon':
-      case 'past_best_before':
-        return const Color(0xFFB0621A);
-      case 'frozen':
-        return const Color(0xFF3B78B5);
       case 'fresh':
-        return _forest;
+        return (const Color(0xFF285B34), const Color(0xFFEAF3E5));
+      case 'use_soon':
+        return (const Color(0xFF79500F), const Color(0xFFFFF1D4));
+      case 'use_today':
+        return (const Color(0xFF934017), const Color(0xFFFFEADD));
+      case 'past_best_before':
+        return (const Color(0xFF69516E), const Color(0xFFF1EAF4));
+      case 'past_use_by':
+        return (const Color(0xFFA02929), const Color(0xFFFCE8E6));
+      case 'frozen':
+        return (const Color(0xFF2F5F8A), const Color(0xFFE4EEF7));
       default:
-        return _muted;
+        return (_muted, _sage);
     }
   }
+
+  // ---- actions ---------------------------------------------------------------
+
+  void _back() {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.goNamed('InventoryPage');
+    }
+  }
+
+  Future<void> _edit() async {
+    await context.pushNamed('EditItemPage', queryParameters: {'itemId': _id});
+    if (mounted) _load(quiet: true);
+  }
+
+  Future<void> _settle(String outcome) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final id = _id;
+    final name = _field('name');
+    try {
+      if (_replace) {
+        final listed = await addItemToShoppingList(id);
+        if (listed.isNotEmpty) {
+          messenger.showSnackBar(SnackBar(content: Text(listed)));
+          return;
+        }
+      }
+      final said = await settleFoodItem(id, outcome);
+      if (said.isNotEmpty) {
+        messenger.showSnackBar(SnackBar(content: Text(said)));
+        return;
+      }
+      messenger.showSnackBar(SnackBar(
+        duration: const Duration(seconds: 6),
+        content: Text(outcome == 'consumed'
+            ? 'Good. Nothing wasted.'
+            : 'Thrown out and recorded.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: const Color(0xFFB9E08F),
+          onPressed: () async {
+            final back = await unsettleFoodItem(id);
+            messenger.showSnackBar(SnackBar(
+                content: Text(back.isEmpty
+                    ? '${name.isEmpty ? 'It' : name} is back in your kitchen.'
+                    : back)));
+            if (back.isEmpty) {
+              router.pushNamed('FoodItemPage',
+                  queryParameters: {'itemId': id});
+            }
+          },
+        ),
+      ));
+      router.pushNamed('InventoryPage');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  // ---- page ----------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-    final household = FFAppState().currentHouseholdId;
-    // No household: the page's own prompt says what to do.
-    if (household.isEmpty) return const SizedBox.shrink();
-    if (household != _for) {
-      _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
-    }
-    // No signal: the page's own card says so, with Try again.
-    if (_failed) return const SizedBox.shrink();
-
     final t = FlutterFlowTheme.of(context);
-    final title = t.headlineLarge.copyWith(
-        fontSize: 32, fontWeight: FontWeight.w800, color: _ink, height: 1.1);
-
+    Widget body;
+    if (_loading) {
+      body = _skeleton();
+    } else if (_offline) {
+      body = _message(t,
+          icon: Icons.cloud_off_outlined,
+          title: 'Can’t reach your kitchen.',
+          text:
+              'No signal, or the connection dropped. This item will show again as soon as you are back online.',
+          action: 'Try again',
+          onAction: _load);
+    } else if (_rows.isEmpty) {
+      body = _message(t,
+          icon: Icons.kitchen_outlined,
+          title: 'Not in your kitchen.',
+          text: 'This food has been used, thrown out or removed.',
+          action: 'Back to your kitchen',
+          onAction: () => context.goNamed('InventoryPage'));
+    } else {
+      body = _food_(t);
+    }
     return SizedBox(
       width: widget.width,
-      child: _loading
-          ? _skeleton()
-          : AnimatedSwitcher(
-              duration: MediaQuery.of(context).disableAnimations
-                  ? Duration.zero
-                  : const Duration(milliseconds: 200),
-              child: _items.isEmpty ? _empty(t, title) : _populated(t, title),
-            ),
+      child: AnimatedSwitcher(
+        duration: MediaQuery.of(context).disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 200),
+        child: KeyedSubtree(
+          key: ValueKey(_loading ? 'l' : (_offline ? 'o' : (_rows.isEmpty ? 'e' : 'f'))),
+          child: body,
+        ),
+      ),
     );
   }
 
-  // ---- loading -------------------------------------------------------------
+  Widget _backButton({bool onPhoto = true}) => Semantics(
+        button: true,
+        label: 'Back',
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: _back,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: onPhoto ? null : Border.all(color: _border),
+              boxShadow: onPhoto
+                  ? const [BoxShadow(color: Color(0x26000000), blurRadius: 8)]
+                  : null,
+            ),
+            child: const Icon(Icons.arrow_back, color: _ink, size: 22),
+          ),
+        ),
+      );
+
+  Widget _food_(FlutterFlowTheme t) {
+    final name = _field('name');
+    final status = _field('status');
+    final label = _field('statusLabel');
+    final detail = _field('detail');
+    final (fg, bg) = _statusColours(status);
+    final photo = _photo;
+    final category = _field('category');
+
+    Widget tile() => Container(
+          color: _sage,
+          alignment: Alignment.center,
+          child: const Icon(Icons.restaurant, color: _forest, size: 56),
+        );
+
+    final rows = <(IconData, String, String)>[
+      (Icons.scale_outlined, 'How much', _field('quantity')),
+      (Icons.kitchen_outlined, 'Kept in', _field('where')),
+      (Icons.category_outlined, 'Category', category),
+      (Icons.info_outline, 'How this was worked out', _field('basis')),
+      (Icons.event_outlined, 'Added', _field('added').replaceFirst('Added ', '')),
+    ].where((r) => r.$3.trim().isNotEmpty).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Photo, with the name and status over its lower edge.
+        SizedBox(
+          height: 300,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              photo == null
+                  ? tile()
+                  : Image.network(photo,
+                      fit: BoxFit.cover, errorBuilder: (_, __, ___) => tile()),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x33000000), Color(0x00000000), Color(0xB3000000)],
+                    stops: [0, 0.35, 1],
+                  ),
+                ),
+              ),
+              Positioned(left: 16, top: 16, child: _backButton()),
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (label.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                            color: bg, borderRadius: BorderRadius.circular(999)),
+                        child: Text(label,
+                            style: t.bodySmall.copyWith(
+                                color: fg, fontWeight: FontWeight.w800, fontSize: 13)),
+                      ),
+                    Text(name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.headlineMedium.copyWith(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            height: 1.1)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // The date that matters, and where it came from.
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _sage,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14)),
+                      child: const Icon(Icons.calendar_today_outlined,
+                          color: _forest, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_field('date'),
+                              style: t.titleMedium.copyWith(
+                                  fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
+                          const SizedBox(height: 2),
+                          Text(_field('dateSource'),
+                              style: t.bodyMedium.copyWith(fontSize: 14, color: _muted)),
+                          if (detail.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(detail,
+                                style: t.bodyMedium.copyWith(
+                                    fontSize: 15, color: _ink, fontWeight: FontWeight.w600)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // The other facts, as rows in one card.
+              if (rows.isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _border),
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < rows.length; i++) ...[
+                        if (i > 0)
+                          const Divider(height: 1, thickness: 1, indent: 52, color: _border),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(rows[i].$1, color: _forest, size: 20),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(rows[i].$2,
+                                        style: t.bodySmall.copyWith(
+                                            fontSize: 13, color: _muted, fontWeight: FontWeight.w600)),
+                                    const SizedBox(height: 2),
+                                    Text(rows[i].$3,
+                                        style: t.bodyLarge.copyWith(fontSize: 16, color: _ink)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 24),
+              // When it is gone, put it on the list.
+              Semantics(
+                toggled: _replace,
+                label: 'Put it on the shopping list',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => setState(() => _replace = !_replace),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 52),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _replace ? _forest : _border),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(_replace ? Icons.check_circle : Icons.radio_button_unchecked,
+                            color: _replace ? _forest : _muted, size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text('Put it on the shopping list',
+                              style: t.bodyLarge.copyWith(
+                                  fontSize: 16, color: _ink, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _forest,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: _forest.withOpacity(0.5),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _busy ? null : () => _settle('consumed'),
+                        icon: const Icon(Icons.check, size: 20),
+                        label: Text('I used it',
+                            style: t.bodyLarge.copyWith(
+                                color: Colors.white, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _ink,
+                          side: const BorderSide(color: _border),
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _busy ? null : () => _settle('discarded'),
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        label: Text('Throw it out',
+                            style: t.bodyLarge.copyWith(
+                                color: _ink, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48), foregroundColor: _forest),
+                  onPressed: _busy ? null : _edit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text('Edit details',
+                      style: t.bodyLarge
+                          .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _skeleton() {
-    Widget block(double h) => Container(
+    Widget block(double h, {double r = 20}) => Container(
           height: h,
-          decoration: BoxDecoration(
-            color: _sage,
-            borderRadius: BorderRadius.circular(20),
-          ),
+          decoration:
+              BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(r)),
         );
     return Semantics(
-      label: 'Loading your kitchen',
+      label: 'Loading this food',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(width: 220, child: block(34)),
-          const SizedBox(height: 16),
-          block(240),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: block(112)),
-            const SizedBox(width: 12),
-            Expanded(child: block(112)),
+          Stack(children: [
+            block(300, r: 0),
+            Positioned(left: 16, top: 16, child: _backButton()),
           ]),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(children: [
+              block(92),
+              const SizedBox(height: 12),
+              block(220),
+            ]),
+          ),
         ],
       ),
     );
   }
 
-  // ---- empty kitchen -------------------------------------------------------
-
-  Widget _empty(FlutterFlowTheme t, TextStyle title) {
-    return Column(
-      key: const ValueKey('empty'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Fresh starts here.', style: title),
-        const SizedBox(height: 16),
-        _hero(t),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _shortcut(
-                  t,
-                  'Scan a receipt',
-                  SvgPicture.string(_receipt, width: 32, height: 32),
-                  () => _run(_receiptTap)),
+  Widget _message(FlutterFlowTheme t,
+      {required IconData icon,
+      required String title,
+      required String text,
+      required String action,
+      required VoidCallback onAction}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _backButton(onPhoto: false),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _border),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _shortcut(
-                  t,
-                  'Take a photo',
-                  SvgPicture.string(_camera, width: 32, height: 32),
-                  () => _run(() async => context.pushNamed('AddFoodItemPage'))),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        _kept != null ? _inspiration(t, _kept!) : _shelfPrompt(t),
-      ],
-    );
-  }
-
-  Widget _hero(FlutterFlowTheme t) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: SizedBox(
-        height: 240,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Illustrative: a photo to set the scene, not the person's food.
-            Image.network(
-              '$_food/tomatoes.webp',
-              fit: BoxFit.cover,
-              semanticLabel: '',
-              errorBuilder: (_, __, ___) => Container(color: _sage),
-            ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x00000000), Color(0xB3000000)],
-                  stops: [0.35, 1],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      color: _sage, borderRadius: BorderRadius.circular(16)),
+                  child: Icon(icon, color: _forest, size: 28),
                 ),
-              ),
-            ),
-            Positioned(
-              left: 20,
-              right: 20,
-              bottom: 20,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Let’s stock your kitchen',
-                    style: t.headlineSmall.copyWith(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15),
-                  ),
-                  const SizedBox(height: 12),
-                  _primaryButton(
-                      t, 'Add food', Icons.add, () => _run(_addFood)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _primaryButton(FlutterFlowTheme t, String label, IconData icon,
-          VoidCallback onTap) =>
-      SizedBox(
-        height: 48,
-        child: FilledButton.icon(
-          onPressed: _busy ? null : onTap,
-          style: FilledButton.styleFrom(
-            backgroundColor: _forest,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: _forest.withOpacity(0.6),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          icon: Icon(icon, size: 20),
-          label: Text(label,
-              style: t.bodyLarge
-                  .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-        ),
-      );
-
-  Widget _shortcut(
-      FlutterFlowTheme t, String label, Widget icon, VoidCallback onTap) {
-    return _Pressable(
-      enabled: !_busy,
-      label: label,
-      onTap: onTap,
-      child: Container(
-        height: 112,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: _sage, borderRadius: BorderRadius.circular(16)),
-              child: icon,
-            ),
-            const Spacer(),
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleSmall.copyWith(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _inspiration(FlutterFlowTheme t, Map<String, dynamic> kept) {
-    final data =
-        kept['recipe_data'] is Map ? kept['recipe_data'] as Map : const {};
-    final minutes =
-        data['minutes'] is num ? (data['minutes'] as num).round() : 0;
-    return _Pressable(
-      enabled: true,
-      label: 'A little inspiration: ${kept['title']}',
-      onTap: () => context.pushNamed('RecipesPage'),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: _sage,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('A little inspiration',
-                style: t.bodySmall.copyWith(
-                    color: _forest, fontWeight: FontWeight.w700, fontSize: 14)),
-            const SizedBox(height: 6),
-            Text((kept['title'] ?? '').toString(),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleLarge.copyWith(
-                    fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
-            if (minutes > 0) ...[
-              const SizedBox(height: 4),
-              Text('$minutes min · one of your kept ideas',
-                  style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _shelfPrompt(FlutterFlowTheme t) {
-    return _Pressable(
-      enabled: !_busy,
-      label: 'Photograph a shelf',
-      onTap: () => _run(_addFood),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: _sage,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Quickest start',
-                      style: t.bodySmall.copyWith(
-                          color: _forest,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14)),
-                  const SizedBox(height: 6),
-                  Text('Photograph one shelf',
-                      style: t.titleLarge.copyWith(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: _ink)),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: _forest, size: 28),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---- food in the kitchen -------------------------------------------------
-
-  Widget _populated(FlutterFlowTheme t, TextStyle title) {
-    return Column(
-      key: const ValueKey('populated'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Fresh today.', style: title),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              child: Text('Use these next',
-                  style: t.titleLarge.copyWith(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
-            ),
-            TextButton(
-              onPressed: () => context.pushNamed('InventoryPage'),
-              style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 48), foregroundColor: _forest),
-              child: Text('See all',
-                  style: t.bodyLarge
-                      .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 226,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            itemCount: _items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, i) => _foodCard(t, _items[i]),
-          ),
-        ),
-        const SizedBox(height: 24),
-        _tonight(t),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 48,
-          child: OutlinedButton.icon(
-            onPressed: _busy ? null : () => _run(_addFood),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _forest,
-              side: const BorderSide(color: _border),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            icon: const Icon(Icons.add, size: 20),
-            label: Text('Add food',
-                style: t.bodyLarge
-                    .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _foodCard(FlutterFlowTheme t, Map<String, dynamic> item) {
-    final name = (item['name'] ?? '').toString();
-    final photo = _photoFor(item);
-    final status = (item['computed_status'] ?? '').toString();
-    final label = (item['status_label'] ?? '').toString();
-    final detail = (item['status_detail'] ?? '').toString();
-    final qty =
-        item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-    final amount = quantityLabel(qty, (item['unit'] ?? '').toString()) ?? '';
-    final colour = _statusColour(status);
-
-    return _Pressable(
-      enabled: true,
-      label: '$name, $label',
-      onTap: () => context.pushNamed('FoodItemPage',
-          queryParameters: {'itemId': item['id'].toString()}),
-      child: Container(
-        width: 160,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _border),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 128,
-              child: photo == null
-                  ? Container(
-                      color: _sage,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.restaurant,
-                          color: _forest, size: 36),
-                    )
-                  : Image.network(
-                      photo,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: _sage,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.restaurant,
-                            color: _forest, size: 36),
-                      ),
+                const SizedBox(height: 16),
+                Text(title,
+                    style: t.titleLarge.copyWith(
+                        fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
+                const SizedBox(height: 6),
+                Text(text,
+                    style: t.bodyLarge.copyWith(fontSize: 16, color: _muted, height: 1.4)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _forest,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.titleSmall.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: _ink)),
-                  const SizedBox(height: 2),
-                  Text(
-                    [
-                      if (amount.isNotEmpty) amount,
-                      if (detail.isNotEmpty) detail
-                    ].join(' · '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13),
+                    onPressed: onAction,
+                    child: Text(action,
+                        style: t.bodyLarge.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
                   ),
-                  const SizedBox(height: 6),
-                  if (label.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: colour.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.bodySmall.copyWith(
-                              color: colour,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12)),
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _tonight(FlutterFlowTheme t) {
-    // A real idea only: the one just asked for, or one the household kept.
-    String ideaTitle = '';
-    int minutes = 0;
-    String cue = '';
-    final fresh = FFAppState().mealIdeas;
-    if (fresh.isNotEmpty) {
-      ideaTitle = fresh.first.title;
-      minutes = fresh.first.minutes;
-      if (fresh.first.uses.isNotEmpty)
-        cue = 'Uses your ${fresh.first.uses.first.toLowerCase()}';
-    } else if (_kept != null) {
-      ideaTitle = (_kept!['title'] ?? '').toString();
-      final data = _kept!['recipe_data'] is Map
-          ? _kept!['recipe_data'] as Map
-          : const {};
-      minutes = data['minutes'] is num ? (data['minutes'] as num).round() : 0;
-      cue = 'One of your kept ideas';
-    }
-
-    return _Pressable(
-      enabled: true,
-      label: ideaTitle.isEmpty
-          ? 'Find a meal from your food'
-          : 'Tonight: $ideaTitle',
-      onTap: () => context.pushNamed('RecipesPage'),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: _forest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tonight, sorted.',
-                style: t.bodySmall.copyWith(
-                    color: const Color(0xFFCFE3B8),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14)),
-            const SizedBox(height: 6),
-            Text(ideaTitle.isEmpty ? 'Find a meal from your food' : ideaTitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleLarge.copyWith(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white)),
-            if (ideaTitle.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                [if (minutes > 0) '$minutes min', if (cue.isNotEmpty) cue]
-                    .join(' · '),
-                style: t.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.8), fontSize: 14),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A whole-card tap target with an immediate pressed response (skipped when
-/// reduced motion is on).
-class _Pressable extends StatefulWidget {
-  const _Pressable({
-    required this.child,
-    required this.onTap,
-    required this.label,
-    required this.enabled,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String label;
-  final bool enabled;
-
-  @override
-  State<_Pressable> createState() => _PressableState();
-}
-
-class _PressableState extends State<_Pressable> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = MediaQuery.of(context).disableAnimations;
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        onTapDown: widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapCancel: () => setState(() => _down = false),
-        onTapUp: (_) => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedScale(
-          scale: (_down && !still) ? 0.98 : 1,
-          duration: const Duration(milliseconds: 150),
-          child: widget.child,
-        ),
+          ),
+        ],
       ),
     );
   }
