@@ -157,33 +157,20 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Design guide v4, shared rules, applied through the theme.
+/// Design guide v4: two sentences that say nothing the screen does not.
 ///
-/// "Page title 30–34px, bold" and "Figtree headings; Nunito body". Every page
-/// title outside the five rebuilt tabs uses Headline Medium, which was 24px
-/// semibold, and the body styles were Nunito Sans. One change to the type
-/// scale fixes every screen at once, instead of patching titles one by one.
-///
-/// Two lede sentences that restate their screen's title also go ("use brief
-/// labels instead of introductory paragraphs"). Explanations that carry real
-/// information — use-by versus best-before, dates not being read from photos —
-/// stay.
+/// Reminders: "A nudge before something needs using…" sits under the title
+/// "Reminders." and above a switch that reads "Remind me before food goes off".
+/// Onboarding: "Dietary preferences and allergies arrive with recipe
+/// features…" is out of date — Diet & allergies has existed since build 6.
 void buildStarterEditFlow(App app) {
-  app.typography('headlineMedium', fontSize: 32, fontWeight: 800, lineHeight: 1.1);
-
-  app.secondaryFont('Nunito');
-  app.typography('bodyLarge', fontFamily: 'Nunito');
-  app.typography('bodyMedium', fontFamily: 'Nunito');
-  app.typography('bodySmall', fontFamily: 'Nunito');
-  app.typography('labelLarge', fontFamily: 'Nunito');
-
-  final review = ff.Pages.addFoodReviewPage;
-  app.editPage(review, (page) {
-    page.ensureRemoved(review.widgets.byKey('Text_09l0707x').single); // "This is what will be recorded."
+  final reminders = ff.Pages.remindersPage;
+  app.editPage(reminders, (page) {
+    page.ensureRemoved(reminders.widgets.byKey('Text_ynqtb18p').single);
   });
 
-  final edit = ff.Pages.editItemPage;
-  app.editPage(edit, (page) {
-    page.ensureRemoved(edit.widgets.byKey('Text_5l8kvj2p').single); // "Anything the app guessed…"
+  final onboarding = ff.Pages.onboardingPage;
+  app.editPage(onboarding, (page) {
+    page.ensureRemoved(onboarding.widgets.byKey('Text_6jkuvt4l').single);
   });
 }
