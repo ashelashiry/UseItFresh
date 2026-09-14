@@ -533,6 +533,14 @@ const JOURNEYS = [
       ["26.6", "Profile → Receipts → open a receipt whose foods have no pictures.", "«Find product photos for N foods» under the lines.", 1],
       ["26.7", "Tap it. Pick a pack for the first food, close the sheet for the second.", "One sheet per food; the first gets its photo, the second is skipped. «1 photo added.»", 1],
     ]},
+  { n:27, t:"Home knows the plan", w:"Home tab", tag:"core", isNew:1,
+    why:"What you planned for today is on Home, and foods that need using soon point to a meal.",
+    s:[
+      ["27.1", "Plan a dinner for today (journey 19), then open Home.", "The green card reads «Planned for today», the meal's name, and «Dinner · … min · Serves … · N things to buy» (or «Everything in your kitchen»).", 1],
+      ["27.2", "Tap the card.", "Plan my week opens.", 1],
+      ["27.3", "Mark that meal «I ate this», go back to Home.", "The card no longer shows it; it offers an idea instead (or another meal planned for today).", 1],
+      ["27.4", "With foods close to their date, look under the orange «N foods need using soon» banner.", "«Find a meal that uses them». Tapping it opens Recipes.", 1],
+    ]},
 ];
 
 const STATES = [["works","✓","Works"],["problem","✕","Problem"],["skipped","–","Skip"]];
