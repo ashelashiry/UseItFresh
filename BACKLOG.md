@@ -29,15 +29,30 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 
 ## Waiting on the owner's decision
 
-- **A picture for every food.** A: free photo lookup by name (Wikimedia).
-  B (recommended): our own ~150-picture library, AI picks the closest match;
-  costs image-generation credits. C: barcode product photos (Open Food Facts),
-  as well as A or B. Decide A/B (+C), and for B photo or illustration.
+- **A picture for every food.** Done on main 14 Sep, in build 12: (1) foods
+  added from a shelf photo get their own cut-out picture; (2) barcode foods keep
+  the product photo, credited "Photo: Open Food Facts". Still open: (3) receipt
+  lines matched to Open Food Facts by name and country, confirmed by the person
+  (needs a country setting); (4) "Add a photo" on a food's screen; (5) a
+  produce picture library for loose fruit and veg.
 - **Receipt history.** Keep the shop's name, its location and purchase time?
   Keep the receipt photo (recommended no — it carries a card number)? Where the
   list lives (Profile → Receipts, or under the Receipt tile)? Needs SQL.
 
 ## Paid features — owner's priorities (14 Sep)
+
+**Revenue & shopping strategy (owner's document, 13 Sep):**
+[Use-It-Fresh-Revenue-Strategy.html](file:///C:/Users/ashel/Documents/Codex/2026-09-05/continue-the-approved-use-it-fresh/outputs/Use-It-Fresh-Revenue-Strategy.html)
+— on the owner's laptop, not in this repository.
+
+**The promise:** "Meals that fit your goals, made with food you already have."
+Example: dinner in a chosen calorie range, high protein, under a cooking time;
+meal cards put the food that needs using first, with calories per serving,
+preparation time and missing ingredients.
+
+**Competition:** Eat This Much (nutrition targets, pantry-aware plans, shopping
+lists) and MyFitnessPal Premium+ (meal planning). An established paid category,
+so execution and a clear reason to choose Use It Fresh matter.
 
 | Feature | What the customer gets | Priority |
 |---|---|---|
@@ -55,11 +70,27 @@ diary. Finding dinner within a chosen calorie range is a manageable extension;
 accurate daily tracking also needs snacks, drinks, meals eaten out, quantities
 and a dependable nutrition database.
 
+**How it should feel (owner, 14 Sep):**
+
+- **One flow:** pick a meal → cook it → confirm portions → "I ate this". That
+  one confirmation logs nutrition and takes the food out of the kitchen, with an
+  easy correction. What was planned stays separate from what was actually eaten.
+- **Optional, never imposed:** food photography first, small calorie and protein
+  badges, a "Fits my goals" filter. People who only want to waste less never see
+  calorie tracking unless they turn it on.
+- **One Plus subscription** covering the benefits, not lots of separate extras.
+- **Free forever:** basic inventory, essential date warnings, allergy
+  exclusions.
+- **Honest numbers:** nutrition comes from ingredient quantities and reliable
+  food data; a photo alone never produces a "precise" calorie count.
+- **Strongest bundle to test first:** personalised meals + weekly planning +
+  smarter scanning — together they cut the daily effort of deciding what to eat.
+
 Notes to settle before building these:
 
 - **Paywall.** None of these can be "paid" until there is a subscription
-  (RevenueCat or StoreKit through FlutterFlow), a free tier defined, and App
-  Store products set up. Decide what stays free first.
+  (RevenueCat or StoreKit through FlutterFlow) and App Store products set up.
+  The free tier is now defined above; the Plus price is still open.
 - **Smarter scanning** is largely built: receipt and shelf-photo imports with a
   review before adding. The paid part would be what is gated, plus receipt
   history (above).
