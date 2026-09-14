@@ -157,186 +157,112 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Big thing 4, Storage, step 2 of 2: StorageLocationsLive.
+/// Big thing 5: what you used, month by month.
 ///
-/// This household's places only, with how many foods each holds; a loading
-/// placeholder instead of a blank moment; removing a place asks first and says
-/// what happens to the food kept there; adding a place keeps the same words
-/// ("Add location", "Location added.").
+/// A six-month stacked bar chart under the 30-day figures on What you used:
+/// used up (green, at the base) and thrown out (orange, above), with the
+/// count and month under every bar, a legend, and the chosen month's numbers
+/// in words ("August: 18 used, 4 thrown out — 82% used"). Tap a bar to choose
+/// it. Colours validated for colour-blind separation; the lighter green is
+/// under 3:1 against white, so every bar carries its numbers as text.
+///
+/// Honest limit: the app keeps no prices (receipt prices are deliberately
+/// not read), so there is no "money saved" — counts only.
 void buildStarterEditFlow(App app) {
   app.customWidget(
-    'StorageLocationsLive',
+    'WasteChart',
     parameters: {},
     description:
-        "This household's storage places, with food counts; add one, or remove "
-        'one after confirming.',
-    code: _storageLocationsLive,
+        'Six months of food used up versus thrown out, as stacked bars with '
+        'counts and a line in words for the chosen month.',
+    code: _wasteChart,
   );
 
-  final storage = ff.Pages.storageLocationsPage;
-  app.editPage(storage, (page) {
+  final waste = ff.Pages.wasteHistoryPage;
+  app.editPage(waste, (page) {
     page.ensureInsertedAfter(
-      storage.widgets.byKey('Text_j2h1yoxh').single, // the intro line
-      CustomWidget(widgetName: 'StorageLocationsLive', name: 'StoragePlaces', arguments: {}),
+      waste.widgets.byKey('Row_l9xgqat4').single, // the 30-day figures
+      CustomWidget(widgetName: 'WasteChart', name: 'WasteMonths', arguments: {}),
     );
   });
 }
 
-const _storageLocationsLive = r'''
+const _wasteChart = r'''
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-/// Where this household keeps food.
-class StorageLocationsLive extends StatefulWidget {
-  const StorageLocationsLive({super.key, this.width, this.height});
+/// Six months of used up versus thrown out.
+class WasteChart extends StatefulWidget {
+  const WasteChart({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<StorageLocationsLive> createState() => _StorageLocationsLiveState();
+  State<WasteChart> createState() => _WasteChartState();
 }
 
-class _StorageLocationsLiveState extends State<StorageLocationsLive> {
-  static const _forest = Color(0xFF07533A);
+class _Month {
+  _Month(this.start);
+  final DateTime start;
+  int used = 0;
+  int thrown = 0;
+  int get total => used + thrown;
+}
+
+class _WasteChartState extends State<WasteChart> {
   static const _ink = Color(0xFF202C24);
   static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
   static const _border = Color(0xFFDCE3D7);
+  static const _grid = Color(0xFFEDF2E8);
+  // Validated pair (colour-blind separation passes; green is under 3:1 on
+  // white, so counts are always shown as text).
+  static const _usedColour = Color(0xFF5BAE72);
+  static const _thrownColour = Color(0xFFB8461C);
 
-  static const _types = <String, String>{
-    'fridge': 'Fridge',
-    'freezer': 'Freezer',
-    'pantry': 'Pantry',
-    'other': 'Somewhere else',
-  };
+  static const _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December'
+  ];
 
   String _for = '';
   bool _loading = true;
-  bool _offline = false;
-  bool _adding = false;
-  List<Map<String, dynamic>> _places = const [];
-  Map<String, int> _counts = const {};
-  final _name = TextEditingController();
-  String _type = 'other';
+  List<_Month> _months = const [];
+  int _chosen = 5;
 
-  @override
-  void dispose() {
-    _name.dispose();
-    super.dispose();
-  }
-
-  Future<void> _load({bool quiet = false}) async {
-    final household = _for;
-    if (household.isEmpty) return;
-    if (!quiet && mounted) {
-      setState(() {
-        _loading = true;
-        _offline = false;
-      });
-    }
+  Future<void> _load(String household) async {
+    final now = DateTime.now();
+    final months = [
+      for (var i = 5; i >= 0; i--) _Month(DateTime(now.year, now.month - i, 1)),
+    ];
     try {
       final rows = await SupaFlow.client
-          .from('storage_locations')
-          .select('id, name, location_type, is_default')
+          .from('food_items')
+          .select('status, archived_at')
           .eq('household_id', household)
-          .order('location_type')
-          .order('name');
-      final kept = await SupaFlow.client
-          .from('food_items_status')
-          .select('storage_location_id')
-          .eq('household_id', household);
-      final counts = <String, int>{};
-      for (final k in kept as List) {
-        final id = (k['storage_location_id'] ?? '').toString();
-        if (id.isNotEmpty) counts[id] = (counts[id] ?? 0) + 1;
+          .inFilter('status', ['consumed', 'discarded'])
+          .gte('archived_at', months.first.start.toUtc().toIso8601String());
+      for (final r in rows as List) {
+        final at = DateTime.tryParse((r['archived_at'] ?? '').toString())?.toLocal();
+        if (at == null) continue;
+        for (final m in months) {
+          if (at.year == m.start.year && at.month == m.start.month) {
+            if (r['status'] == 'consumed') {
+              m.used++;
+            } else {
+              m.thrown++;
+            }
+          }
+        }
       }
       if (!mounted || household != _for) return;
       setState(() {
-        _places = List<Map<String, dynamic>>.from(rows as List);
-        _counts = counts;
+        _months = months;
         _loading = false;
-        _offline = false;
+        _chosen = 5;
       });
     } catch (_) {
-      if (!mounted) return;
-      if (quiet && _places.isNotEmpty) return;
-      setState(() {
-        _loading = false;
-        _offline = true;
-      });
-    }
-  }
-
-  void _say(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-
-  Future<void> _add() async {
-    if (_adding) return;
-    setState(() => _adding = true);
-    final said = await addStorageLocation(_name.text, _type);
-    if (!mounted) return;
-    setState(() => _adding = false);
-    if (said.isNotEmpty) {
-      _say(said);
-      return;
-    }
-    _name.clear();
-    _say('Location added.');
-    _load(quiet: true);
-  }
-
-  Future<void> _remove(Map<String, dynamic> place) async {
-    final id = place['id'].toString();
-    final name = (place['name'] ?? '').toString();
-    final n = _counts[id] ?? 0;
-    final sure = await showDialog<bool>(
-      context: context,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Remove $name?'),
-        content: Text(n == 0
-            ? 'Nothing is kept there at the moment.'
-            : (n == 1
-                ? 'The 1 food kept there stays in your kitchen, with no place recorded.'
-                : 'The $n foods kept there stay in your kitchen, with no place recorded.')),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(false),
-            child: const Text('Keep it'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                foregroundColor: const Color(0xFFB42318)),
-            onPressed: () => Navigator.of(dialog).pop(true),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-    if (sure != true || !mounted) return;
-    try {
-      await SupaFlow.client.from('storage_locations').delete().eq('id', id);
-      _say('$name removed.');
-    } catch (_) {
-      _say('Could not remove it. Check your signal and try again.');
-    }
-    _load(quiet: true);
-  }
-
-  static IconData _icon(String type) {
-    switch (type) {
-      case 'fridge':
-        return Icons.kitchen_outlined;
-      case 'freezer':
-        return Icons.ac_unit;
-      case 'pantry':
-        return Icons.inventory_2_outlined;
-      default:
-        return Icons.shelves;
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -347,183 +273,142 @@ class _StorageLocationsLiveState extends State<StorageLocationsLive> {
     final household = FFAppState().currentHouseholdId;
     if (household.isNotEmpty && household != _for) {
       _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
     }
-
-    Widget list;
-    if (_loading) {
-      list = Column(children: [
-        for (var i = 0; i < 3; i++) ...[
-          Container(
-            height: 64,
-            decoration:
-                BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(14)),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ]);
-    } else if (_offline) {
-      list = Text('Can’t reach your kitchen. Your places will show when you are back online.',
-          style: t.bodyLarge.copyWith(color: _muted));
-    } else if (_places.isEmpty) {
-      list = Text('No places yet. Add where you keep food below.',
-          style: t.bodyLarge.copyWith(color: _muted));
-    } else {
-      list = Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _border),
-        ),
-        child: Column(
-          children: [
-            for (var i = 0; i < _places.length; i++) ...[
-              if (i > 0) const Divider(height: 1, thickness: 1, indent: 64, color: _border),
-              _row(t, _places[i]),
-            ],
-          ],
-        ),
-      );
+    // Nothing yet: the page's own figures and note say so.
+    if (_loading || _months.every((m) => m.total == 0)) {
+      return const SizedBox.shrink();
     }
+    final peak = _months.map((m) => m.total).reduce((a, b) => a > b ? a : b);
+    final chosen = _months[_chosen];
+    final pct = chosen.total == 0 ? null : (chosen.used * 100 / chosen.total).round();
 
-    return SizedBox(
+    return Container(
       width: widget.width,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _border),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 16),
-          list,
-          const SizedBox(height: 28),
-          Text('Add a location',
-              style: t.titleLarge.copyWith(
-                  fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.sentences,
-            style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-            decoration: InputDecoration(
-              labelText: 'Name',
-              hintText: 'Garage freezer, fruit bowl…',
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: _border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: _border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: _forest, width: 1.5),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text('Type',
-              style: t.bodyMedium.copyWith(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: _muted)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          Text('The last six months',
+              style: t.titleMedium.copyWith(
+                  fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 4),
+          Row(
             children: [
-              for (final e in _types.entries)
-                Semantics(
-                  button: true,
-                  selected: _type == e.key,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(999),
-                    onTap: () => setState(() => _type = e.key),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _type == e.key ? _forest : Colors.white,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: _type == e.key ? _forest : _border),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_icon(e.key),
-                              size: 18, color: _type == e.key ? Colors.white : _forest),
-                          const SizedBox(width: 6),
-                          Text(e.value,
-                              style: t.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: _type == e.key ? Colors.white : _ink)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              _key(t, _usedColour, 'Used up'),
+              const SizedBox(width: 16),
+              _key(t, _thrownColour, 'Thrown out'),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 52,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              onPressed: _adding ? null : _add,
-              icon: const Icon(Icons.add, size: 20),
-              label: Text('Add location',
-                  style: t.bodyLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+            height: 176,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (var i = 0; i < _months.length; i++)
+                  Expanded(child: _bar(t, i, peak)),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          const Divider(height: 1, thickness: 1, color: _grid),
+          const SizedBox(height: 10),
+          Text(
+            chosen.total == 0
+                ? '${_monthNames[chosen.start.month - 1]}: nothing finished with yet.'
+                : '${_monthNames[chosen.start.month - 1]}: ${chosen.used} used, ${chosen.thrown} thrown out — $pct% used.',
+            style: t.bodyLarge.copyWith(fontSize: 15, color: _ink, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );
   }
 
-  Widget _row(FlutterFlowTheme t, Map<String, dynamic> place) {
-    final id = place['id'].toString();
-    final name = (place['name'] ?? '').toString();
-    final type = (place['location_type'] ?? '').toString();
-    final n = _counts[id] ?? 0;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 64),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-        child: Row(
+  Widget _key(FlutterFlowTheme t, Color c, String label) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(3)),
+          ),
+          const SizedBox(width: 6),
+          Text(label, style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+        ],
+      );
+
+  Widget _bar(FlutterFlowTheme t, int i, int peak) {
+    final m = _months[i];
+    final on = i == _chosen;
+    const plot = 120.0;
+    final usedH = peak == 0 ? 0.0 : plot * m.used / peak;
+    final thrownH = peak == 0 ? 0.0 : plot * m.thrown / peak;
+    final month = _monthNames[m.start.month - 1];
+    return Semantics(
+      button: true,
+      selected: on,
+      label: '$month: ${m.used} used, ${m.thrown} thrown out',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _chosen = i),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration:
-                  BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(12)),
-              child: Icon(_icon(type), color: _forest, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
+            Text('${m.total}',
+                style: t.bodySmall.copyWith(
+                    fontSize: 12,
+                    color: on ? _ink : _muted,
+                    fontWeight: on ? FontWeight.w800 : FontWeight.w600)),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 26,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(name,
-                      style: t.bodyLarge.copyWith(
-                          fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
-                  Text(
-                    '${_types[type] ?? 'Somewhere else'} · ${n == 1 ? '1 food' : '$n foods'}',
-                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13),
-                  ),
+                  if (m.thrown > 0)
+                    Container(
+                      height: thrownH < 3 ? 3 : thrownH,
+                      decoration: BoxDecoration(
+                        color: _thrownColour,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ),
+                  // A 2px gap between the two parts of the bar.
+                  if (m.thrown > 0 && m.used > 0) const SizedBox(height: 2),
+                  if (m.used > 0)
+                    Container(
+                      height: usedH < 3 ? 3 : usedH,
+                      decoration: BoxDecoration(
+                        color: _usedColour,
+                        borderRadius: m.thrown > 0
+                            ? BorderRadius.zero
+                            : const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ),
+                  if (m.total == 0) Container(height: 2, color: _grid),
                 ],
               ),
             ),
-            IconButton(
-              tooltip: 'Remove $name',
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              onPressed: () => _remove(place),
-              icon: const Icon(Icons.delete_outline, color: _muted),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: on ? const Color(0xFFEDF2E8) : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(month.substring(0, 3),
+                  style: t.bodySmall.copyWith(
+                      fontSize: 12,
+                      color: on ? _ink : _muted,
+                      fontWeight: on ? FontWeight.w800 : FontWeight.w500)),
             ),
           ],
         ),
