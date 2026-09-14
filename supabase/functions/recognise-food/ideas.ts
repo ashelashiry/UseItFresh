@@ -7,10 +7,12 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import {
+  CALORIES,
   type Choices,
   IDEAS_WORDS,
   LEAVE_OUT,
   mentionsAny,
+  proteinFloor,
   reply,
   SOON,
   words,
@@ -71,7 +73,17 @@ export async function ideas(
   }
 
   const people = `${choices.servings} ${choices.servings === 1 ? "person" : "people"}`;
+  const range = choices.calories ? CALORIES[choices.calories] : null;
+  const floor = proteinFloor(choices.meal);
   const wants = [
+    range
+      ? range[0] === 0
+        ? `Every idea must be under ${range[1]} kcal per serving; aim for about ${range[1] - 80}.`
+        : `Every idea must be between ${range[0]} and ${range[1]} kcal per serving; aim for about ${
+          (range[0] + range[1]) / 2
+        }.`
+      : "",
+    choices.highProtein ? `Every idea must have at least ${floor} g of protein per serving.` : "",
     choices.meal ? `Every idea must be a ${choices.meal} dish.` : "",
     choices.minutes ? `Every idea must take ${choices.minutes} minutes or less, start to finish.` : "",
     `Every idea serves ${people}: give amounts in the steps for that many.`,
@@ -129,6 +141,9 @@ export async function ideas(
       minutes: Math.min(Math.max(Math.round(Number(i.minutes) || 0), 0), 240),
       servings: choices.servings,
       soon: uses.some((n) => byName.get(n.toLowerCase())?.soon === true),
+      // Estimates per serving; 0 when the model gave nothing believable.
+      calories: sane(i.calories, 40, 2500),
+      protein: sane(i.protein, 0, 200),
     };
   }).filter((i) => i.title && i.uses.length);
 
@@ -139,14 +154,26 @@ export async function ideas(
     )
     .filter((i) => !choices.minutes || (i.minutes > 0 && i.minutes <= choices.minutes))
     // "Use my food" is checked, not trusted, like everything the model says.
-    .filter((i) => !choices.kitchenOnly || i.extras.length === 0)
+    .filter((i) => !choices.kitchenOnly || i.extras.length === 0);
+  // Goals are checked on the estimate that will be shown, so a card never says
+  // 520 kcal under "Under 400". An idea with no estimate cannot show it fits.
+  const fits = made
+    .filter((i) => !range || (i.calories > 0 && i.calories >= range[0] && i.calories <= range[1]))
+    .filter((i) => !choices.highProtein || i.protein >= floor)
     .slice(0, 4);
   // Ideas that use up what goes off soonest come first; otherwise as given.
-  made.sort((a, b) => Number(b.soon) - Number(a.soon));
-  const note = made.length ? ""
+  fits.sort((a, b) => Number(b.soon) - Number(a.soon));
+  const note = fits.length ? ""
+    : made.length && (range || choices.highProtein)
+    ? "No ideas fit your goals this time. Try again, or a wider calorie range."
     : shaped.length && choices.kitchenOnly
     ? "Nothing fits with only your food. Turn off Use my food to see ideas that need a few things."
     : shaped.length ? "No ideas fit those choices. Try a longer time, or leave out fewer foods."
     : IDEAS_WORDS.sorry;
-  return reply({ ideas: made, note, model });
+  return reply({ ideas: fits, note, model });
+}
+
+function sane(v: unknown, min: number, max: number): number {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) && n >= min && n <= max ? n : 0;
 }

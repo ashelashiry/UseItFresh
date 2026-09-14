@@ -157,207 +157,320 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Product pictures, source 4: add or change a food's photo on its own screen.
+/// Paid feature, first: Recipes for your goals (owner, 14 Sep).
 ///
-/// A camera button sits on the photo. It offers: take a photo, choose one from
-/// the phone, and — when the food has a picture — remove it. The new picture
-/// is shrunk on the phone, stored in the food's household folder as
-/// "item-<id>.jpg", and saved on the food. A picture the app stored before
-/// (a crop, a photo, a product copy) is deleted once the new one is saved, so
-/// the folder does not fill with pictures nobody sees.
+/// "Meals that fit your goals, made with food you already have." Optional and
+/// off by default. A "Fits my goals" chip on Recipes, and a goals card in
+/// Filters: calories per serving (Under 400, 400-600, 600-800) and high
+/// protein. With it on, each idea shows small calorie and protein badges, the
+/// idea's sheet shows the estimate with honest wording, and only ideas that
+/// fit come back. The estimates come from the photo function 2026-09-14.2.
+/// Kept ideas keep their numbers.
 void buildStarterEditFlow(App app) {
-  app.customAction(
-    'ChangeFoodPhoto',
-    args: {'itemId': string, 'source': string},
-    returns: string,
-    description:
-        'Sets a food\'s picture from the camera (source "camera") or the '
-        'phone\'s photos ("gallery"), or removes it ("remove"). Returns "ok", '
-        '"" when the person backed out, or why not.',
-    code: _changeFoodPhoto,
-  );
+  app.state('ideasGoals', bool_.withDefault(false), persisted: true);
+  app.state('ideasCalories', string.withDefault(''), persisted: true);
+  app.state('ideasHighProtein', bool_.withDefault(false), persisted: true);
   app.raw((project) {
-    updateCustomWidget(project, name: 'FoodDetail', code: _foodDetail);
+    ensureDataStructField(
+      project,
+      structName: 'MealIdea',
+      fieldName: 'calories',
+      type: FFDataTypeV2(scalarType: FFBaseDataType.Integer),
+      description: 'Estimated kcal in one serving; 0 when there is none.',
+    );
+    ensureDataStructField(
+      project,
+      structName: 'MealIdea',
+      fieldName: 'protein',
+      type: FFDataTypeV2(scalarType: FFBaseDataType.Integer),
+      description: 'Estimated grams of protein in one serving; 0 when none.',
+    );
+    updateCustomAction(project, name: 'GetMealIdeas', code: _getMealIdeas);
+    updateCustomWidget(project, name: 'RecipesHome', code: _recipesHome);
   });
 }
 
-const _changeFoodPhoto = r'''
-import 'package:image_picker/image_picker.dart';
+const _getMealIdeas = r'''
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 
-/// Sets or removes one food's picture.
+/// Asks for meal ideas built from the food in this kitchen, soonest-to-go
+/// first and shaped by the Recipes filters, and keeps them in app state.
 ///
-/// "ok" when saved, "" when the person backed out of the camera or photos
-/// (not an error, so nothing is said), otherwise a sentence to show.
-Future<String> changeFoodPhoto(String itemId, String source) async {
-  final id = itemId.trim();
-  if (id.isEmpty) return 'This food could not be found.';
-  final client = SupaFlow.client;
-  final storage = client.storage.from('food-images');
+/// What to leave out is two things joined: what was typed into "Leave out",
+/// and what the person's allergies and diet add. "Use my food" asks for ideas
+/// that need nothing beyond the kitchen and the basics. "Fits my goals" sends
+/// the calorie range and high protein, and every idea comes back with its
+/// estimated calories and protein per serving.
+///
+/// Returns '' when there are ideas to show, and otherwise a sentence saying
+/// why not. It only runs on a tap: each ask is a Gemini call.
+Future<String> getMealIdeas() async {
+  const sorry = 'Could not come up with ideas just now. Try again in a minute.';
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one first.';
+  }
+  // A second tap while the first ask is still thinking.
+  if (FFAppState().ideasLoading) return '';
 
-  String household;
-  String oldUrl;
+  final leaveOut = [FFAppState().ideasLeaveOut, FFAppState().ideasAvoid]
+      .map((w) => w.trim())
+      .where((w) => w.isNotEmpty)
+      .join(', ');
+
+  FFAppState().update(() => FFAppState().ideasLoading = true);
   try {
-    final row = await client
-        .from('food_items')
-        .select('household_id, image_url')
-        .eq('id', id)
-        .maybeSingle();
-    if (row == null) return 'This food is no longer in your kitchen.';
-    household = row['household_id'].toString();
-    oldUrl = (row['image_url'] ?? '').toString();
+    final res = await SupaFlow.client.functions.invoke(
+      'recognise-food',
+      body: {
+        'mode': 'ideas',
+        'householdId': household,
+        'meal': FFAppState().ideasMeal,
+        'minutes': FFAppState().ideasMinutes,
+        'servings': FFAppState().ideasServings,
+        'leaveOut': leaveOut,
+        'kitchenOnly': FFAppState().ideasKitchenOnly,
+        'calories': FFAppState().ideasGoals ? FFAppState().ideasCalories : '',
+        'highProtein':
+            FFAppState().ideasGoals && FFAppState().ideasHighProtein,
+      },
+    );
+    final data = res.data;
+    if (data is! Map) return sorry;
+    if (data['error'] != null) return data['error'].toString();
+    final raw = data['ideas'] is List ? data['ideas'] as List : const [];
+
+    List<String> words(Object? v) => v is List
+        ? [
+            for (final w in v)
+              if ('$w'.trim().isNotEmpty) '$w'.trim(),
+          ]
+        : <String>[];
+
+    final ideas = <MealIdeaStruct>[];
+    for (final r in raw) {
+      if (r is! Map) continue;
+      final title = (r['title'] ?? '').toString().trim();
+      final uses = words(r['uses']);
+      if (title.isEmpty || uses.isEmpty) continue;
+      ideas.add(MealIdeaStruct(
+        title: title,
+        uses: uses,
+        extras: words(r['extras']),
+        steps: words(r['steps']),
+        minutes: r['minutes'] is num ? (r['minutes'] as num).round() : 0,
+        servings: r['servings'] is num ? (r['servings'] as num).round() : 0,
+        soon: r['soon'] == true,
+        calories: r['calories'] is num ? (r['calories'] as num).round() : 0,
+        protein: r['protein'] is num ? (r['protein'] as num).round() : 0,
+      ));
+    }
+    if (ideas.isEmpty) {
+      final note = (data['note'] ?? '').toString();
+      return note.isNotEmpty ? note : sorry;
+    }
+    FFAppState().update(() => FFAppState().mealIdeas = ideas);
+    return '';
+  } on FunctionException catch (error) {
+    final details = error.details;
+    if (details is Map && details['error'] != null) {
+      return details['error'].toString();
+    }
+    return sorry;
   } catch (_) {
-    return 'Can’t reach your kitchen. Check your signal and try again.';
+    return 'Could not reach your kitchen. Check your signal and try again.';
+  } finally {
+    FFAppState().update(() => FFAppState().ideasLoading = false);
   }
-
-  String? newPath;
-  String? newUrl;
-  if (source != 'remove') {
-    final XFile? shot;
-    try {
-      shot = await ImagePicker().pickImage(
-        source: source == 'gallery' ? ImageSource.gallery : ImageSource.camera,
-        // A card and the top of the food's screen, and quick to upload.
-        maxWidth: 900,
-        maxHeight: 900,
-        imageQuality: 82,
-      );
-    } catch (_) {
-      return source == 'gallery'
-          ? 'Use It Fresh can’t open your photos. Allow it in Settings.'
-          : 'Use It Fresh can’t use the camera. Allow it in Settings.';
-    }
-    if (shot == null) return '';
-    try {
-      final bytes = await shot.readAsBytes();
-      newPath = '$household/item-${const Uuid().v4()}.jpg';
-      await storage.uploadBinary(
-        newPath,
-        bytes,
-        fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
-      );
-      // A year, the same as every other picture the app keeps.
-      newUrl = await storage.createSignedUrl(newPath, 60 * 60 * 24 * 365);
-    } catch (_) {
-      if (newPath != null) await _removeQuietly(storage, [newPath]);
-      return 'Could not save the photo. Check your signal and try again.';
-    }
-  }
-
-  try {
-    await client.from('food_items').update({'image_url': newUrl}).eq('id', id);
-  } on PostgrestException catch (error) {
-    if (newPath != null) await _removeQuietly(storage, [newPath]);
-    if (error.code == '42501') {
-      return 'Your account is not allowed to change this food.';
-    }
-    return error.message;
-  } catch (_) {
-    if (newPath != null) await _removeQuietly(storage, [newPath]);
-    return 'Could not save the photo. Check your signal and try again.';
-  }
-
-  // The picture it replaced, if the app stored it.
-  final oldPath = _storagePath(oldUrl);
-  if (oldPath != null && oldPath != newPath) {
-    await _removeQuietly(storage, [oldPath]);
-  }
-  return 'ok';
-}
-
-Future<void> _removeQuietly(StorageFileApi storage, List<String> paths) async {
-  try {
-    await storage.remove(paths);
-  } catch (_) {}
-}
-
-/// The object path inside the food-images bucket, from a signed URL.
-String? _storagePath(String signedUrl) {
-  const marker = '/object/sign/food-images/';
-  final at = signedUrl.indexOf(marker);
-  if (at < 0) return null;
-  final rest = signedUrl.substring(at + marker.length);
-  final q = rest.indexOf('?');
-  return Uri.decodeComponent(q < 0 ? rest : rest.substring(0, q));
 }
 ''';
 
-const _foodDetail = r'''
+const _recipesHome = r'''
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Everything about one food, photo first.
-class FoodDetail extends StatefulWidget {
-  const FoodDetail({super.key, this.width, this.height, this.itemId});
+/// Recipes below the title "What looks good?", as design guide v4 lays out.
+///
+/// Controls first and compact: Quick meals and Use my food toggle real
+/// filters; Filters opens the rest in a sheet. Then an invitation, or the
+/// ideas as cards that open to their details. Kept ideas last.
+///
+/// "Fits my goals" (a Plus feature, owner 14 Sep) is optional and off until
+/// turned on: calories and protein per serving on each idea, and only ideas
+/// in the chosen calorie range or high in protein. The numbers are estimates
+/// and always say so.
+class RecipesHome extends StatefulWidget {
+  const RecipesHome({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
-  final String? itemId;
 
   @override
-  State<FoodDetail> createState() => _FoodDetailState();
+  State<RecipesHome> createState() => _RecipesHomeState();
 }
 
-class _FoodDetailState extends State<FoodDetail> {
+class _Kept {
+  const _Kept(this.id, this.idea);
+  final String id;
+  final MealIdeaStruct idea;
+}
+
+class _RecipesHomeState extends State<RecipesHome> {
   static const _forest = Color(0xFF07533A);
+  static const _leaf = Color(0xFF83BD43);
   static const _ink = Color(0xFF202C24);
   static const _muted = Color(0xFF59665D);
   static const _sage = Color(0xFFEDF2E8);
   static const _border = Color(0xFFDCE3D7);
+  static const _cream = Color(0xFFF7F7F0);
 
   static const _food =
       'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
 
-  List<FoodItemsStatusRow> _rows = const [];
-  bool _loading = true;
-  bool _offline = false;
-  bool _replace = false;
-  bool _busy = false;
-  bool _photoBusy = false;
+  static const _meals = <String, String>{
+    'any': 'Any',
+    'breakfast': 'Breakfast',
+    'lunch': 'Lunch',
+    'dinner': 'Dinner',
+    'snack': 'Snack',
+  };
+  static const _calorieRanges = <String, String>{
+    '': 'Any',
+    'under400': 'Under 400',
+    '400to600': '400–600',
+    '600to800': '600–800',
+  };
+  static const _times = <int, String>{
+    0: 'Any',
+    15: '15 min',
+    30: '30 min',
+    60: '1 hour',
+  };
 
-  String get _id => (widget.itemId ?? '').trim();
+  String _for = '';
+  bool? _hasFood;
+  List<_Kept> _kept = const [];
+  final Set<String> _listed = {};
+  bool _keeping = false;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
-  }
+  static String _same(String s) => s.trim().toLowerCase();
 
-  Future<void> _load({bool quiet = false}) async {
-    if (!quiet && mounted) {
-      setState(() {
-        _loading = true;
-        _offline = false;
-      });
-    }
+  // ---- data ----------------------------------------------------------------
+
+  Future<void> _load(String household) async {
     try {
-      final rows = await FoodItemsStatusTable()
-          .queryRows(queryFn: (q) => q.eqOrNull('id', _id));
-      if (!mounted) return;
+      final any = await SupaFlow.client
+          .from('food_items_status')
+          .select('id')
+          .eq('household_id', household)
+          .limit(1);
+      final rows = await SupaFlow.client
+          .from('saved_recipes')
+          .select('id, title, recipe_data')
+          .eq('household_id', household)
+          .order('created_at', ascending: false)
+          .limit(20);
+      final kept = <_Kept>[];
+      for (final r in rows as List) {
+        final m = r as Map;
+        final d = m['recipe_data'] is Map ? m['recipe_data'] as Map : const {};
+        List<String> words(Object? v) => v is List
+            ? [
+                for (final w in v)
+                  if ('$w'.trim().isNotEmpty) '$w'.trim()
+              ]
+            : <String>[];
+        kept.add(_Kept(
+          m['id'].toString(),
+          MealIdeaStruct(
+            title: (m['title'] ?? '').toString(),
+            uses: words(d['uses']),
+            extras: words(d['extras']),
+            steps: words(d['steps']),
+            minutes: d['minutes'] is num ? (d['minutes'] as num).round() : 0,
+            servings: d['servings'] is num ? (d['servings'] as num).round() : 0,
+            calories: d['calories'] is num ? (d['calories'] as num).round() : 0,
+            protein: d['protein'] is num ? (d['protein'] as num).round() : 0,
+          ),
+        ));
+      }
+      if (!mounted || household != _for) return;
       setState(() {
-        _rows = rows;
-        _loading = false;
-        _offline = false;
+        _hasFood = (any as List).isNotEmpty;
+        _kept = kept;
       });
     } catch (_) {
-      if (!mounted) return;
-      if (quiet && _rows.isNotEmpty) return;
-      setState(() {
-        _loading = false;
-        _offline = true;
-      });
+      // No signal: the invitation still shows; asking will say why not.
     }
   }
 
-  String _field(String name) => itemField(_rows, name) ?? '';
+  bool _isKept(MealIdeaStruct idea) =>
+      _kept.any((k) => _same(k.idea.title) == _same(idea.title));
 
-  String? get _photo {
-    if (_rows.isEmpty) return null;
-    final r = _rows.first;
-    final own = (r.imageUrl ?? '').trim();
-    if (own.isNotEmpty) return own;
-    final n = (r.name ?? '').toLowerCase();
+  Future<void> _ask() async {
+    final said = await getMealIdeas();
+    if (!mounted) return;
+    if (said.isNotEmpty) _say(said);
+  }
+
+  void _say(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  Future<void> _keep(MealIdeaStruct idea) async {
+    final household = FFAppState().currentHouseholdId;
+    if (household.isEmpty || _keeping || _isKept(idea)) return;
+    setState(() => _keeping = true);
+    try {
+      await SupaFlow.client.from('saved_recipes').insert({
+        'household_id': household,
+        'profile_id': SupaFlow.client.auth.currentUser?.id,
+        'title': idea.title,
+        'recipe_data': {
+          'uses': idea.uses,
+          'extras': idea.extras,
+          'steps': idea.steps,
+          'minutes': idea.minutes,
+          'servings': idea.servings,
+          if (idea.calories > 0) 'calories': idea.calories,
+          if (idea.protein > 0) 'protein': idea.protein,
+        },
+      });
+      await _load(household);
+      if (mounted) _say('Kept for your household.');
+    } on PostgrestException catch (error) {
+      if (mounted) {
+        _say(error.code == '42501'
+            ? 'Your account is not allowed to keep ideas in this household.'
+            : error.message);
+      }
+    } catch (_) {
+      if (mounted) _say('Could not keep it. Check your signal and try again.');
+    } finally {
+      if (mounted) setState(() => _keeping = false);
+    }
+  }
+
+  Future<void> _remove(_Kept kept) async {
+    try {
+      await SupaFlow.client.from('saved_recipes').delete().eq('id', kept.id);
+      await _load(_for);
+    } catch (_) {
+      if (mounted)
+        _say('Could not remove it. Check your signal and try again.');
+    }
+  }
+
+  Future<String> _addExtras(MealIdeaStruct idea) async {
+    for (final name in idea.extras) {
+      final said = await addNameToShoppingList(name);
+      if (said.isNotEmpty) return said;
+    }
+    return '';
+  }
+
+  /// A photo of an ingredient the idea really uses, when there is one.
+  static ({String url, String cue})? _ingredientPhoto(MealIdeaStruct idea) {
     const exact = {
       'spinach': 'spinach',
       'mushroom': 'mushrooms',
@@ -367,729 +480,1057 @@ class _FoodDetailState extends State<FoodDetail> {
       'yoghurt': 'yogurt',
       'pasta': 'pasta',
     };
-    for (final e in exact.entries) {
-      if (n.contains(e.key)) return '$_food/${e.value}.webp';
+    for (final use in idea.uses) {
+      final n = use.toLowerCase();
+      for (final e in exact.entries) {
+        if (n.contains(e.key)) {
+          return (
+            url: '$_food/${e.value}.webp',
+            cue: 'Uses your ${use.toLowerCase()}'
+          );
+        }
+      }
     }
     return null;
   }
 
-  /// How long a food has, in words, on a colour that says how soon (owner,
-  /// 14 Sep: "bold, on a coloured pill"). Red: past its use-by, use today, or
-  /// two days or less. Orange: three to seven days, or past best-before. Green:
-  /// more than a week. Blue: frozen, with no countdown — the clock does not
-  /// run in the freezer, so there is nothing to count.
-  static (String, Color, Color)? _timePill(String status, Object? daysLeft) {
-    const red = (Color(0xFFB42318), Color(0xFFFDE3E0));
-    const orange = (Color(0xFFB54708), Color(0xFFFFE9D1));
-    const green = (Color(0xFF1E6B3A), Color(0xFFDDF0E2));
-    const blue = (Color(0xFF285E8E), Color(0xFFE1ECF7));
-    const grey = (Color(0xFF59665D), Color(0xFFEDF2E8));
-    switch (status) {
-      case 'frozen':
-        return ('Frozen', blue.$1, blue.$2);
-      case 'past_use_by':
-        return ('Past use-by', red.$1, red.$2);
-      case 'past_best_before':
-        return ('Past best before', orange.$1, orange.$2);
-      case 'use_today':
-        return ('Use today', red.$1, red.$2);
-      case 'unknown':
-        return ('No date', grey.$1, grey.$2);
-      case 'consumed':
-      case 'discarded':
-        return null;
-    }
-    final days = daysLeft is num ? daysLeft.round() : null;
-    if (days == null) return null;
-    final label = days <= 0
-        ? 'Use today'
-        : (days == 1 ? '1 day left' : '$days days left');
-    final c = days <= 2 ? red : (days <= 7 ? orange : green);
-    return (label, c.$1, c.$2);
+  static String _cue(MealIdeaStruct idea) {
+    final photo = _ingredientPhoto(idea);
+    if (photo != null) return photo.cue;
+    if (idea.uses.isNotEmpty)
+      return 'Uses your ${idea.uses.first.toLowerCase()}';
+    return '';
   }
 
-  static Widget _pill(FlutterFlowTheme t, (String, Color, Color) p,
-          {double size = 13}) =>
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-            color: p.$3, borderRadius: BorderRadius.circular(999)),
-        child: Text(p.$1,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: t.bodySmall.copyWith(
-                color: p.$2, fontWeight: FontWeight.w800, fontSize: size)),
-      );
+  static bool get _goalsOn => FFAppState().ideasGoals;
 
-  static (Color, Color) _statusColours(String status) {
-    switch (status) {
-      case 'fresh':
-        return (const Color(0xFF285B34), const Color(0xFFEAF3E5));
-      case 'use_soon':
-        return (const Color(0xFF79500F), const Color(0xFFFFF1D4));
-      case 'use_today':
-        return (const Color(0xFF934017), const Color(0xFFFFEADD));
-      case 'past_best_before':
-        return (const Color(0xFF69516E), const Color(0xFFF1EAF4));
-      case 'past_use_by':
-        return (const Color(0xFFA02929), const Color(0xFFFCE8E6));
-      case 'frozen':
-        return (const Color(0xFF2F5F8A), const Color(0xFFE4EEF7));
-      default:
-        return (_muted, _sage);
-    }
-  }
+  /// "520 kcal · 32 g protein", per serving, or '' when there is no estimate.
+  static String _nutrition(MealIdeaStruct idea) => [
+        if (idea.calories > 0) '${idea.calories} kcal',
+        if (idea.protein > 0) '${idea.protein} g protein',
+      ].join(' · ');
 
-  // ---- actions ---------------------------------------------------------------
-
-  bool get _hasOwnPhoto =>
-      _rows.isNotEmpty && (_rows.first.imageUrl ?? '').trim().isNotEmpty;
-
-  /// Take a photo, choose one, or remove the one it has.
-  Future<void> _changePhoto() async {
-    if (_photoBusy || _busy) return;
-    final t = FlutterFlowTheme.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final own = _hasOwnPhoto;
-    Widget option(BuildContext c, IconData icon, String label, String value,
-            {Color colour = _ink}) =>
-        ListTile(
-          minVerticalPadding: 14,
-          leading: Icon(icon, color: colour == _ink ? _forest : colour),
-          title: Text(label,
-              style: t.bodyLarge.copyWith(
-                  fontSize: 16, color: colour, fontWeight: FontWeight.w600)),
-          onTap: () => Navigator.of(c).pop(value),
-        );
-    final source = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.white,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (c) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Text(own ? 'Change the photo' : 'Add a photo',
-                    style: t.titleLarge.copyWith(
-                        fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
-              ),
-              option(c, Icons.photo_camera_outlined, 'Take a photo', 'camera'),
-              option(c, Icons.photo_library_outlined, 'Choose from your photos',
-                  'gallery'),
-              if (own)
-                option(c, Icons.hide_image_outlined, 'Remove the photo', 'remove',
-                    colour: const Color(0xFFB42318)),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (source == null || !mounted) return;
-    setState(() => _photoBusy = true);
-    try {
-      final said = await changeFoodPhoto(_id, source);
-      if (said == 'ok') {
-        messenger.showSnackBar(SnackBar(
-            content: Text(
-                source == 'remove' ? 'Photo removed.' : 'Photo saved.')));
-        await _load(quiet: true);
-      } else if (said.isNotEmpty) {
-        messenger.showSnackBar(SnackBar(content: Text(said)));
-      }
-    } finally {
-      if (mounted) setState(() => _photoBusy = false);
-    }
-  }
-
-  void _back() {
-    final router = GoRouter.of(context);
-    if (router.canPop()) {
-      router.pop();
-    } else {
-      router.goNamed('InventoryPage');
-    }
-  }
-
-  Future<void> _edit() async {
-    await context.pushNamed('EditItemPage', queryParameters: {'itemId': _id});
-    if (mounted) _load(quiet: true);
-  }
-
-  Future<void> _settle(String outcome) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    final router = GoRouter.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final id = _id;
-    final name = _field('name');
-    try {
-      if (_replace) {
-        final listed = await addItemToShoppingList(id);
-        if (listed.isNotEmpty) {
-          messenger.showSnackBar(SnackBar(content: Text(listed)));
-          return;
-        }
-      }
-      final said = await settleFoodItem(id, outcome);
-      if (said.isNotEmpty) {
-        messenger.showSnackBar(SnackBar(content: Text(said)));
-        return;
-      }
-      messenger.showSnackBar(SnackBar(
-        duration: const Duration(seconds: 6),
-        content: Text(outcome == 'consumed'
-            ? 'Good. Nothing wasted.'
-            : 'Thrown out and recorded.'),
-        action: SnackBarAction(
-          label: 'Undo',
-          textColor: const Color(0xFFB9E08F),
-          onPressed: () async {
-            final back = await unsettleFoodItem(id);
-            messenger.showSnackBar(SnackBar(
-                content: Text(back.isEmpty
-                    ? '${name.isEmpty ? 'It' : name} is back in your kitchen.'
-                    : back)));
-            if (back.isEmpty) {
-              router.pushNamed('FoodItemPage', queryParameters: {'itemId': id});
-            }
-          },
-        ),
-      ));
-      router.pushNamed('InventoryPage');
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  int get _activeFilters {
+    var n = 0;
+    final s = FFAppState();
+    if (s.ideasMeal.isNotEmpty && s.ideasMeal != 'any') n++;
+    if (s.ideasMinutes != 0) n++;
+    if (s.ideasServings != 2 && s.ideasServings != 0) n++;
+    if (s.ideasLeaveOut.trim().isNotEmpty) n++;
+    return n;
   }
 
   // ---- page ----------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
     final t = FlutterFlowTheme.of(context);
-    Widget body;
-    if (_loading) {
-      body = _skeleton();
-    } else if (_offline) {
-      body = _message(t,
-          icon: Icons.cloud_off_outlined,
-          title: 'Can’t reach your kitchen.',
-          text:
-              'No signal, or the connection dropped. This item will show again as soon as you are back online.',
-          action: 'Try again',
-          onAction: _load);
-    } else if (_rows.isEmpty) {
-      body = _message(t,
-          icon: Icons.kitchen_outlined,
-          title: 'Not in your kitchen.',
-          text: 'This food has been used, thrown out or removed.',
-          action: 'Back to your kitchen',
-          onAction: () => context.goNamed('InventoryPage'));
-    } else {
-      body = _food_(t);
+    final household = FFAppState().currentHouseholdId;
+    if (household.isNotEmpty && household != _for) {
+      _for = household;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
     }
+    final ideas = FFAppState().mealIdeas;
+    final loading = FFAppState().ideasLoading;
+    final still = MediaQuery.of(context).disableAnimations;
+
+    Widget body;
+    if (loading) {
+      body = _thinking(t);
+    } else if (ideas.isEmpty) {
+      body = _invitation(t);
+    } else {
+      body = _results(t, ideas);
+    }
+
     return SizedBox(
       width: widget.width,
-      child: AnimatedSwitcher(
-        duration: MediaQuery.of(context).disableAnimations
-            ? Duration.zero
-            : const Duration(milliseconds: 200),
-        child: KeyedSubtree(
-          key: ValueKey(
-              _loading ? 'l' : (_offline ? 'o' : (_rows.isEmpty ? 'e' : 'f'))),
-          child: body,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _controls(t),
+          const SizedBox(height: 16),
+          AnimatedSwitcher(
+            duration: still ? Duration.zero : const Duration(milliseconds: 220),
+            child: KeyedSubtree(
+              key: ValueKey(loading
+                  ? 'loading'
+                  : (ideas.isEmpty
+                      ? 'invite'
+                      : 'ideas${ideas.length}${ideas.first.title}')),
+              child: body,
+            ),
+          ),
+          if (_kept.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text('Kept ideas',
+                style: t.titleLarge.copyWith(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 128,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                itemCount: _kept.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) =>
+                    _smallCard(t, _kept[i].idea, kept: _kept[i], width: 200),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  // Forest with a white arrow on every screen (owner, 14 Sep: green back
-  // buttons), so it stands out on a photo and on cream alike.
-  Widget _backButton({bool onPhoto = true}) => Semantics(
+  // ---- controls ------------------------------------------------------------
+
+  Widget _controls(FlutterFlowTheme t) {
+    final s = FFAppState();
+    final quick = s.ideasMinutes == 15 || s.ideasMinutes == 30;
+    final active = _activeFilters;
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        children: [
+          _chip(t, 'Quick meals', quick, Icons.bolt_outlined, () {
+            FFAppState()
+                .update(() => FFAppState().ideasMinutes = quick ? 0 : 30);
+          }),
+          const SizedBox(width: 8),
+          _chip(t, 'Use my food', s.ideasKitchenOnly, Icons.kitchen_outlined,
+              () {
+            FFAppState().update(() =>
+                FFAppState().ideasKitchenOnly = !FFAppState().ideasKitchenOnly);
+          }),
+          const SizedBox(width: 8),
+          _chip(t, 'Fits my goals', s.ideasGoals, Icons.track_changes, () {
+            final turningOn = !FFAppState().ideasGoals;
+            FFAppState().update(() => FFAppState().ideasGoals = turningOn);
+            // First time on, with nothing chosen yet: show where goals are set.
+            if (turningOn &&
+                FFAppState().ideasCalories.isEmpty &&
+                !FFAppState().ideasHighProtein) {
+              _openFilters(t);
+            }
+          }),
+          const SizedBox(width: 8),
+          _chip(t, active > 0 ? 'Filters · $active' : 'Filters', active > 0,
+              Icons.tune, () => _openFilters(t)),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(FlutterFlowTheme t, String label, bool on, IconData icon,
+          VoidCallback onTap) =>
+      Semantics(
         button: true,
-        label: 'Back',
+        selected: on,
+        label: label,
         child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: _back,
-          child: Container(
-            width: 44,
-            height: 44,
+          borderRadius: BorderRadius.circular(999),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: _forest,
-              shape: BoxShape.circle,
-              boxShadow: onPhoto
-                  ? const [BoxShadow(color: Color(0x33000000), blurRadius: 8)]
-                  : null,
+              color: on ? _forest : Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: on ? _forest : _border),
             ),
-            child: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18, color: on ? Colors.white : _forest),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: t.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: on ? Colors.white : _ink)),
+              ],
+            ),
           ),
         ),
       );
 
-  // Top right of the photo: a camera, with words while there is no picture so
-  // the empty tile says what to do.
-  Widget _photoButton(FlutterFlowTheme t) {
-    final own = _hasOwnPhoto;
-    return Semantics(
-      button: true,
-      label: own ? 'Change the photo' : 'Add a photo',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: _photoBusy ? null : _changePhoto,
-        child: Container(
-          height: 44,
-          padding: EdgeInsets.symmetric(horizontal: own ? 0 : 14),
-          width: own ? 44 : null,
-          decoration: BoxDecoration(
-            color: _forest,
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: const [
-              BoxShadow(color: Color(0x33000000), blurRadius: 8)
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.photo_camera_outlined,
-                  color: Colors.white, size: 21),
-              if (!own) ...[
-                const SizedBox(width: 6),
-                Text('Add a photo',
-                    style: t.bodyMedium.copyWith(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700)),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  void _openFilters(FlutterFlowTheme t) {
+    final leaveOut = TextEditingController(text: FFAppState().ideasLeaveOut);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _cream,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheet) {
+        return StatefulBuilder(builder: (sheet, redraw) {
+          final s = FFAppState();
+          final meal = _meals.containsKey(s.ideasMeal) ? s.ideasMeal : 'any';
+          final minutes =
+              _times.containsKey(s.ideasMinutes) ? s.ideasMinutes : 0;
+          final people = s.ideasServings < 1
+              ? 2
+              : (s.ideasServings > 8 ? 8 : s.ideasServings);
+          final avoid = s.ideasAvoid.trim();
+          void set(void Function() change) {
+            FFAppState().update(change);
+            redraw(() {});
+          }
 
-  Widget _food_(FlutterFlowTheme t) {
-    final name = _field('name');
-    final status = _field('status');
-    final label = _field('statusLabel');
-    final detail = _field('detail');
-    final pill = _timePill(status, _rows.first.daysLeft);
-    // The pill already says how long is left; the card adds only advice
-    // ("Throw this out", "Check it before using"), and nothing for frozen.
-    final advice =
-        status == 'past_use_by' || status == 'past_best_before' ? detail : '';
-    final photo = _photo;
-    final category = _field('category');
-
-    Widget tile() => Container(
-          color: _sage,
-          alignment: Alignment.center,
-          child: const Icon(Icons.restaurant, color: _forest, size: 56),
-        );
-
-    final rows = <(IconData, String, String)>[
-      (Icons.scale_outlined, 'How much', _field('quantity')),
-      (Icons.kitchen_outlined, 'Kept in', _field('where')),
-      (Icons.category_outlined, 'Category', category),
-      (Icons.info_outline, 'How this was worked out', _field('basis')),
-      (
-        Icons.event_outlined,
-        'Added',
-        _field('added').replaceFirst('Added ', '')
-      ),
-    ].where((r) => r.$3.trim().isNotEmpty).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Photo, with the name and status over its lower edge.
-        SizedBox(
-          height: 300,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              photo == null
-                  ? tile()
-                  : Image.network(photo,
-                      fit: BoxFit.cover, errorBuilder: (_, __, ___) => tile()),
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x33000000),
-                      Color(0x00000000),
-                      Color(0xB3000000)
-                    ],
-                    stops: [0, 0.35, 1],
-                  ),
-                ),
-              ),
-              Positioned(left: 16, top: 16, child: _backButton()),
-              Positioned(right: 16, top: 16, child: _photoButton(t)),
-              if (_photoBusy)
-                const ColoredBox(
-                  color: Color(0x66000000),
-                  child: Center(
-                    child: SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 3, color: Colors.white),
-                    ),
-                  ),
-                ),
-              // Open Food Facts photos are free to use with credit. Our own
-              // copies of them are stored as "product-…" in the household folder.
-              if (photo != null && photo.contains('/product-'))
-                Positioned(
-                  right: 16,
-                  top: 68,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0x99000000),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text('Photo: Open Food Facts',
-                        style: t.bodySmall.copyWith(
-                            color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                  ),
-                ),
-              Positioned(
-                left: 20,
-                right: 20,
-                bottom: 20,
+          return Padding(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (pill != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _pill(t, pill, size: 14),
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                            color: _border,
+                            borderRadius: BorderRadius.circular(999)),
                       ),
-                    Text(name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.headlineMedium.copyWith(
-                            color: Colors.white,
-                            fontSize: 30,
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Filters',
+                        style: t.headlineSmall.copyWith(
+                            fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            height: 1.1)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // The date that matters, and where it came from.
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: _sage,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14)),
-                      child: const Icon(Icons.calendar_today_outlined,
-                          color: _forest, size: 22),
+                            color: _ink)),
+                    const SizedBox(height: 20),
+                    _sheetLabel(t, 'Meal'),
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      for (final e in _meals.entries)
+                        _choice(t, e.value, meal == e.key,
+                            () => set(() => FFAppState().ideasMeal = e.key)),
+                    ]),
+                    const SizedBox(height: 20),
+                    _sheetLabel(t, 'Time'),
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      for (final e in _times.entries)
+                        _choice(t, e.value, minutes == e.key,
+                            () => set(() => FFAppState().ideasMinutes = e.key)),
+                    ]),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(child: _sheetLabel(t, 'Servings')),
+                        _stepper(
+                            Icons.remove,
+                            people > 1,
+                            () => set(
+                                () => FFAppState().ideasServings = people - 1)),
+                        SizedBox(
+                          width: 84,
+                          child: Text(
+                              people == 1 ? '1 person' : '$people people',
+                              textAlign: TextAlign.center,
+                              style: t.titleSmall.copyWith(color: _ink)),
+                        ),
+                        _stepper(
+                            Icons.add,
+                            people < 8,
+                            () => set(
+                                () => FFAppState().ideasServings = people + 1)),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_field('date'),
-                              style: t.titleMedium.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: _ink)),
-                          const SizedBox(height: 2),
-                          Text(_field('dateSource'),
-                              style: t.bodyMedium
-                                  .copyWith(fontSize: 14, color: _muted)),
-                          if (advice.isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Text(advice,
-                                style: t.bodyMedium.copyWith(
-                                    fontSize: 15,
-                                    color: _ink,
-                                    fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 20),
+                    _goals(t, set),
+                    const SizedBox(height: 20),
+                    _sheetLabel(t, 'Leave out'),
+                    TextField(
+                      controller: leaveOut,
+                      style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. mushrooms, nuts',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: _border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: _border),
+                        ),
+                      ),
+                      onChanged: (v) => FFAppState()
+                          .update(() => FFAppState().ideasLeaveOut = v),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () {
+                        Navigator.of(sheet).pop();
+                        context.pushNamed('FoodPreferencesPage');
+                      },
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 56),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: _border),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.no_food_outlined,
+                                color: _forest, size: 22),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Diet & allergies',
+                                      style: t.bodyLarge.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: _ink)),
+                                  Text(
+                                    avoid.isEmpty
+                                        ? 'None saved'
+                                        : 'Always left out: $avoid',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: t.bodySmall
+                                        .copyWith(color: _muted, fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: _muted),
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              // The other facts, as rows in one card.
-              if (rows.isNotEmpty)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _border),
-                  ),
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < rows.length; i++) ...[
-                        if (i > 0)
-                          const Divider(
-                              height: 1,
-                              thickness: 1,
-                              indent: 52,
-                              color: _border),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(rows[i].$1, color: _forest, size: 20),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(rows[i].$2,
-                                        style: t.bodySmall.copyWith(
-                                            fontSize: 13,
-                                            color: _muted,
-                                            fontWeight: FontWeight.w600)),
-                                    const SizedBox(height: 2),
-                                    Text(rows[i].$3,
-                                        style: t.bodyLarge.copyWith(
-                                            fontSize: 16, color: _ink)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 24),
-              // When it is gone, put it on the list.
-              Semantics(
-                toggled: _replace,
-                label: 'Put it on the shopping list',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () => setState(() => _replace = !_replace),
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 52),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: _replace ? _forest : _border),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                            _replace
-                                ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
-                            color: _replace ? _forest : _muted,
-                            size: 22),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text('Put it on the shopping list',
-                              style: t.bodyLarge.copyWith(
-                                  fontSize: 16,
-                                  color: _ink,
-                                  fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
+                    const SizedBox(height: 20),
+                    SizedBox(
                       height: 52,
-                      child: FilledButton.icon(
+                      child: FilledButton(
                         style: FilledButton.styleFrom(
                           backgroundColor: _forest,
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: _forest.withOpacity(0.5),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14)),
                         ),
-                        onPressed: _busy ? null : () => _settle('consumed'),
-                        icon: const Icon(Icons.check, size: 20),
-                        label: Text('I used it',
+                        onPressed: () {
+                          Navigator.of(sheet).pop();
+                          _ask();
+                        },
+                        child: Text('Show ideas',
                             style: t.bodyLarge.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700)),
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+      },
+    ).whenComplete(leaveOut.dispose);
+  }
+
+  // Off by default: people who only want to waste less never see calories.
+  Widget _goals(FlutterFlowTheme t, void Function(void Function()) set) {
+    final s = FFAppState();
+    final range =
+        _calorieRanges.containsKey(s.ideasCalories) ? s.ideasCalories : '';
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 10, 10, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: s.ideasGoals ? _forest : _border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.track_changes, color: _forest, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Fits my goals',
+                        style: t.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700, color: _ink)),
+                    Text('Calories and protein on each idea, estimated',
+                        style: t.bodySmall
+                            .copyWith(color: _muted, fontSize: 14)),
+                  ],
+                ),
+              ),
+              Switch(
+                value: s.ideasGoals,
+                activeTrackColor: _forest,
+                onChanged: (v) => set(() => FFAppState().ideasGoals = v),
+              ),
+            ],
+          ),
+          if (s.ideasGoals) ...[
+            const SizedBox(height: 14),
+            _sheetLabel(t, 'Calories per serving'),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final e in _calorieRanges.entries)
+                _choice(t, e.value, range == e.key,
+                    () => set(() => FFAppState().ideasCalories = e.key)),
+            ]),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                _choice(
+                    t,
+                    'High protein',
+                    s.ideasHighProtein,
+                    () => set(() => FFAppState().ideasHighProtein =
+                        !FFAppState().ideasHighProtein)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text('At least 25 g a serving; 15 g for breakfasts and snacks.',
+                style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Small, quiet badges: the photo stays first.
+  Widget _badges(FlutterFlowTheme t, MealIdeaStruct idea) {
+    Widget badge(String text) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+          decoration: BoxDecoration(
+            color: const Color(0xE6FFFFFF),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(text,
+              style: t.bodySmall.copyWith(
+                  color: _forest, fontWeight: FontWeight.w800, fontSize: 12)),
+        );
+    return Wrap(spacing: 6, runSpacing: 6, children: [
+      if (idea.calories > 0) badge('${idea.calories} kcal'),
+      if (idea.protein > 0) badge('${idea.protein} g protein'),
+    ]);
+  }
+
+  Widget _sheetLabel(FlutterFlowTheme t, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text,
+            style: t.bodyMedium.copyWith(
+                color: _muted, fontWeight: FontWeight.w700, fontSize: 14)),
+      );
+
+  Widget _choice(
+          FlutterFlowTheme t, String label, bool on, VoidCallback onTap) =>
+      Semantics(
+        button: true,
+        selected: on,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: on ? _forest : Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: on ? _forest : _border),
+            ),
+            child: Text(label,
+                style: t.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: on ? Colors.white : _ink)),
+          ),
+        ),
+      );
+
+  Widget _stepper(IconData icon, bool enabled, VoidCallback onTap) => Opacity(
+        opacity: enabled ? 1 : 0.4,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: enabled ? onTap : null,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: _border),
+            ),
+            child: Icon(icon, color: _forest, size: 20),
+          ),
+        ),
+      );
+
+  // ---- states --------------------------------------------------------------
+
+  Widget _invitation(FlutterFlowTheme t) {
+    final empty = _hasFood == false;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        height: 250,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Illustrative ingredients, not a recipe result.
+            Image.network(
+              '$_food/spinach.webp',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(color: _sage),
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x00000000), Color(0xC0000000)],
+                  stops: [0.3, 1],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    empty
+                        ? 'Ideas come from your food'
+                        : 'Ideas from your food',
+                    style: t.headlineSmall.copyWith(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _ink,
-                          side: const BorderSide(color: _border),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                        ),
-                        onPressed: _busy ? null : () => _settle('discarded'),
-                        icon: const Icon(Icons.delete_outline, size: 20),
-                        label: Text('Throw it out',
-                            style: t.bodyLarge.copyWith(
-                                color: _ink, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 48,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _forest,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                       ),
+                      onPressed: empty
+                          ? () async {
+                              await clearShelfScan();
+                              if (mounted) context.pushNamed('MapReviewPage');
+                            }
+                          : _ask,
+                      icon: Icon(
+                          empty ? Icons.add : Icons.auto_awesome_outlined,
+                          size: 20),
+                      label: Text(empty ? 'Add food' : 'Find ideas',
+                          style: t.bodyLarge.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              Center(
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      foregroundColor: _forest),
-                  onPressed: _busy ? null : _edit,
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: Text('Edit details',
-                      style: t.bodyLarge.copyWith(
-                          color: _forest, fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _thinking(FlutterFlowTheme t) {
+    Widget block(double h) => Container(
+          height: h,
+          decoration: BoxDecoration(
+              color: _sage, borderRadius: BorderRadius.circular(20)),
+        );
+    return Semantics(
+      label: 'Finding ideas from your kitchen',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          block(220),
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(child: block(128)),
+            const SizedBox(width: 12),
+            Expanded(child: block(128)),
+          ]),
+          const SizedBox(height: 12),
+          Text('Looking through your kitchen…',
+              style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  Widget _results(FlutterFlowTheme t, List<MealIdeaStruct> ideas) {
+    final lead = ideas.first;
+    final rest = ideas.skip(1).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _leadCard(t, lead),
+        if (rest.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 128,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              itemCount: rest.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, i) => _smallCard(t, rest[i], width: 220),
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _ask,
+            style: TextButton.styleFrom(
+                minimumSize: const Size(48, 48), foregroundColor: _forest),
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text('New ideas',
+                style: t.bodyLarge
+                    .copyWith(color: _forest, fontWeight: FontWeight.w700)),
           ),
         ),
       ],
     );
   }
 
-  Widget _skeleton() {
-    Widget block(double h, {double r = 20}) => Container(
-          height: h,
-          decoration: BoxDecoration(
-              color: _sage, borderRadius: BorderRadius.circular(r)),
-        );
-    return Semantics(
-      label: 'Loading this food',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(children: [
-            block(300, r: 0),
-            Positioned(left: 16, top: 16, child: _backButton()),
-          ]),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              block(92),
-              const SizedBox(height: 12),
-              block(220),
-            ]),
-          ),
+  Widget _leadCard(FlutterFlowTheme t, MealIdeaStruct idea) {
+    final photo = _ingredientPhoto(idea);
+    final meta = [
+      if (idea.minutes > 0) '${idea.minutes} min',
+      if (_cue(idea).isNotEmpty) _cue(idea),
+    ].join(' · ');
+    final text = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(idea.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: t.headlineSmall.copyWith(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                height: 1.15)),
+        if (meta.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(meta,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: t.bodyMedium.copyWith(
+                  color: Colors.white.withOpacity(0.9), fontSize: 14)),
         ],
+        if (_goalsOn && _nutrition(idea).isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _badges(t, idea),
+        ],
+      ],
+    );
+    return _tap(
+      label: idea.title,
+      onTap: () => _openIdea(t, idea),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: SizedBox(
+          height: 220,
+          child: photo == null
+              ? Container(
+                  color: _forest,
+                  padding: const EdgeInsets.all(20),
+                  alignment: Alignment.bottomLeft,
+                  child: text,
+                )
+              : Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(photo.url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Container(color: _forest)),
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0x00000000), Color(0xC8000000)],
+                          stops: [0.25, 1],
+                        ),
+                      ),
+                    ),
+                    Positioned(left: 20, right: 20, bottom: 20, child: text),
+                  ],
+                ),
+        ),
       ),
     );
   }
 
-  Widget _message(FlutterFlowTheme t,
-      {required IconData icon,
-      required String title,
-      required String text,
-      required String action,
-      required VoidCallback onAction}) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _backButton(onPhoto: false),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: _sage, borderRadius: BorderRadius.circular(16)),
-                  child: Icon(icon, color: _forest, size: 28),
-                ),
-                const SizedBox(height: 16),
-                Text(title,
-                    style: t.titleLarge.copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: _ink)),
-                const SizedBox(height: 6),
-                Text(text,
-                    style: t.bodyLarge
-                        .copyWith(fontSize: 16, color: _muted, height: 1.4)),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _forest,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
-                    onPressed: onAction,
-                    child: Text(action,
-                        style: t.bodyLarge.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+  Widget _smallCard(FlutterFlowTheme t, MealIdeaStruct idea,
+      {_Kept? kept, required double width}) {
+    final meta = [
+      if (idea.minutes > 0) '${idea.minutes} min',
+      if (_goalsOn && _nutrition(idea).isNotEmpty)
+        _nutrition(idea)
+      else if (kept == null && _cue(idea).isNotEmpty)
+        _cue(idea),
+    ].join(' · ');
+    return _tap(
+      label: idea.title,
+      onTap: () => _openIdea(t, idea, kept: kept),
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: kept == null ? Colors.white : _sage,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: kept == null ? _border : _sage),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(idea.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: t.titleMedium.copyWith(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: _ink,
+                    height: 1.2)),
+            const Spacer(),
+            if (meta.isNotEmpty)
+              Text(meta,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _tap(
+          {required String label,
+          required VoidCallback onTap,
+          required Widget child}) =>
+      Semantics(
+        button: true,
+        label: label,
+        child: GestureDetector(onTap: onTap, child: child),
+      );
+
+  // ---- one idea, in full -----------------------------------------------------
+
+  void _openIdea(FlutterFlowTheme t, MealIdeaStruct idea, {_Kept? kept}) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _cream,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheet) {
+        return StatefulBuilder(builder: (sheet, redraw) {
+          final avoid = [FFAppState().ideasAvoid, FFAppState().ideasLeaveOut]
+              .map((w) => w.trim())
+              .where((w) => w.isNotEmpty)
+              .join(', ');
+          final meta = [
+            if (idea.minutes > 0) '${idea.minutes} min',
+            if (idea.servings > 0) 'Serves ${idea.servings}',
+          ].join(' · ');
+          final listed = _listed.contains(_same(idea.title));
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(sheet).size.height * 0.88),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                            color: _border,
+                            borderRadius: BorderRadius.circular(999)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(idea.title,
+                        style: t.headlineSmall.copyWith(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: _ink,
+                            height: 1.15)),
+                    if (meta.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(meta,
+                          style: t.bodyMedium
+                              .copyWith(color: _muted, fontSize: 14)),
+                    ],
+                    if (_goalsOn && idea.calories > 0) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: _sage,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                for (final n in [
+                                  ('${idea.calories}', 'kcal a serving'),
+                                  if (idea.protein > 0)
+                                    ('${idea.protein} g', 'protein a serving'),
+                                ])
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(n.$1,
+                                            style: t.headlineSmall.copyWith(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.w800,
+                                                color: _forest)),
+                                        Text(n.$2,
+                                            style: t.bodySmall.copyWith(
+                                                color: _muted, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Estimated from typical amounts of these ingredients, not measured. A guide only, not diet or medical advice.',
+                              style: t.bodySmall.copyWith(
+                                  color: _ink, fontSize: 13, height: 1.35),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    _section(t, kept == null ? 'From your kitchen' : 'Uses'),
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      for (final u in idea.uses) _pill(t, u, _sage, _forest),
+                    ]),
+                    if (kept == null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Only food that is not past its use-by or best-before date.',
+                        style:
+                            t.bodySmall.copyWith(color: _muted, fontSize: 13),
+                      ),
+                    ],
+                    if (idea.extras.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      _section(t, 'You would also need'),
+                      Wrap(spacing: 8, runSpacing: 8, children: [
+                        for (final e in idea.extras)
+                          _pill(t, e, Colors.white, _ink),
+                      ]),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 48),
+                              foregroundColor: _forest),
+                          onPressed: listed
+                              ? null
+                              : () async {
+                                  final said = await _addExtras(idea);
+                                  if (!mounted) return;
+                                  if (said.isEmpty) {
+                                    _listed.add(_same(idea.title));
+                                    redraw(() {});
+                                    _say('Added to your shopping list.');
+                                  } else {
+                                    _say(said);
+                                  }
+                                },
+                          icon: Icon(
+                              listed ? Icons.check : Icons.add_shopping_cart,
+                              size: 18),
+                          label: Text(
+                              listed
+                                  ? 'On your shopping list'
+                                  : 'Add to shopping list',
+                              style: t.bodyLarge.copyWith(
+                                  color: listed ? _muted : _forest,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ],
+                    if (idea.steps.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      _section(t, 'Steps'),
+                      for (var i = 0; i < idea.steps.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: const BoxDecoration(
+                                    color: _forest, shape: BoxShape.circle),
+                                child: Text('${i + 1}',
+                                    style: t.bodySmall.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(idea.steps[i],
+                                    style: t.bodyLarge.copyWith(
+                                        fontSize: 16,
+                                        color: _ink,
+                                        height: 1.45)),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _border),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline,
+                              color: _forest, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              avoid.isEmpty
+                                  ? 'Not checked for allergies or diets. Read the label on anything you cook with.'
+                                  : 'Left out for you: $avoid. Not a medical check: read the label on anything you cook with.',
+                              style: t.bodyMedium.copyWith(
+                                  color: _ink, fontSize: 14, height: 1.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 52,
+                      child: kept != null
+                          ? OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _forest,
+                                side: const BorderSide(color: _border),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: () {
+                                Navigator.of(sheet).pop();
+                                _remove(kept);
+                              },
+                              icon: const Icon(Icons.close, size: 18),
+                              label: Text('Remove from kept ideas',
+                                  style: t.bodyLarge.copyWith(
+                                      color: _forest,
+                                      fontWeight: FontWeight.w700)),
+                            )
+                          : FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: _forest,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: _leaf.withOpacity(0.5),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: _isKept(idea)
+                                  ? null
+                                  : () async {
+                                      await _keep(idea);
+                                      redraw(() {});
+                                    },
+                              icon: Icon(
+                                  _isKept(idea)
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                  size: 20),
+                              label: Text(
+                                  _isKept(idea) ? 'Kept' : 'Keep this idea',
+                                  style: t.bodyLarge.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  Widget _section(FlutterFlowTheme t, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text(text,
+            style: t.titleMedium.copyWith(
+                fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
+      );
+
+  Widget _pill(FlutterFlowTheme t, String text, Color bg, Color fg) =>
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: bg == Colors.white ? _border : bg),
+        ),
+        child: Text(text,
+            style: t.bodyMedium.copyWith(
+                color: fg, fontWeight: FontWeight.w600, fontSize: 14)),
+      );
 }
 ''';

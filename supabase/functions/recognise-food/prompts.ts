@@ -60,6 +60,9 @@ extras: anything else it needs that is not on the list. Assume only salt,
 pepper, cooking oil and water are at hand, and do not list those.
 steps: 3 to 6 short steps in plain words.
 minutes: roughly how long it takes, start to finish.
+calories: an honest estimate of the energy in ONE serving, in kcal, from typical
+amounts of every ingredient the steps use, cooking oil included.
+protein: an honest estimate of the grams of protein in ONE serving.
 Do NOT say whether any food is fresh, safe, spoiled or still good to eat, and
 do not give food safety, storage or health advice.
 Do NOT say a dish suits any diet, allergy or health need.
@@ -146,8 +149,10 @@ export const IDEAS_SCHEMA = {
           extras: WORDS,
           steps: WORDS,
           minutes: { type: "INTEGER" },
+          calories: { type: "INTEGER" },
+          protein: { type: "INTEGER" },
         },
-        required: ["title", "uses", "extras", "steps", "minutes"],
+        required: ["title", "uses", "extras", "steps", "minutes", "calories", "protein"],
       },
     },
   },

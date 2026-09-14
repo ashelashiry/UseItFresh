@@ -46,19 +46,35 @@ export const SOON = ["use_today", "use_soon"];
 export const MEALS = ["breakfast", "lunch", "dinner", "snack"];
 export const TIMES = [15, 30, 60];
 
+// "Fits my goals" (a Plus feature): calories per serving, as a range the
+// Recipes screen offers, and high protein. Every number is the model's
+// estimate from typical amounts, and is shown and worded as one.
+export const CALORIES: Record<string, [number, number]> = {
+  under400: [0, 400],
+  "400to600": [400, 600],
+  "600to800": [600, 800],
+};
+// Grams of protein a serving must reach to count as high protein. Breakfasts
+// and snacks are smaller, so their bar is lower.
+export function proteinFloor(meal: string): number {
+  return meal === "breakfast" || meal === "snack" ? 15 : 25;
+}
+
 export type Choices = {
   meal: string; // "" for any
   minutes: number; // 0 for any
   servings: number;
   leaveOut: string[]; // stems, lower case
   kitchenOnly: boolean; // "Use my food": nothing beyond the kitchen and the basics
+  calories: string; // a CALORIES key, or "" for any
+  highProtein: boolean;
 };
 
 // Which copy of this file is deployed. Every reply carries it, the signed-out
 // one included, so a single unauthenticated call says whether a paste landed:
 //   curl -s -X POST <project>/functions/v1/recognise-food
 // Raise it with every change: date, then a count for that day.
-export const VERSION = "2026-09-14.1";
+export const VERSION = "2026-09-14.2";
 
 export function reply(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify({ ...body, version: VERSION }), {
@@ -119,5 +135,7 @@ export function readChoices(input: Record<string, unknown>): Choices {
     .slice(0, 10)
     .map(stem);
   const kitchenOnly = input.kitchenOnly === true;
-  return { meal, minutes, servings, leaveOut, kitchenOnly };
+  const calories = String(input.calories ?? "") in CALORIES ? String(input.calories) : "";
+  const highProtein = input.highProtein === true;
+  return { meal, minutes, servings, leaveOut, kitchenOnly, calories, highProtein };
 }
