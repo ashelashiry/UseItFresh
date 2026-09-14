@@ -486,6 +486,16 @@ const JOURNEYS = [
       ["22.8", "On the second person's phone, Profile → Receipts.", "The same receipt.", 1],
       ["22.9", "Open the receipt → «Delete this receipt» → «Delete».", "«Receipt deleted. The food is still in your kitchen.» Your kitchen still has the food.", 1],
     ]},
+  { n:23, t:"Planning on a budget", w:"Recipes → Plan my week", tag:"core", isNew:1,
+    why:"A weekly budget for the household, and what the planned meals should cost to buy, from the prices on your receipts. Always «about».",
+    s:[
+      ["23.1", "Open Plan my week and scroll to the bottom.", "Under «Shopping for the week», a «Budget» card with «Set a weekly budget».", 1],
+      ["23.2", "Tap «Set a weekly budget». Type 150. If it lists «Prices we don’t know yet», type a price for one of them. «Save».", "«Budget saved.» The card reads «About $… to buy for the planned meals, of $150 a week.» with a bar.", 1],
+      ["23.3", "Read the small print on the card.", "It says how much receipts show was spent in the last 7 days (after journey 22), how many things have no price yet, and «Estimated from the last prices you paid. Prices change.»", 1],
+      ["23.4", "Add a meal to a day. Look at the ideas in the list.", "Ideas that need things with known prices say «about $… to buy».", 1],
+      ["23.5", "Plan enough meals that the estimate plus recent spending passes the budget.", "The bar turns orange and the card says how much over, suggesting a meal that uses only your food.", 1],
+      ["23.6", "On the second person's phone, open Plan my week.", "The same budget.", 1],
+    ]},
 ];
 
 const STATES = [["works","✓","Works"],["problem","✕","Problem"],["skipped","–","Skip"]];
