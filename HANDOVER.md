@@ -641,6 +641,23 @@ directly holds a file lock that makes `flutterflow ai run` fail with
    6 components, 6 custom widgets and 18 functions nothing used were removed,
    including `foodImage`/`itemPhoto` with their category-photo fallback. The
    sign-in screens already met v4 and were left alone.
+
+   Later on 14 Sep, same branch, from the owner's phone feedback on build 9:
+   every back button forest; bold time pills from `days_left` (red ≤2 days
+   or past use-by, orange 3–7 or past best-before, green 8+, blue Frozen with
+   no countdown) in HomeKitchen, InventoryKitchen, FoodDetail and UseSoonList;
+   `ScanLineEditor` (name, how many, category, Kept in) on "Fix this line.";
+   the in-app camera `CameraPage`/`SmartCamera` (camera ^0.11.2) with Shelf /
+   Receipt / Barcode / Type it, gallery and flash, opened by the Scan tab and
+   every photo entry point, reading through `ReadShelfShot` / `ReadReceiptShot`
+   (the picker actions now wrap these); reminders as one note a day opening
+   `UseSoonPage` (`openUseSoon` flag, handled by Home and Inventory);
+   `ShoppingListLive` (realtime on shopping_list_items, Buy again? from what
+   was used up or thrown out in 21 days); `StorageLocationsLive` (this
+   household only — the old list reloaded unfiltered after a delete — counts,
+   confirm before removing); `WasteChart` (six months, used v thrown, colours
+   validated). Custom actions are exported by name only (`show`), so a helper
+   one action needs from another must be copied, not shared.
 1. `design/Chat GPT/Use-It-Fresh-Visual-v3/` — Photographic
    direction: BUILD-GUIDE.md, tokens.json, the six food photographs, the logo.
 2. `design/Chat GPT/Use-It-Fresh-Kitchen-Icons/` — the icon set, with
