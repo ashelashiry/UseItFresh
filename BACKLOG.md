@@ -5,6 +5,22 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 
 ## In flight
 
+- **On main for build 13 (14 Sep), not yet on a phone:**
+  - Add, change or remove a food's photo on its screen.
+  - Recipes for your goals: "Fits my goals" chip, calories per serving and
+    high protein in Filters, estimated badges. Needs photo function
+    `2026-09-14.2` (shared.ts, prompts.ts, ideas.ts pasted into Supabase).
+  - Plan my week, Cook once eat twice, "I ate this": PlanWeekPage, "Add to my
+    week" on ideas. Needs migration 7
+    (`supabase/migrations/20260914180000_meal_plans.sql`) run in Supabase.
+  - Test round journeys 18 (goals), 19 (week), 20 (I ate this), steps 5.2c–e.
+- **Build 12** — deployed 14 Sep (shelf-photo pictures, Open Food Facts credit,
+  export compliance). Snapshot `build-12-ios`. Owner to check 3.14b, 5.2b.
+- **Next:** your day's progress (a daily calorie and protein target, from
+  meals marked eaten); then receipt items matched to product photos.
+- **Before any of it can be paid:** a subscription (RevenueCat), App Store
+  products, and the Plus price. Today these features are open to everyone.
+
 - **Build 11** — built from main on 14 Sep, carrying everything from 13–14 Sep
   (design v4 screens, in-app camera, Use soon reminders, live shopping list,
   Storage, What you used chart, Reminders and Household fixes). Owner to test on
