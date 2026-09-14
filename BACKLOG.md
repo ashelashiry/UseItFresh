@@ -5,6 +5,29 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 
 ## In flight
 
+- **Hybrid design (owner's brief, 15 Sep; `design/hybrid/`).** Done on main,
+  snapshot `hybrid-main-screens-15sep`:
+  - Trust: date badges always say their basis (use-by, best-before, opened,
+    estimate, not recorded); "5 items" plurals; pictures match the food's form
+    (no fresh tomatoes for a can, no cooked meal for dry pasta); Home and
+    Inventory count "use soon" with one rule.
+  - Blurred food background on most pages; sculpted cream cards; forest
+    gradient buttons.
+  - New Home, Inventory, Recipes and food screen (Use some with quantity,
+    Add to shopping list as its own button, More details, Throw out apart and
+    confirmed).
+  - Owner to run migration 9 (`20260915090000_no_short_estimate_in_pantry.sql`):
+    no invented 1-day estimate for canned food in the pantry.
+- **Hybrid design, still to do:** Add food tiles, camera mode row, Profile
+  header and Edit profile ("Make it yours", Metric/Imperial), Use soon rows
+  with Find meals, Shopping list compact add, Receipts empty state with Scan
+  a receipt, What you used calm summary, background on the remaining 10
+  pages (FlutterFlow rate-limited the patches), bottom navigation styling.
+- **From the brief, backlog only (proposals, not to build yet):** H01
+  "Planning to use" (household reservations), H02 plan notifications, H03
+  coordinated planning (Plus), the proposed free/Plus split, duplicate-entry
+  review, partial-use history, location deletion reassigning food.
+
 - **Every listed feature built on main (14 Sep, later), each backed up with a
   git tag and FlutterFlow branch of the same name:** Your day
   (`feat-your-day-14sep`), receipt history (`feat-receipt-history-14sep`),
