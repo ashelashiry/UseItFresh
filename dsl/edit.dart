@@ -157,100 +157,73 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Big thing 3, step 2 of 2: the live shopping list.
+/// Big thing 4, Storage, step 2 of 2: StorageLocationsLive.
 ///
-/// ShoppingListLive does what the page did — add, tick into the basket,
-/// remove, put the basket in the kitchen, with the same words — and adds:
-///
-///  * live: a change anyone in the household makes shows at once (Supabase
-///    realtime on shopping_list_items, already in the publication);
-///  * Buy again?: foods used up or thrown out in the last three weeks and not
-///    already on the list, one tap each.
+/// This household's places only, with how many foods each holds; a loading
+/// placeholder instead of a blank moment; removing a place asks first and says
+/// what happens to the food kept there; adding a place keeps the same words
+/// ("Add location", "Location added.").
 void buildStarterEditFlow(App app) {
   app.customWidget(
-    'ShoppingListLive',
+    'StorageLocationsLive',
     parameters: {},
     description:
-        'The household shopping list, live for everyone: add, tick, remove, '
-        'put the basket in the kitchen, and buy again what ran out.',
-    code: _shoppingListLive,
+        "This household's storage places, with food counts; add one, or remove "
+        'one after confirming.',
+    code: _storageLocationsLive,
   );
 
-  final shop = ff.Pages.shoppingListPage;
-  app.editPage(shop, (page) {
+  final storage = ff.Pages.storageLocationsPage;
+  app.editPage(storage, (page) {
     page.ensureInsertedAfter(
-      shop.widgets.byKey('Text_ez7qs242').single, // "Shopping list."
-      CustomWidget(widgetName: 'ShoppingListLive', name: 'ShoppingLive', arguments: {}),
+      storage.widgets.byKey('Text_j2h1yoxh').single, // the intro line
+      CustomWidget(widgetName: 'StorageLocationsLive', name: 'StoragePlaces', arguments: {}),
     );
   });
 }
 
-const _shoppingListLive = r'''
+const _storageLocationsLive = r'''
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// The shopping list, shared and live.
-class ShoppingListLive extends StatefulWidget {
-  const ShoppingListLive({super.key, this.width, this.height});
+/// Where this household keeps food.
+class StorageLocationsLive extends StatefulWidget {
+  const StorageLocationsLive({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<ShoppingListLive> createState() => _ShoppingListLiveState();
+  State<StorageLocationsLive> createState() => _StorageLocationsLiveState();
 }
 
-class _ShoppingListLiveState extends State<ShoppingListLive> {
+class _StorageLocationsLiveState extends State<StorageLocationsLive> {
   static const _forest = Color(0xFF07533A);
   static const _ink = Color(0xFF202C24);
   static const _muted = Color(0xFF59665D);
   static const _sage = Color(0xFFEDF2E8);
   static const _border = Color(0xFFDCE3D7);
 
+  static const _types = <String, String>{
+    'fridge': 'Fridge',
+    'freezer': 'Freezer',
+    'pantry': 'Pantry',
+    'other': 'Somewhere else',
+  };
+
   String _for = '';
-  String _listId = '';
   bool _loading = true;
   bool _offline = false;
   bool _adding = false;
-  bool _basketBusy = false;
-  List<Map<String, dynamic>> _items = const [];
-  List<String> _again = const [];
-  final Set<String> _busy = {};
-  final _field = TextEditingController();
-  RealtimeChannel? _channel;
+  List<Map<String, dynamic>> _places = const [];
+  Map<String, int> _counts = const {};
+  final _name = TextEditingController();
+  String _type = 'other';
 
   @override
   void dispose() {
-    _field.dispose();
-    _unsubscribe();
+    _name.dispose();
     super.dispose();
-  }
-
-  void _unsubscribe() {
-    final c = _channel;
-    _channel = null;
-    if (c != null) SupaFlow.client.removeChannel(c);
-  }
-
-  void _subscribe(String listId) {
-    _unsubscribe();
-    _channel = SupaFlow.client
-        .channel('shopping-$listId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'shopping_list_items',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'shopping_list_id',
-            value: listId,
-          ),
-          callback: (_) {
-            if (mounted) _load(quiet: true);
-          },
-        )
-        .subscribe();
   }
 
   Future<void> _load({bool quiet = false}) async {
@@ -263,64 +236,31 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
       });
     }
     try {
-      if (_listId.isEmpty) {
-        // Creating a household seeds exactly one list, so the oldest is the one.
-        final lists = await SupaFlow.client
-            .from('shopping_lists')
-            .select('id')
-            .eq('household_id', household)
-            .order('created_at')
-            .limit(1);
-        if ((lists as List).isNotEmpty) {
-          _listId = lists.first['id'].toString();
-          _subscribe(_listId);
-        }
-      }
-      var items = <Map<String, dynamic>>[];
-      if (_listId.isNotEmpty) {
-        final rows = await SupaFlow.client
-            .from('shopping_list_items')
-            .select('id, name, is_purchased, created_at')
-            .eq('shopping_list_id', _listId)
-            .order('is_purchased', ascending: true)
-            .order('created_at', ascending: true);
-        items = List<Map<String, dynamic>>.from(rows as List);
-      }
-      // What ran out lately and is not on the list already.
-      var again = <String>[];
-      try {
-        final since =
-            DateTime.now().toUtc().subtract(const Duration(days: 21)).toIso8601String();
-        final gone = await SupaFlow.client
-            .from('food_items')
-            .select('name, archived_at')
-            .eq('household_id', household)
-            .inFilter('status', ['consumed', 'discarded'])
-            .gte('archived_at', since)
-            .order('archived_at', ascending: false)
-            .limit(60);
-        final onList = items.map((i) => (i['name'] ?? '').toString().trim().toLowerCase()).toSet();
-        final seen = <String>{};
-        for (final g in gone as List) {
-          final name = (g['name'] ?? '').toString().trim();
-          final key = name.toLowerCase();
-          if (name.isEmpty || onList.contains(key) || !seen.add(key)) continue;
-          again.add(name);
-          if (again.length >= 8) break;
-        }
-      } catch (_) {
-        // Suggestions are a nicety; the list still works without them.
+      final rows = await SupaFlow.client
+          .from('storage_locations')
+          .select('id, name, location_type, is_default')
+          .eq('household_id', household)
+          .order('location_type')
+          .order('name');
+      final kept = await SupaFlow.client
+          .from('food_items_status')
+          .select('storage_location_id')
+          .eq('household_id', household);
+      final counts = <String, int>{};
+      for (final k in kept as List) {
+        final id = (k['storage_location_id'] ?? '').toString();
+        if (id.isNotEmpty) counts[id] = (counts[id] ?? 0) + 1;
       }
       if (!mounted || household != _for) return;
       setState(() {
-        _items = items;
-        _again = again;
+        _places = List<Map<String, dynamic>>.from(rows as List);
+        _counts = counts;
         _loading = false;
         _offline = false;
       });
     } catch (_) {
       if (!mounted) return;
-      if (quiet && _items.isNotEmpty) return;
+      if (quiet && _places.isNotEmpty) return;
       setState(() {
         _loading = false;
         _offline = true;
@@ -331,73 +271,73 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
   void _say(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
-  Future<void> _add([String? name]) async {
-    final text = (name ?? _field.text).trim();
-    if (text.isEmpty) {
-      _say('Type something to add first.');
-      return;
-    }
+  Future<void> _add() async {
     if (_adding) return;
     setState(() => _adding = true);
-    final said = await addNameToShoppingList(text);
+    final said = await addStorageLocation(_name.text, _type);
     if (!mounted) return;
     setState(() => _adding = false);
     if (said.isNotEmpty) {
       _say(said);
       return;
     }
-    if (name == null) _field.clear();
+    _name.clear();
+    _say('Location added.');
     _load(quiet: true);
   }
 
-  Future<void> _tick(Map<String, dynamic> item) async {
-    final id = item['id'].toString();
-    if (_busy.contains(id)) return;
-    final now = item['is_purchased'] == true;
-    setState(() {
-      _busy.add(id);
-      item['is_purchased'] = !now;
-    });
+  Future<void> _remove(Map<String, dynamic> place) async {
+    final id = place['id'].toString();
+    final name = (place['name'] ?? '').toString();
+    final n = _counts[id] ?? 0;
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Remove $name?'),
+        content: Text(n == 0
+            ? 'Nothing is kept there at the moment.'
+            : (n == 1
+                ? 'The 1 food kept there stays in your kitchen, with no place recorded.'
+                : 'The $n foods kept there stay in your kitchen, with no place recorded.')),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+            onPressed: () => Navigator.of(dialog).pop(false),
+            child: const Text('Keep it'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                foregroundColor: const Color(0xFFB42318)),
+            onPressed: () => Navigator.of(dialog).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (sure != true || !mounted) return;
     try {
-      await SupaFlow.client
-          .from('shopping_list_items')
-          .update({'is_purchased': !now}).eq('id', id);
+      await SupaFlow.client.from('storage_locations').delete().eq('id', id);
+      _say('$name removed.');
     } catch (_) {
-      if (mounted) {
-        setState(() => item['is_purchased'] = now);
-        _say('Could not update the list. Check your signal and try again.');
-      }
-    } finally {
-      if (mounted) setState(() => _busy.remove(id));
-      _load(quiet: true);
+      _say('Could not remove it. Check your signal and try again.');
     }
-  }
-
-  Future<void> _remove(Map<String, dynamic> item) async {
-    final id = item['id'].toString();
-    if (_busy.contains(id)) return;
-    setState(() => _busy.add(id));
-    try {
-      await SupaFlow.client.from('shopping_list_items').delete().eq('id', id);
-      if (mounted) {
-        setState(() => _items = _items.where((i) => i['id'].toString() != id).toList());
-      }
-    } catch (_) {
-      if (mounted) _say('Could not remove it. Check your signal and try again.');
-    } finally {
-      if (mounted) setState(() => _busy.remove(id));
-      _load(quiet: true);
-    }
-  }
-
-  Future<void> _basket() async {
-    if (_basketBusy) return;
-    setState(() => _basketBusy = true);
-    final said = await addBasketToKitchen();
-    if (!mounted) return;
-    setState(() => _basketBusy = false);
-    _say(said.isEmpty ? 'Added to your kitchen.' : said);
     _load(quiet: true);
+  }
+
+  static IconData _icon(String type) {
+    switch (type) {
+      case 'fridge':
+        return Icons.kitchen_outlined;
+      case 'freezer':
+        return Icons.ac_unit;
+      case 'pantry':
+        return Icons.inventory_2_outlined;
+      default:
+        return Icons.shelves;
+    }
   }
 
   @override
@@ -407,13 +347,44 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
     final household = FFAppState().currentHouseholdId;
     if (household.isNotEmpty && household != _for) {
       _for = household;
-      _listId = '';
-      _unsubscribe();
       WidgetsBinding.instance.addPostFrameCallback((_) => _load());
     }
 
-    final toBuy = _items.where((i) => i['is_purchased'] != true).toList();
-    final inBasket = _items.where((i) => i['is_purchased'] == true).toList();
+    Widget list;
+    if (_loading) {
+      list = Column(children: [
+        for (var i = 0; i < 3; i++) ...[
+          Container(
+            height: 64,
+            decoration:
+                BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(14)),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ]);
+    } else if (_offline) {
+      list = Text('Can’t reach your kitchen. Your places will show when you are back online.',
+          style: t.bodyLarge.copyWith(color: _muted));
+    } else if (_places.isEmpty) {
+      list = Text('No places yet. Add where you keep food below.',
+          style: t.bodyLarge.copyWith(color: _muted));
+    } else {
+      list = Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _border),
+        ),
+        child: Column(
+          children: [
+            for (var i = 0; i < _places.length; i++) ...[
+              if (i > 0) const Divider(height: 1, thickness: 1, indent: 64, color: _border),
+              _row(t, _places[i]),
+            ],
+          ],
+        ),
+      );
+    }
 
     return SizedBox(
       width: widget.width,
@@ -421,49 +392,79 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!_loading && !_offline)
-            Text(
-              toBuy.isEmpty
-                  ? (inBasket.isEmpty ? 'Nothing on it yet' : 'Everything is in the basket')
-                  : '${toBuy.length} to buy${inBasket.isEmpty ? '' : ' · ${inBasket.length} in the basket'}',
-              style: t.bodyLarge.copyWith(color: _muted, fontSize: 16),
-            ),
           const SizedBox(height: 16),
-          // Add a line.
-          Row(
+          list,
+          const SizedBox(height: 28),
+          Text('Add a location',
+              style: t.titleLarge.copyWith(
+                  fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _name,
+            textCapitalization: TextCapitalization.sentences,
+            style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
+            decoration: InputDecoration(
+              labelText: 'Name',
+              hintText: 'Garage freezer, fruit bowl…',
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _forest, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text('Type',
+              style: t.bodyMedium.copyWith(
+                  fontSize: 14, fontWeight: FontWeight.w700, color: _muted)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _field,
-                  textCapitalization: TextCapitalization.sentences,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _add(),
-                  style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-                  decoration: InputDecoration(
-                    labelText: 'Add something',
-                    hintText: 'Milk, bin bags, coffee…',
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _forest, width: 1.5),
+              for (final e in _types.entries)
+                Semantics(
+                  button: true,
+                  selected: _type == e.key,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(999),
+                    onTap: () => setState(() => _type = e.key),
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _type == e.key ? _forest : Colors.white,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: _type == e.key ? _forest : _border),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_icon(e.key),
+                              size: 18, color: _type == e.key ? Colors.white : _forest),
+                          const SizedBox(width: 6),
+                          Text(e.value,
+                              style: t.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: _type == e.key ? Colors.white : _ink)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           SizedBox(
             height: 52,
             child: FilledButton.icon(
@@ -472,202 +473,60 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              onPressed: _adding ? null : () => _add(),
+              onPressed: _adding ? null : _add,
               icon: const Icon(Icons.add, size: 20),
-              label: Text('Add to the list',
+              label: Text('Add location',
                   style: t.bodyLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
             ),
           ),
-          if (_again.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text('Buy again?',
-                style: t.titleLarge.copyWith(
-                    fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
-            const SizedBox(height: 4),
-            Text('Used up or thrown out lately. Tap to add.',
-                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final name in _again)
-                  Semantics(
-                    button: true,
-                    label: 'Add $name to the list',
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(999),
-                      onTap: _adding ? null : () => _add(name),
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 44),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _sage,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.add, size: 16, color: _forest),
-                            const SizedBox(width: 4),
-                            Text(name,
-                                style: t.bodyMedium.copyWith(
-                                    color: _forest, fontWeight: FontWeight.w700)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
           const SizedBox(height: 24),
-          if (_loading)
-            Column(children: [
-              for (var i = 0; i < 3; i++) ...[
-                Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                      color: _sage, borderRadius: BorderRadius.circular(14)),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ])
-          else if (_offline)
-            _note(t, Icons.cloud_off_outlined, 'Can’t reach your list.',
-                'No signal, or the connection dropped. It will show again when you are back online.')
-          else if (_items.isEmpty)
-            _note(t, Icons.shopping_basket_outlined, 'Nothing to buy yet.',
-                'Add what you have run out of, and it will be here when you are at the shops.')
-          else ...[
-            if (toBuy.isNotEmpty) _group(t, toBuy),
-            if (inBasket.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Text('In the basket',
-                  style: t.titleMedium.copyWith(
-                      fontSize: 16, fontWeight: FontWeight.w800, color: _muted)),
-              const SizedBox(height: 8),
-              _group(t, inBasket),
-            ],
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 52,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _forest,
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: _forest),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: _basketBusy ? null : _basket,
-                icon: const Icon(Icons.kitchen_outlined, size: 20),
-                label: Text('Put the basket in my kitchen',
-                    style: t.bodyLarge.copyWith(color: _forest, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(FlutterFlowTheme t, Map<String, dynamic> place) {
+    final id = place['id'].toString();
+    final name = (place['name'] ?? '').toString();
+    final type = (place['location_type'] ?? '').toString();
+    final n = _counts[id] ?? 0;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 64),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration:
+                  BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(12)),
+              child: Icon(_icon(type), color: _forest, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
+                      style: t.bodyLarge.copyWith(
+                          fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
+                  Text(
+                    '${_types[type] ?? 'Somewhere else'} · ${n == 1 ? '1 food' : '$n foods'}',
+                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13),
+                  ),
+                ],
               ),
             ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _group(FlutterFlowTheme t, List<Map<String, dynamic>> items) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _border),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) const Divider(height: 1, thickness: 1, indent: 56, color: _border),
-            _line(t, items[i]),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _line(FlutterFlowTheme t, Map<String, dynamic> item) {
-    final done = item['is_purchased'] == true;
-    final name = (item['name'] ?? '').toString();
-    return Semantics(
-      checked: done,
-      label: name,
-      child: InkWell(
-        onTap: () => _tick(item),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 56),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
-            child: Row(
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(
-                    done ? Icons.check_circle : Icons.radio_button_unchecked,
-                    key: ValueKey(done),
-                    color: done ? _forest : _muted,
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(name,
-                      style: t.bodyLarge.copyWith(
-                        fontSize: 16,
-                        color: done ? _muted : _ink,
-                        fontWeight: done ? FontWeight.w400 : FontWeight.w600,
-                        decoration: done ? TextDecoration.lineThrough : null,
-                      )),
-                ),
-                IconButton(
-                  tooltip: 'Remove $name',
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  onPressed: () => _remove(item),
-                  icon: const Icon(Icons.close, color: _muted, size: 20),
-                ),
-              ],
+            IconButton(
+              tooltip: 'Remove $name',
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onPressed: () => _remove(place),
+              icon: const Icon(Icons.delete_outline, color: _muted),
             ),
-          ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _note(FlutterFlowTheme t, IconData icon, String title, String text) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(14)),
-            child: Icon(icon, color: _forest),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: t.titleMedium.copyWith(
-                        fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
-                const SizedBox(height: 4),
-                Text(text, style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
