@@ -496,6 +496,18 @@ const JOURNEYS = [
       ["23.5", "Plan enough meals that the estimate plus recent spending passes the budget.", "The bar turns orange and the card says how much over, suggesting a meal that uses only your food.", 1],
       ["23.6", "On the second person's phone, open Plan my week.", "The same budget.", 1],
     ]},
+  { n:24, t:"Cooking for the household", w:"Recipes → Plan my week", tag:"core", isNew:1,
+    why:"Everyone who eats at home, children without the app too, with their portion sizes and allergies. Meals know who is eating them.",
+    s:[
+      ["24.1", "Open Plan my week.", "A «Who eats at home» row above the days, listing everyone in your household by name.", 1],
+      ["24.2", "Tap it. Under «Add someone without the app», type Mia and «Add».", "Mia appears with portion choices and a box for allergies.", 1],
+      ["24.3", "Give Mia «Small portion», and type eggs in her allergy box, then press return.", "«Small portion» is picked, and her allergy is kept when you close and reopen the sheet.", 1],
+      ["24.4", "For yourself, look at the allergy line.", "It shows what your own «Diet & allergies» profile says, marked «from their profile».", 1],
+      ["24.5", "Open a planned meal. Under «Who’s eating», tap yourself and Mia.", "Both are picked. The meal now serves 2 (1 + ½, rounded up), and its row says «for …, Mia (small)».", 1],
+      ["24.6", "Plan a meal with eggs in it for a day, then open it with Mia eating.", "A red note: «Mia avoids eggs. Check the ingredients before cooking; this is not a medical check.» The row says «⚠ check allergies».", 1],
+      ["24.7", "Add a meal and tap «Find new ideas».", "None of the new ideas use eggs.", 1],
+      ["24.8", "Remove Mia with the ✕ in «Who eats at home».", "She is gone from the list and from meals she was eating.", 1],
+    ]},
 ];
 
 const STATES = [["works","✓","Works"],["problem","✕","Problem"],["skipped","–","Skip"]];

@@ -157,18 +157,20 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Paid feature: Budget meal planning (owner, 14 Sep: "choose meals around a
-/// weekly budget, using receipt or entered prices where available").
+/// Paid feature: Household meal planning (owner, 14 Sep: "shared meals with
+/// different serving sizes and individual preferences").
 ///
-/// On Plan my week: a Budget card under the week's shopping — about what the
-/// planned meals still cost to buy, from the last price paid for each thing
-/// (receipts, or typed), against the household's weekly budget, with what
-/// receipts say was spent in the last seven days. Missing prices are counted
-/// and can be typed in. When adding a meal, each idea says about what its
-/// missing things cost. Needs migration 8 (household_budgets, known_prices).
+/// Plan my week gets "Who eats at home": everyone in the household (names and
+/// allergies from their profiles) and people without the app, like children,
+/// each with a small, regular or large portion. A planned meal says who is
+/// eating; its servings add up from their portions. A meal that mentions
+/// something one of them avoids is flagged. Meal ideas leave out everyone's
+/// allergies (ideasHouseholdAvoid). Needs migration 8.
 void buildStarterEditFlow(App app) {
+  app.state('ideasHouseholdAvoid', string, persisted: true);
   app.raw((project) {
     updateCustomWidget(project, name: 'WeekPlan', code: _weekPlan);
+    updateCustomAction(project, name: 'GetMealIdeas', code: _getMealIdeas);
   });
 }
 
@@ -190,6 +192,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// meal is logged for this person only, and the foods it used up leave the
 /// kitchen — each one can be unticked first, and all of it can be undone.
 /// Planned and eaten are kept in separate tables and never mixed.
+///
+/// Household planning (a Plus feature): who eats at home — everyone in the
+/// household, and people without the app such as children — each with a
+/// portion size and their allergies. Each planned meal says who is eating, its
+/// servings add up from their portions, and a meal that mentions something one
+/// of them avoids says so. Ideas found here leave out everyone's allergies.
 ///
 /// Budget (a Plus feature): a weekly amount for the household, what the
 /// week's shopping should cost from the last prices paid (receipts, or typed),
@@ -291,6 +299,10 @@ class _WeekPlanState extends State<WeekPlan> {
   final Map<String, double> _prices = {};
   double _spent = 0;
   bool _budgetReady = true;
+  // Household planning: who eats at home, and who eats each planned meal.
+  List<Map> _diners = const [];
+  final Map<String, Map<String, double>> _plates = {};
+  bool _dinersReady = true;
 
   static DateTime get _today {
     final n = DateTime.now();
@@ -365,6 +377,7 @@ class _WeekPlanState extends State<WeekPlan> {
       });
       _loadDay();
       _loadBudget();
+      _loadDiners(seed: true);
     } on PostgrestException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -842,7 +855,8 @@ class _WeekPlanState extends State<WeekPlan> {
       var spent = 0.0;
       for (final r in receipts as List) {
         final m = r as Map;
-        if (m['total_amount'] is num) spent += (m['total_amount'] as num).toDouble();
+        if (m['total_amount'] is num)
+          spent += (m['total_amount'] as num).toDouble();
       }
       setState(() {
         _budget = budget?['weekly_amount'] is num
@@ -1077,8 +1091,8 @@ class _WeekPlanState extends State<WeekPlan> {
                     minimumSize: const Size(48, 44), foregroundColor: _forest),
                 onPressed: () => _openBudget(t, needed),
                 child: Text(budget == null ? 'Set a weekly budget' : 'Change',
-                    style: t.bodyMedium.copyWith(
-                        color: _forest, fontWeight: FontWeight.w700)),
+                    style: t.bodyMedium
+                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -1092,7 +1106,9 @@ class _WeekPlanState extends State<WeekPlan> {
                         ? 'The planned meals need nothing to buy.'
                         : 'About ${_money(cost)} to buy for the planned meals${budget == null ? '' : ', of ${_money(budget)} a week'}.',
                     style: t.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w700, color: _ink, fontSize: 16)),
+                        fontWeight: FontWeight.w700,
+                        color: _ink,
+                        fontSize: 16)),
                 if (budget != null && budget > 0) ...[
                   const SizedBox(height: 8),
                   ClipRRect(
@@ -1124,6 +1140,361 @@ class _WeekPlanState extends State<WeekPlan> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  static List<String> _words(Object? v) => v is List
+      ? [
+          for (final x in v)
+            if ('$x'.trim().isNotEmpty) '$x'.trim()
+        ]
+      : <String>[];
+
+  static String _stem(String w) {
+    final s = w.trim().toLowerCase();
+    if (s.length > 4 && s.endsWith('es')) return s.substring(0, s.length - 2);
+    if (s.length > 3 && s.endsWith('s')) return s.substring(0, s.length - 1);
+    return s;
+  }
+
+  static double _portionOf(Object? v) => v is num ? v.toDouble() : 1;
+
+  static String _portionName(double p) => p <= 0.5
+      ? 'small'
+      : (p >= 1.5 ? 'large' : 'regular');
+
+  Future<void> _loadDiners({bool seed = false}) async {
+    final household = _for;
+    if (household.isEmpty) return;
+    try {
+      if (seed) await _seedMembers(household);
+      final diners = await SupaFlow.client
+          .from('household_diners')
+          .select('id, profile_id, name, default_portion, allergens')
+          .eq('household_id', household)
+          .order('created_at');
+      final ids = [for (final e in _entries) e.id];
+      final plates = ids.isEmpty
+          ? const []
+          : await SupaFlow.client
+              .from('meal_plan_diners')
+              .select('plan_entry_id, diner_id, portions')
+              .inFilter('plan_entry_id', ids);
+      if (!mounted || household != _for) return;
+      final list = [for (final d in diners as List) d as Map];
+      setState(() {
+        _diners = list;
+        _plates.clear();
+        for (final p in plates as List) {
+          final m = p as Map;
+          _plates.putIfAbsent('${m['plan_entry_id']}', () => {})['${m['diner_id']}'] =
+              _portionOf(m['portions']);
+        }
+        _dinersReady = true;
+      });
+      // Ideas found for the household leave out everyone's allergies.
+      final avoid = <String>{
+        for (final d in list) ..._words(d['allergens']).map((a) => a.toLowerCase())
+      }.join(', ');
+      if (FFAppState().ideasHouseholdAvoid != avoid) {
+        FFAppState().update(() => FFAppState().ideasHouseholdAvoid = avoid);
+      }
+    } on PostgrestException {
+      if (mounted) setState(() => _dinersReady = false);
+    } catch (_) {}
+  }
+
+  /// Everyone in the household with an account is someone who eats at home.
+  /// Their name and allergies follow their own profile.
+  Future<void> _seedMembers(String household) async {
+    final members = await SupaFlow.client
+        .from('household_members')
+        .select('profile_id')
+        .eq('household_id', household);
+    final ids = [for (final m in members as List) '${(m as Map)['profile_id']}'];
+    if (ids.isEmpty) return;
+    final profiles = await SupaFlow.client
+        .from('profiles')
+        .select('id, display_name, allergens, dietary_preferences')
+        .inFilter('id', ids);
+    final existing = await SupaFlow.client
+        .from('household_diners')
+        .select('id, profile_id, name, allergens')
+        .eq('household_id', household)
+        .not('profile_id', 'is', null);
+    final byProfile = {
+      for (final d in existing as List) '${(d as Map)['profile_id']}': d
+    };
+    for (final p in profiles as List) {
+      final m = p as Map;
+      final id = '${m['id']}';
+      final name = '${m['display_name'] ?? ''}'.trim();
+      final allergens = _words(m['allergens']);
+      final had = byProfile[id];
+      if (had == null) {
+        await SupaFlow.client.from('household_diners').insert({
+          'household_id': household,
+          'profile_id': id,
+          'name': name.isEmpty ? 'Someone' : name,
+          'allergens': allergens,
+          'dietary_preferences': _words(m['dietary_preferences']),
+          'created_by': SupaFlow.client.auth.currentUser?.id,
+        });
+      } else if (_words(had['allergens']).join(',') != allergens.join(',') ||
+          (name.isNotEmpty && '${had['name']}' != name)) {
+        await SupaFlow.client.from('household_diners').update({
+          if (name.isNotEmpty) 'name': name,
+          'allergens': allergens,
+        }).eq('id', '${had['id']}');
+      }
+    }
+  }
+
+  /// Who eats this meal, by name, or '' when nobody has been chosen.
+  String _eaters(_Entry e) {
+    final plate = _plates[e.id];
+    if (plate == null || plate.isEmpty) return '';
+    return [
+      for (final d in _diners)
+        if (plate.containsKey('${d['id']}'))
+          '${d['name']}${plate['${d['id']}']! <= 0.5 ? ' (small)' : ''}'
+    ].join(', ');
+  }
+
+  /// "Mia avoids eggs" for each eater whose allergy the meal mentions.
+  List<String> _clashes(_Entry e) {
+    final plate = _plates[e.id];
+    final eaters = [
+      for (final d in _diners)
+        if (plate == null || plate.isEmpty || plate.containsKey('${d['id']}')) d
+    ];
+    final text = [e.title, ...e.list('uses'), ...e.list('extras')]
+        .join('\n')
+        .toLowerCase();
+    return [
+      for (final d in eaters)
+        for (final a in _words(d['allergens']))
+          if (_stem(a).length > 1 && text.contains(_stem(a)))
+            '${d['name']} avoids ${a.toLowerCase()}'
+    ];
+  }
+
+  Future<void> _setEater(_Entry e, Map d, bool eating) async {
+    final dinerId = '${d['id']}';
+    try {
+      if (eating) {
+        await SupaFlow.client.from('meal_plan_diners').upsert({
+          'plan_entry_id': e.id,
+          'diner_id': dinerId,
+          'household_id': _for,
+          'portions': _portionOf(d['default_portion']),
+        });
+      } else {
+        await SupaFlow.client
+            .from('meal_plan_diners')
+            .delete()
+            .eq('plan_entry_id', e.id)
+            .eq('diner_id', dinerId);
+      }
+      final plate = Map<String, double>.of(_plates[e.id] ?? {});
+      if (eating) {
+        plate[dinerId] = _portionOf(d['default_portion']);
+      } else {
+        plate.remove(dinerId);
+      }
+      if (plate.isNotEmpty) {
+        final total = plate.values.fold<double>(0, (a, b) => a + b);
+        await SupaFlow.client.from('meal_plan_entries').update(
+            {'servings': total.ceil().clamp(1, 12)}).eq('id', e.id);
+      }
+      await _load(_for, quiet: true);
+    } catch (_) {
+      if (mounted) _say('Could not change who is eating. Check your signal.');
+    }
+  }
+
+  Future<void> _openDiners(FlutterFlowTheme t) async {
+    if (!_dinersReady) {
+      _say('Household planning is almost ready. Try again soon.');
+      return;
+    }
+    final name = TextEditingController();
+    await _sheet<void>((sheet, redraw) {
+      Future<void> change(Future<void> Function() write) async {
+        try {
+          await write();
+          await _loadDiners();
+        } catch (_) {
+          if (mounted) _say('Could not save that. Check your signal.');
+        }
+        try {
+          redraw(() {});
+        } catch (_) {}
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Who eats at home',
+              style: t.headlineSmall.copyWith(
+                  fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 4),
+          Text(
+              'Portions add up to a meal’s servings. Allergies are left out of ideas found for the household.',
+              style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          const SizedBox(height: 16),
+          for (final d in _diners)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('${d['name']}',
+                            style: t.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w700, color: _ink)),
+                      ),
+                      if (d['profile_id'] == null)
+                        IconButton(
+                          tooltip: 'Remove ${d['name']}',
+                          icon: const Icon(Icons.close, color: _muted),
+                          onPressed: () => change(() => SupaFlow.client
+                              .from('household_diners')
+                              .delete()
+                              .eq('id', '${d['id']}')),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    for (final p in const [0.5, 1.0, 1.5])
+                      _choice(
+                          t,
+                          p == 0.5
+                              ? 'Small portion'
+                              : (p == 1.0 ? 'Regular' : 'Large portion'),
+                          _portionName(_portionOf(d['default_portion'])) ==
+                              _portionName(p),
+                          () => change(() => SupaFlow.client
+                              .from('household_diners')
+                              .update({'default_portion': p}).eq(
+                                  'id', '${d['id']}'))),
+                  ]),
+                  const SizedBox(height: 6),
+                  if (d['profile_id'] == null)
+                    TextFormField(
+                      initialValue: _words(d['allergens']).join(', '),
+                      decoration: const InputDecoration(
+                          labelText: 'Allergies or foods to avoid',
+                          hintText: 'e.g. peanuts, eggs'),
+                      onFieldSubmitted: (v) => change(() => SupaFlow.client
+                          .from('household_diners')
+                          .update({
+                        'allergens': [
+                          for (final a in v.split(RegExp(r'[,;\n]')))
+                            if (a.trim().length > 1) a.trim()
+                        ]
+                      }).eq('id', '${d['id']}')),
+                    )
+                  else
+                    Text(
+                        _words(d['allergens']).isEmpty
+                            ? 'No allergies saved in their profile'
+                            : 'Avoids ${_words(d['allergens']).join(', ')} (from their profile)',
+                        style:
+                            t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
+          _label(t, 'Add someone without the app'),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: name,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(hintText: 'Name, e.g. Mia'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: _forest,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(64, 48),
+                ),
+                onPressed: () {
+                  final n = name.text.trim();
+                  if (n.isEmpty) return;
+                  name.clear();
+                  change(() => SupaFlow.client.from('household_diners').insert({
+                        'household_id': _for,
+                        'name': n,
+                        'created_by': SupaFlow.client.auth.currentUser?.id,
+                      }));
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+    name.dispose();
+  }
+
+  Widget _dinersCard(FlutterFlowTheme t) {
+    final names = [
+      for (final d in _diners)
+        '${d['name']}${_portionOf(d['default_portion']) <= 0.5 ? ' (small)' : ''}'
+    ];
+    return Semantics(
+      button: true,
+      label: 'Who eats at home',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _openDiners(t),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _border),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.groups_outlined, color: _forest, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Who eats at home',
+                        style: t.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700, color: _ink)),
+                    Text(names.isEmpty ? 'Add the people you cook for' : names.join(', '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: _muted),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1210,6 +1581,10 @@ class _WeekPlanState extends State<WeekPlan> {
           if (FFAppState().ideasGoals) ...[
             _dayProgress(t),
             const SizedBox(height: 16),
+          ],
+          if (_dinersReady) ...[
+            _dinersCard(t),
+            const SizedBox(height: 12),
           ],
           for (var i = 0; i < 7; i++) ...[
             _dayCard(t, _today.add(Duration(days: i))),
@@ -1335,6 +1710,8 @@ class _WeekPlanState extends State<WeekPlan> {
       if (minutes > 0) '$minutes min',
       'Serves ${e.servings}',
       if (e.extra > 0) '+${e.extra} extra',
+      if (_eaters(e).isNotEmpty) 'for ${_eaters(e)}',
+      if (_clashes(e).isNotEmpty) '⚠ check allergies',
       if (goals && kcal > 0) '$kcal kcal',
     ].join(' · ');
     final done = e.status != 'planned';
@@ -1666,6 +2043,49 @@ class _WeekPlanState extends State<WeekPlan> {
                 'Serves ${e.servings}',
               ].join(' · '),
               style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          if (_clashes(e).isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDE3E0),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                  '${_clashes(e).join('. ')}. Check the ingredients before cooking; this is not a medical check.',
+                  style: t.bodyMedium.copyWith(
+                      color: const Color(0xFFB42318),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+            ),
+          ],
+          if (_diners.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _label(t, 'Who’s eating'),
+            StatefulBuilder(
+              builder: (context, again) => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final d in _diners)
+                    _choice(
+                        t,
+                        '${d['name']}',
+                        _plates[e.id]?.containsKey('${d['id']}') ?? false,
+                        () async {
+                      await _setEater(e, d,
+                          !(_plates[e.id]?.containsKey('${d['id']}') ?? false));
+                      try {
+                        again(() {});
+                      } catch (_) {}
+                    }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text('Servings follow who’s eating and their portions.',
+                style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+          ],
           if (e.status == 'planned') ...[
             const SizedBox(height: 16),
             SizedBox(
@@ -2107,6 +2527,105 @@ class _WeekPlanState extends State<WeekPlan> {
         ],
       ),
     );
+  }
+}
+''';
+
+const _getMealIdeas = r'''
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Asks for meal ideas built from the food in this kitchen, soonest-to-go
+/// first and shaped by the Recipes filters, and keeps them in app state.
+///
+/// What to leave out is two things joined: what was typed into "Leave out",
+/// and what the person's allergies and diet add. "Use my food" asks for ideas
+/// that need nothing beyond the kitchen and the basics. "Fits my goals" sends
+/// the calorie range and high protein, and every idea comes back with its
+/// estimated calories and protein per serving.
+///
+/// Returns '' when there are ideas to show, and otherwise a sentence saying
+/// why not. It only runs on a tap: each ask is a Gemini call.
+Future<String> getMealIdeas() async {
+  const sorry = 'Could not come up with ideas just now. Try again in a minute.';
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one first.';
+  }
+  // A second tap while the first ask is still thinking.
+  if (FFAppState().ideasLoading) return '';
+
+  // Household allergies too (Plan my week → Who eats at home).
+  final leaveOut = [
+    FFAppState().ideasLeaveOut,
+    FFAppState().ideasAvoid,
+    FFAppState().ideasHouseholdAvoid
+  ]
+      .map((w) => w.trim())
+      .where((w) => w.isNotEmpty)
+      .join(', ');
+
+  FFAppState().update(() => FFAppState().ideasLoading = true);
+  try {
+    final res = await SupaFlow.client.functions.invoke(
+      'recognise-food',
+      body: {
+        'mode': 'ideas',
+        'householdId': household,
+        'meal': FFAppState().ideasMeal,
+        'minutes': FFAppState().ideasMinutes,
+        'servings': FFAppState().ideasServings,
+        'leaveOut': leaveOut,
+        'kitchenOnly': FFAppState().ideasKitchenOnly,
+        'calories': FFAppState().ideasGoals ? FFAppState().ideasCalories : '',
+        'highProtein': FFAppState().ideasGoals && FFAppState().ideasHighProtein,
+      },
+    );
+    final data = res.data;
+    if (data is! Map) return sorry;
+    if (data['error'] != null) return data['error'].toString();
+    final raw = data['ideas'] is List ? data['ideas'] as List : const [];
+
+    List<String> words(Object? v) => v is List
+        ? [
+            for (final w in v)
+              if ('$w'.trim().isNotEmpty) '$w'.trim(),
+          ]
+        : <String>[];
+
+    final ideas = <MealIdeaStruct>[];
+    for (final r in raw) {
+      if (r is! Map) continue;
+      final title = (r['title'] ?? '').toString().trim();
+      final uses = words(r['uses']);
+      if (title.isEmpty || uses.isEmpty) continue;
+      ideas.add(MealIdeaStruct(
+        title: title,
+        uses: uses,
+        extras: words(r['extras']),
+        steps: words(r['steps']),
+        minutes: r['minutes'] is num ? (r['minutes'] as num).round() : 0,
+        servings: r['servings'] is num ? (r['servings'] as num).round() : 0,
+        soon: r['soon'] == true,
+        calories: r['calories'] is num ? (r['calories'] as num).round() : 0,
+        protein: r['protein'] is num ? (r['protein'] as num).round() : 0,
+      ));
+    }
+    if (ideas.isEmpty) {
+      final note = (data['note'] ?? '').toString();
+      return note.isNotEmpty ? note : sorry;
+    }
+    FFAppState().update(() => FFAppState().mealIdeas = ideas);
+    return '';
+  } on FunctionException catch (error) {
+    final details = error.details;
+    if (details is Map && details['error'] != null) {
+      return details['error'].toString();
+    }
+    return sorry;
+  } catch (_) {
+    return 'Could not reach your kitchen. Check your signal and try again.';
+  } finally {
+    FFAppState().update(() => FFAppState().ideasLoading = false);
   }
 }
 ''';
