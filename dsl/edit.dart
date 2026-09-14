@@ -157,280 +157,15 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Big thing 1, wired in: every way to photograph food opens the in-app
-/// camera, with its modes on it.
-///
-/// The Scan tab opens it straight away again — the owner's first choice, once
-/// the choices are on the camera — and closing it shows the Scan tiles. The
-/// Receipt and Fridge tiles, Home's Add food and Scan a receipt, and
-/// Inventory's Photograph a shelf open it in the right mode.
+/// Big thing 2, wired in: Home says how many foods need using and opens Use
+/// soon; a tapped reminder opens Use soon from Home or Inventory; Home keeps
+/// the daily notes in step with the kitchen each time it loads.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomWidget(project, name: 'AddOptions', code: _addOptions);
     updateCustomWidget(project, name: 'HomeKitchen', code: _homeKitchen);
     updateCustomWidget(project, name: 'InventoryKitchen', code: _inventoryKitchen);
   });
-  app.editPageOnLoad(ff.Pages.scanAddPage, [
-    CallCustomAction.named(
-      'ClearShelfScan',
-      args: {},
-      returnType: string,
-      arguments: {},
-      outputAs: 'clearedOnScan',
-    ),
-    Navigate(ff.Pages.cameraPage),
-  ]);
 }
-
-const _addOptions = r'''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-/// The four ways to add food, as large tiles, with "Enter manually" beneath.
-///
-/// Each tile does exactly what its row on the old Scan screen did:
-///   Photo    -> the Add food screen, which takes a single-item photo
-///   Barcode  -> the barcode screen
-///   Receipt  -> read a receipt photo, then review it (or say why not)
-///   Fridge   -> a fresh photo map of a shelf
-/// Labels stay next to the icons: icons alone are not enough.
-class AddOptions extends StatefulWidget {
-  const AddOptions({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<AddOptions> createState() => _AddOptionsState();
-}
-
-class _AddOptionsState extends State<AddOptions> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  // The supplied v3 line icons (24px grid, 1.8 stroke), drawn in forest.
-  static const _camera =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h5l2-3h4l2 3h5v15H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>';
-  static const _barcode =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v16m4-16v16m3-16v16m4-16v16m3-16v16m4-16v16"/></svg>';
-  static const _receipt =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 4 2 4-2 3 2V2l-3 2-4-2-4 2zM8 8h8m-8 4h8m-8 4h5"/></svg>';
-
-  // A camera is already opening: a second tap must not open another.
-  bool _busy = false;
-
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await go();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  // The in-app camera, already set to Receipt: it reads the photo and opens
-  // the receipt review itself, or explains why nothing was added.
-  Future<void> _receiptTap() async {
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'receipt'});
-  }
-
-  /// Why a receipt was not read, in the middle of the screen until dismissed.
-  static Future<void> _explainReceipt(BuildContext host, String said) {
-    return showDialog<void>(
-      context: host,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Receipt not added'),
-        content: Text(said),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _fridgeTap() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'shelf'});
-  }
-
-  static Widget _svg(String source) =>
-      SvgPicture.string(source, width: 34, height: 34);
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    return SizedBox(
-      width: widget.width,
-      child: LayoutBuilder(
-        builder: (context, box) {
-          const gap = 12.0;
-          final tileWidth = (box.maxWidth - gap) / 2;
-          final tileHeight = (tileWidth * 0.9).clamp(140.0, 170.0);
-          Widget tile(String label, Widget icon, Future<void> Function() go) =>
-              _Tile(
-                width: tileWidth,
-                height: tileHeight,
-                label: label,
-                icon: icon,
-                enabled: !_busy,
-                onTap: () => _run(go),
-                labelStyle: t.titleMedium.copyWith(
-                    fontSize: 17, fontWeight: FontWeight.w700, color: _ink),
-                sage: _sage,
-                border: _border,
-              );
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  tile('Photo', _svg(_camera), () async {
-                    context.pushNamed('AddFoodItemPage');
-                  }),
-                  const SizedBox(width: gap),
-                  tile('Barcode', _svg(_barcode), () async {
-                    context.pushNamed('BarcodeScanPage');
-                  }),
-                ],
-              ),
-              const SizedBox(height: gap),
-              Row(
-                children: [
-                  tile('Receipt', _svg(_receipt), _receiptTap),
-                  const SizedBox(width: gap),
-                  // Stand-in until a fridge icon in the same line style exists.
-                  tile(
-                      'Fridge',
-                      const Icon(Icons.kitchen_outlined,
-                          size: 34, color: _forest),
-                      _fridgeTap),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: TextButton.icon(
-                  onPressed:
-                      _busy ? null : () => context.pushNamed('AddFoodItemPage'),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    foregroundColor: _forest,
-                  ),
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: Text(
-                    'Enter manually',
-                    style: t.bodyLarge
-                        .copyWith(color: _forest, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// One large tile: an icon well above a short label, the whole card tappable,
-/// with an immediate pressed response (skipped when reduced motion is on).
-class _Tile extends StatefulWidget {
-  const _Tile({
-    required this.width,
-    required this.height,
-    required this.label,
-    required this.icon,
-    required this.enabled,
-    required this.onTap,
-    required this.labelStyle,
-    required this.sage,
-    required this.border,
-  });
-
-  final double width;
-  final double height;
-  final String label;
-  final Widget icon;
-  final bool enabled;
-  final VoidCallback onTap;
-  final TextStyle labelStyle;
-  final Color sage;
-  final Color border;
-
-  @override
-  State<_Tile> createState() => _TileState();
-}
-
-class _TileState extends State<_Tile> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = MediaQuery.of(context).disableAnimations;
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        onTapDown: widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapCancel: () => setState(() => _down = false),
-        onTapUp: (_) => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedScale(
-          scale: (_down && !still) ? 0.97 : 1,
-          duration: const Duration(milliseconds: 150),
-          child: AnimatedOpacity(
-            opacity: widget.enabled ? 1 : 0.6,
-            duration: const Duration(milliseconds: 150),
-            child: Container(
-              width: widget.width,
-              height: widget.height,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: widget.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: widget.sage,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: widget.icon,
-                  ),
-                  const Spacer(),
-                  Text(widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: widget.labelStyle),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-''';
 
 const _homeKitchen = r'''
 import 'package:flutter/material.dart';
@@ -512,6 +247,8 @@ class _HomeKitchenState extends State<HomeKitchen> {
         _kept = kept;
         _loading = false;
       });
+      // Keep the daily reminder notes in step with the kitchen.
+      scheduleExpiryReminders();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -652,6 +389,15 @@ class _HomeKitchenState extends State<HomeKitchen> {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+
+    // A reminder was tapped: open Use soon.
+    if (FFAppState().openUseSoon) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !FFAppState().openUseSoon) return;
+        FFAppState().openUseSoon = false;
+        context.pushNamed('UseSoonPage');
+      });
+    }
     final household = FFAppState().currentHouseholdId;
     // No household: the page's own prompt says what to do.
     if (household.isEmpty) return const SizedBox.shrink();
@@ -939,6 +685,10 @@ class _HomeKitchenState extends State<HomeKitchen> {
       children: [
         Text('Fresh today.', style: title),
         const SizedBox(height: 20),
+        if (_soonCount > 0) ...[
+          _soonBanner(t),
+          const SizedBox(height: 20),
+        ],
         Row(
           children: [
             Expanded(
@@ -988,6 +738,67 @@ class _HomeKitchenState extends State<HomeKitchen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Foods close to their date — the same rule as Use soon: past it, today,
+  /// "use soon", or three days or fewer, and never frozen food.
+  int get _soonCount => _items.where((i) {
+        final status = (i['computed_status'] ?? '').toString();
+        if (status == 'frozen') return false;
+        if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
+            .contains(status)) {
+          return true;
+        }
+        final d = i['days_left'];
+        return d is num && d <= 3;
+      }).length;
+
+  Widget _soonBanner(FlutterFlowTheme t) {
+    final n = _soonCount;
+    return Semantics(
+      button: true,
+      label: '$n ${n == 1 ? 'food needs' : 'foods need'} using soon. Sort them.',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () async {
+          await context.pushNamed('UseSoonPage');
+          if (mounted && _for.isNotEmpty) _load(_for);
+        },
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFE9D1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                    color: Color(0xFFB54708), shape: BoxShape.circle),
+                child: Text('$n',
+                    style: t.titleMedium.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                    n == 1 ? '1 food needs using soon' : '$n foods need using soon',
+                    style: t.bodyLarge.copyWith(
+                        color: const Color(0xFF5C2A04), fontWeight: FontWeight.w800)),
+              ),
+              Text('Sort them',
+                  style: t.bodyMedium.copyWith(
+                      color: const Color(0xFFB54708), fontWeight: FontWeight.w800)),
+              const Icon(Icons.chevron_right, color: Color(0xFFB54708)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1421,6 +1232,15 @@ class _InventoryKitchenState extends State<InventoryKitchen> {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+
+    // A reminder was tapped: open Use soon.
+    if (FFAppState().openUseSoon) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !FFAppState().openUseSoon) return;
+        FFAppState().openUseSoon = false;
+        context.pushNamed('UseSoonPage');
+      });
+    }
     final household = FFAppState().currentHouseholdId;
     final t = FlutterFlowTheme.of(context);
     if (household.isEmpty) {
