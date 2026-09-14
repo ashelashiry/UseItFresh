@@ -10,8 +10,8 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
   Storage, What you used chart, Reminders and Household fixes). Owner to test on
   the phone from the test round page.
 - **Snapshot build 11** — done 14 Sep: FlutterFlow branch `build-11-ios` at
-  `fjwngcLM2As3H3u2YFy9`, git tag `build-11-ios`, RELEASES.md row. Becomes the
-  fallback once build 11 passes the phone round; build 9 until then.
+  `fjwngcLM2As3H3u2YFy9`, git tag `build-11-ios`, RELEASES.md row. Tested by the
+  owner 14 Sep: passed. Build 11 is now the fallback.
 
 ## Quality
 
