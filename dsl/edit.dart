@@ -157,226 +157,702 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Product pictures, source 1: each food's own picture, cut from the shelf photo.
+/// Credit Open Food Facts on a food whose picture came from a barcode lookup.
 ///
-/// The photo map already outlines every food on the person's own photo. When
-/// the ticked foods are added, each outline is cut out (a little padding, no
-/// more — the rest of the fridge stays private), shrunk to a card-sized JPEG,
-/// stored in the household's own folder, and saved as that food's picture. It
-/// is the exact packet, in the exact country, so nothing is guessed.
-///
-/// The full shelf photos are still deleted once the foods are in. A crop that
-/// fails (no outline, too small, no signal) just leaves that food without a
-/// picture, as before; it never stops the foods being added.
+/// Their product photos are free to use with attribution. The copy the app
+/// keeps is stored as "product-<id>.jpg", so the food's screen can tell it
+/// apart from a photo the person took.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomAction(project, name: 'SaveMapFoods', code: _saveMapFoods);
+    updateCustomWidget(project, name: 'FoodDetail', code: _foodDetail);
   });
 }
 
-const _saveMapFoods = r'''
-import 'dart:typed_data';
+const _foodDetail = r'''
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:flutter/foundation.dart' show compute;
-import 'package:image/image.dart' as img;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
+/// Everything about one food, photo first.
+class FoodDetail extends StatefulWidget {
+  const FoodDetail({super.key, this.width, this.height, this.itemId});
 
-/// Adds every ticked food on the photo map, in one insert, each with its own
-/// picture cut from the shelf photo, then deletes the shelf photos.
-///
-/// One insert, so it is all or nothing. The map is emptied before the write,
-/// so a second tap while the first is still saving finds nothing to add twice;
-/// if the write fails, everything comes back.
-///
-/// A food given a use-by date on the map is saved with it as the printed
-/// date; the rest get the typical keep time for their category.
-Future<String> saveMapFoods() async {
-  final all = List<MapFoodStruct>.of(FFAppState().mapFoods);
-  final photos = List<String>.of(FFAppState().mapPhotos);
-  final ticked = all.where((f) => f.decision == 'yes').toList();
-  if (ticked.isEmpty) return 'Tick at least one food to add.';
-  final household = FFAppState().currentHouseholdId;
-  if (household.isEmpty) {
-    return 'No household yet. Create or join one before adding food.';
+  final double? width;
+  final double? height;
+  final String? itemId;
+
+  @override
+  State<FoodDetail> createState() => _FoodDetailState();
+}
+
+class _FoodDetailState extends State<FoodDetail> {
+  static const _forest = Color(0xFF07533A);
+  static const _ink = Color(0xFF202C24);
+  static const _muted = Color(0xFF59665D);
+  static const _sage = Color(0xFFEDF2E8);
+  static const _border = Color(0xFFDCE3D7);
+
+  static const _food =
+      'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
+
+  List<FoodItemsStatusRow> _rows = const [];
+  bool _loading = true;
+  bool _offline = false;
+  bool _replace = false;
+  bool _busy = false;
+
+  String get _id => (widget.itemId ?? '').trim();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
-  final photoPlace =
-      FFAppState().mapPlace.isEmpty ? 'fridge' : FFAppState().mapPlace;
-  final uid = SupaFlow.client.auth.currentUser?.id;
-  void putBack() => FFAppState().update(() {
-        FFAppState().mapFoods = all;
-        FFAppState().mapPhotos = photos;
+
+  Future<void> _load({bool quiet = false}) async {
+    if (!quiet && mounted) {
+      setState(() {
+        _loading = true;
+        _offline = false;
       });
-
-  FFAppState().update(() {
-    FFAppState().mapFoods = [];
-    FFAppState().mapPhotos = [];
-  });
-
-  final storage = SupaFlow.client.storage.from('food-images');
-  // Each food's own picture, where one can be cut. Index-matched to `ticked`.
-  final pictures = await _cutPictures(ticked, household, storage);
-
-  try {
-    final rows = await SupaFlow.client
-        .from('storage_locations')
-        .select('id, location_type, is_default')
-        .eq('household_id', household);
-    final locations = List<Map<String, dynamic>>.from(rows as List);
-    String? locationFor(String type) {
-      for (final l in locations) {
-        if (l['location_type'] == type) return l['id'].toString();
-      }
-      for (final l in locations) {
-        if (l['is_default'] == true) return l['id'].toString();
-      }
-      return locations.isEmpty ? null : locations.first['id'].toString();
     }
-
-    await SupaFlow.client.from('food_items').insert([
-      for (var i = 0; i < ticked.length; i++)
-        {
-          'household_id': household,
-          'storage_location_id': locationFor(
-              ticked[i].place.isEmpty ? photoPlace : ticked[i].place),
-          'created_by': uid,
-          'name': ticked[i].name,
-          if (ticked[i].category.isNotEmpty) 'category': ticked[i].category,
-          'quantity': ticked[i].quantity < 1 ? 1 : ticked[i].quantity,
-          'source_type': 'fridge_scan',
-          if (pictures[i].isNotEmpty) 'image_url': pictures[i],
-          if (DateTime.tryParse(ticked[i].useBy) != null) ...{
-            'printed_date': ticked[i].useBy,
-            'printed_date_type': 'use_by',
-          },
-        },
-    ]);
-  } on PostgrestException catch (error) {
-    putBack();
-    await _removeQuietly(storage, pictures);
-    if (error.code == '42501') {
-      return 'Your account is not allowed to add to this household.';
-    }
-    return error.message;
-  } catch (_) {
-    putBack();
-    await _removeQuietly(storage, pictures);
-    return 'Could not add them. Check your signal and try again.';
-  }
-
-  // The shelf photos were only needed for the map; the cut pictures stay.
-  final paths =
-      [for (final u in photos) _storagePath(u)].whereType<String>().toList();
-  if (paths.isNotEmpty) {
     try {
-      await storage.remove(paths);
-    } catch (_) {}
-  }
-  return '';
-}
-
-/// A signed URL for each ticked food's own picture, or '' where none could be
-/// cut. Photos are downloaded once each; the cutting runs off the main thread
-/// on the phone so the screen does not freeze.
-Future<List<String>> _cutPictures(
-    List<MapFoodStruct> foods, String household, StorageFileApi storage) async {
-  final out = List<String>.filled(foods.length, '');
-  final byPhoto = <String, List<int>>{};
-  for (var i = 0; i < foods.length; i++) {
-    if (foods[i].photo.isEmpty || _box(foods[i].box) == null) continue;
-    byPhoto.putIfAbsent(foods[i].photo, () => []).add(i);
-  }
-  for (final entry in byPhoto.entries) {
-    final path = _storagePath(entry.key);
-    if (path == null) continue;
-    try {
-      final bytes = await storage.download(path);
-      final boxes = [for (final i in entry.value) foods[i].box];
-      final crops = await compute(_cropAll, {'bytes': bytes, 'boxes': boxes});
-      for (var k = 0; k < entry.value.length; k++) {
-        final crop = crops[k];
-        if (crop == null) continue;
-        final cropPath = '$household/item-${const Uuid().v4()}.jpg';
-        await storage.uploadBinary(
-          cropPath,
-          crop,
-          fileOptions:
-              const FileOptions(contentType: 'image/jpeg', upsert: false),
-        );
-        // A year, the same as a photo taken on the Add food form.
-        out[entry.value[k]] =
-            await storage.createSignedUrl(cropPath, 60 * 60 * 24 * 365);
-      }
+      final rows = await FoodItemsStatusTable()
+          .queryRows(queryFn: (q) => q.eqOrNull('id', _id));
+      if (!mounted) return;
+      setState(() {
+        _rows = rows;
+        _loading = false;
+        _offline = false;
+      });
     } catch (_) {
-      // No picture for these foods; they are still added.
+      if (!mounted) return;
+      if (quiet && _rows.isNotEmpty) return;
+      setState(() {
+        _loading = false;
+        _offline = true;
+      });
     }
   }
-  return out;
-}
 
-/// Cuts each outline out of one photo. Runs in a background isolate on the
-/// phone (compute), so it only takes plain data and returns plain data.
-List<Uint8List?> _cropAll(Map<String, Object> args) {
-  final bytes = args['bytes'] as Uint8List;
-  final boxes = (args['boxes'] as List).cast<String>();
-  final photo = img.decodeImage(bytes);
-  if (photo == null) return List<Uint8List?>.filled(boxes.length, null);
-  final oriented = img.bakeOrientation(photo);
-  final w = oriented.width;
-  final h = oriented.height;
-  return [
-    for (final b in boxes)
-      () {
-        final box = _box(b);
-        if (box == null) return null;
-        final (y0, x0, y1, x1) = box;
-        // A little room around the packet, and no more: the rest of the fridge
-        // is not the food's picture.
-        final padX = (x1 - x0) * 0.06;
-        final padY = (y1 - y0) * 0.06;
-        final left = ((x0 - padX) / 1000 * w).clamp(0, w - 1).round();
-        final top = ((y0 - padY) / 1000 * h).clamp(0, h - 1).round();
-        final right = ((x1 + padX) / 1000 * w).clamp(1, w).round();
-        final bottom = ((y1 + padY) / 1000 * h).clamp(1, h).round();
-        final cw = right - left;
-        final ch = bottom - top;
-        // Too small to be a useful picture.
-        if (cw < 80 || ch < 80) return null;
-        var crop = img.copyCrop(oriented, x: left, y: top, width: cw, height: ch);
-        if (crop.width > 640 || crop.height > 640) {
-          crop = crop.width >= crop.height
-              ? img.copyResize(crop, width: 640)
-              : img.copyResize(crop, height: 640);
+  String _field(String name) => itemField(_rows, name) ?? '';
+
+  String? get _photo {
+    if (_rows.isEmpty) return null;
+    final r = _rows.first;
+    final own = (r.imageUrl ?? '').trim();
+    if (own.isNotEmpty) return own;
+    final n = (r.name ?? '').toLowerCase();
+    const exact = {
+      'spinach': 'spinach',
+      'mushroom': 'mushrooms',
+      'tomato': 'tomatoes',
+      'egg': 'eggs',
+      'yogurt': 'yogurt',
+      'yoghurt': 'yogurt',
+      'pasta': 'pasta',
+    };
+    for (final e in exact.entries) {
+      if (n.contains(e.key)) return '$_food/${e.value}.webp';
+    }
+    return null;
+  }
+
+  /// How long a food has, in words, on a colour that says how soon (owner,
+  /// 14 Sep: "bold, on a coloured pill"). Red: past its use-by, use today, or
+  /// two days or less. Orange: three to seven days, or past best-before. Green:
+  /// more than a week. Blue: frozen, with no countdown — the clock does not
+  /// run in the freezer, so there is nothing to count.
+  static (String, Color, Color)? _timePill(String status, Object? daysLeft) {
+    const red = (Color(0xFFB42318), Color(0xFFFDE3E0));
+    const orange = (Color(0xFFB54708), Color(0xFFFFE9D1));
+    const green = (Color(0xFF1E6B3A), Color(0xFFDDF0E2));
+    const blue = (Color(0xFF285E8E), Color(0xFFE1ECF7));
+    const grey = (Color(0xFF59665D), Color(0xFFEDF2E8));
+    switch (status) {
+      case 'frozen':
+        return ('Frozen', blue.$1, blue.$2);
+      case 'past_use_by':
+        return ('Past use-by', red.$1, red.$2);
+      case 'past_best_before':
+        return ('Past best before', orange.$1, orange.$2);
+      case 'use_today':
+        return ('Use today', red.$1, red.$2);
+      case 'unknown':
+        return ('No date', grey.$1, grey.$2);
+      case 'consumed':
+      case 'discarded':
+        return null;
+    }
+    final days = daysLeft is num ? daysLeft.round() : null;
+    if (days == null) return null;
+    final label = days <= 0
+        ? 'Use today'
+        : (days == 1 ? '1 day left' : '$days days left');
+    final c = days <= 2 ? red : (days <= 7 ? orange : green);
+    return (label, c.$1, c.$2);
+  }
+
+  static Widget _pill(FlutterFlowTheme t, (String, Color, Color) p,
+          {double size = 13}) =>
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+            color: p.$3, borderRadius: BorderRadius.circular(999)),
+        child: Text(p.$1,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: t.bodySmall.copyWith(
+                color: p.$2, fontWeight: FontWeight.w800, fontSize: size)),
+      );
+
+  static (Color, Color) _statusColours(String status) {
+    switch (status) {
+      case 'fresh':
+        return (const Color(0xFF285B34), const Color(0xFFEAF3E5));
+      case 'use_soon':
+        return (const Color(0xFF79500F), const Color(0xFFFFF1D4));
+      case 'use_today':
+        return (const Color(0xFF934017), const Color(0xFFFFEADD));
+      case 'past_best_before':
+        return (const Color(0xFF69516E), const Color(0xFFF1EAF4));
+      case 'past_use_by':
+        return (const Color(0xFFA02929), const Color(0xFFFCE8E6));
+      case 'frozen':
+        return (const Color(0xFF2F5F8A), const Color(0xFFE4EEF7));
+      default:
+        return (_muted, _sage);
+    }
+  }
+
+  // ---- actions ---------------------------------------------------------------
+
+  void _back() {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.goNamed('InventoryPage');
+    }
+  }
+
+  Future<void> _edit() async {
+    await context.pushNamed('EditItemPage', queryParameters: {'itemId': _id});
+    if (mounted) _load(quiet: true);
+  }
+
+  Future<void> _settle(String outcome) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final id = _id;
+    final name = _field('name');
+    try {
+      if (_replace) {
+        final listed = await addItemToShoppingList(id);
+        if (listed.isNotEmpty) {
+          messenger.showSnackBar(SnackBar(content: Text(listed)));
+          return;
         }
-        return Uint8List.fromList(img.encodeJpg(crop, quality: 82));
-      }(),
-  ];
-}
+      }
+      final said = await settleFoodItem(id, outcome);
+      if (said.isNotEmpty) {
+        messenger.showSnackBar(SnackBar(content: Text(said)));
+        return;
+      }
+      messenger.showSnackBar(SnackBar(
+        duration: const Duration(seconds: 6),
+        content: Text(outcome == 'consumed'
+            ? 'Good. Nothing wasted.'
+            : 'Thrown out and recorded.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: const Color(0xFFB9E08F),
+          onPressed: () async {
+            final back = await unsettleFoodItem(id);
+            messenger.showSnackBar(SnackBar(
+                content: Text(back.isEmpty
+                    ? '${name.isEmpty ? 'It' : name} is back in your kitchen.'
+                    : back)));
+            if (back.isEmpty) {
+              router.pushNamed('FoodItemPage', queryParameters: {'itemId': id});
+            }
+          },
+        ),
+      ));
+      router.pushNamed('InventoryPage');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
-/// "ymin,xmin,ymax,xmax" on 0-1000, as the photo function sends it.
-(double, double, double, double)? _box(String s) {
-  final parts = s.split(',').map((p) => double.tryParse(p.trim())).toList();
-  if (parts.length != 4 || parts.any((p) => p == null)) return null;
-  final (y0, x0, y1, x1) = (parts[0]!, parts[1]!, parts[2]!, parts[3]!);
-  if (y1 <= y0 || x1 <= x0) return null;
-  return (y0, x0, y1, x1);
-}
+  // ---- page ----------------------------------------------------------------
 
-Future<void> _removeQuietly(StorageFileApi storage, List<String> urls) async {
-  final paths = [for (final u in urls) _storagePath(u)].whereType<String>().toList();
-  if (paths.isEmpty) return;
-  try {
-    await storage.remove(paths);
-  } catch (_) {}
-}
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    Widget body;
+    if (_loading) {
+      body = _skeleton();
+    } else if (_offline) {
+      body = _message(t,
+          icon: Icons.cloud_off_outlined,
+          title: 'Can’t reach your kitchen.',
+          text:
+              'No signal, or the connection dropped. This item will show again as soon as you are back online.',
+          action: 'Try again',
+          onAction: _load);
+    } else if (_rows.isEmpty) {
+      body = _message(t,
+          icon: Icons.kitchen_outlined,
+          title: 'Not in your kitchen.',
+          text: 'This food has been used, thrown out or removed.',
+          action: 'Back to your kitchen',
+          onAction: () => context.goNamed('InventoryPage'));
+    } else {
+      body = _food_(t);
+    }
+    return SizedBox(
+      width: widget.width,
+      child: AnimatedSwitcher(
+        duration: MediaQuery.of(context).disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 200),
+        child: KeyedSubtree(
+          key: ValueKey(
+              _loading ? 'l' : (_offline ? 'o' : (_rows.isEmpty ? 'e' : 'f'))),
+          child: body,
+        ),
+      ),
+    );
+  }
 
-/// The object path inside the food-images bucket, from a signed URL.
-String? _storagePath(String signedUrl) {
-  const marker = '/object/sign/food-images/';
-  final at = signedUrl.indexOf(marker);
-  if (at < 0) return null;
-  final rest = signedUrl.substring(at + marker.length);
-  final q = rest.indexOf('?');
-  return Uri.decodeComponent(q < 0 ? rest : rest.substring(0, q));
+  // Forest with a white arrow on every screen (owner, 14 Sep: green back
+  // buttons), so it stands out on a photo and on cream alike.
+  Widget _backButton({bool onPhoto = true}) => Semantics(
+        button: true,
+        label: 'Back',
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: _back,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _forest,
+              shape: BoxShape.circle,
+              boxShadow: onPhoto
+                  ? const [BoxShadow(color: Color(0x33000000), blurRadius: 8)]
+                  : null,
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+          ),
+        ),
+      );
+
+  Widget _food_(FlutterFlowTheme t) {
+    final name = _field('name');
+    final status = _field('status');
+    final label = _field('statusLabel');
+    final detail = _field('detail');
+    final pill = _timePill(status, _rows.first.daysLeft);
+    // The pill already says how long is left; the card adds only advice
+    // ("Throw this out", "Check it before using"), and nothing for frozen.
+    final advice =
+        status == 'past_use_by' || status == 'past_best_before' ? detail : '';
+    final photo = _photo;
+    final category = _field('category');
+
+    Widget tile() => Container(
+          color: _sage,
+          alignment: Alignment.center,
+          child: const Icon(Icons.restaurant, color: _forest, size: 56),
+        );
+
+    final rows = <(IconData, String, String)>[
+      (Icons.scale_outlined, 'How much', _field('quantity')),
+      (Icons.kitchen_outlined, 'Kept in', _field('where')),
+      (Icons.category_outlined, 'Category', category),
+      (Icons.info_outline, 'How this was worked out', _field('basis')),
+      (
+        Icons.event_outlined,
+        'Added',
+        _field('added').replaceFirst('Added ', '')
+      ),
+    ].where((r) => r.$3.trim().isNotEmpty).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Photo, with the name and status over its lower edge.
+        SizedBox(
+          height: 300,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              photo == null
+                  ? tile()
+                  : Image.network(photo,
+                      fit: BoxFit.cover, errorBuilder: (_, __, ___) => tile()),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0x33000000),
+                      Color(0x00000000),
+                      Color(0xB3000000)
+                    ],
+                    stops: [0, 0.35, 1],
+                  ),
+                ),
+              ),
+              Positioned(left: 16, top: 16, child: _backButton()),
+              // Open Food Facts photos are free to use with credit. Our own
+              // copies of them are stored as "product-…" in the household folder.
+              if (photo != null && photo.contains('/product-'))
+                Positioned(
+                  right: 12,
+                  top: 24,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0x99000000),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text('Photo: Open Food Facts',
+                        style: t.bodySmall.copyWith(
+                            color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (pill != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _pill(t, pill, size: 14),
+                      ),
+                    Text(name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.headlineMedium.copyWith(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            height: 1.1)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // The date that matters, and where it came from.
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _sage,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14)),
+                      child: const Icon(Icons.calendar_today_outlined,
+                          color: _forest, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_field('date'),
+                              style: t.titleMedium.copyWith(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: _ink)),
+                          const SizedBox(height: 2),
+                          Text(_field('dateSource'),
+                              style: t.bodyMedium
+                                  .copyWith(fontSize: 14, color: _muted)),
+                          if (advice.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(advice,
+                                style: t.bodyMedium.copyWith(
+                                    fontSize: 15,
+                                    color: _ink,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // The other facts, as rows in one card.
+              if (rows.isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _border),
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < rows.length; i++) ...[
+                        if (i > 0)
+                          const Divider(
+                              height: 1,
+                              thickness: 1,
+                              indent: 52,
+                              color: _border),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(rows[i].$1, color: _forest, size: 20),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(rows[i].$2,
+                                        style: t.bodySmall.copyWith(
+                                            fontSize: 13,
+                                            color: _muted,
+                                            fontWeight: FontWeight.w600)),
+                                    const SizedBox(height: 2),
+                                    Text(rows[i].$3,
+                                        style: t.bodyLarge.copyWith(
+                                            fontSize: 16, color: _ink)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 24),
+              // When it is gone, put it on the list.
+              Semantics(
+                toggled: _replace,
+                label: 'Put it on the shopping list',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => setState(() => _replace = !_replace),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 52),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _replace ? _forest : _border),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                            _replace
+                                ? Icons.check_circle
+                                : Icons.radio_button_unchecked,
+                            color: _replace ? _forest : _muted,
+                            size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text('Put it on the shopping list',
+                              style: t.bodyLarge.copyWith(
+                                  fontSize: 16,
+                                  color: _ink,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _forest,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: _forest.withOpacity(0.5),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _busy ? null : () => _settle('consumed'),
+                        icon: const Icon(Icons.check, size: 20),
+                        label: Text('I used it',
+                            style: t.bodyLarge.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _ink,
+                          side: const BorderSide(color: _border),
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _busy ? null : () => _settle('discarded'),
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        label: Text('Throw it out',
+                            style: t.bodyLarge.copyWith(
+                                color: _ink, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      foregroundColor: _forest),
+                  onPressed: _busy ? null : _edit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text('Edit details',
+                      style: t.bodyLarge.copyWith(
+                          color: _forest, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _skeleton() {
+    Widget block(double h, {double r = 20}) => Container(
+          height: h,
+          decoration: BoxDecoration(
+              color: _sage, borderRadius: BorderRadius.circular(r)),
+        );
+    return Semantics(
+      label: 'Loading this food',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(children: [
+            block(300, r: 0),
+            Positioned(left: 16, top: 16, child: _backButton()),
+          ]),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(children: [
+              block(92),
+              const SizedBox(height: 12),
+              block(220),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _message(FlutterFlowTheme t,
+      {required IconData icon,
+      required String title,
+      required String text,
+      required String action,
+      required VoidCallback onAction}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _backButton(onPhoto: false),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      color: _sage, borderRadius: BorderRadius.circular(16)),
+                  child: Icon(icon, color: _forest, size: 28),
+                ),
+                const SizedBox(height: 16),
+                Text(title,
+                    style: t.titleLarge.copyWith(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: _ink)),
+                const SizedBox(height: 6),
+                Text(text,
+                    style: t.bodyLarge
+                        .copyWith(fontSize: 16, color: _muted, height: 1.4)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _forest,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: onAction,
+                    child: Text(action,
+                        style: t.bodyLarge.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 ''';
