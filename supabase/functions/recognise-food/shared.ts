@@ -74,7 +74,7 @@ export type Choices = {
 // one included, so a single unauthenticated call says whether a paste landed:
 //   curl -s -X POST <project>/functions/v1/recognise-food
 // Raise it with every change: date, then a count for that day.
-export const VERSION = "2026-09-14.2";
+export const VERSION = "2026-09-14.3";
 
 export function reply(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify({ ...body, version: VERSION }), {

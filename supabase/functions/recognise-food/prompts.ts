@@ -28,7 +28,17 @@ If one product appears on several lines, list it once and add the quantities.
 quantity is the number of units bought; use 1 when it is not shown.
 Choose the closest category from the list, or "unknown" if none fits.
 If you cannot read a line well enough to name it, leave it out rather than guess.
-${NEVER}
+price: what was paid for that item, in total across its lines, after any
+discount printed against it, as a plain number. 0 when it cannot be read.
+Then, for the receipt as a whole, only what is printed on it:
+shop: the shop's name. location: the branch, suburb or street address of the
+shop, without phone numbers. purchasedAt: the date and time of the purchase as
+YYYY-MM-DDTHH:MM, or "" when not printed. total: the total paid, 0 when it
+cannot be read. currency: the three-letter currency code if the receipt makes
+it clear (for example AUD, GBP, USD), otherwise "".
+Do NOT judge freshness, safety, spoilage or ripeness. Do NOT read use-by or
+best-before dates. NEVER include card numbers, payment or loyalty details,
+names of people, or anything else about the person who paid.
 If the photo is not a receipt, set isReceipt to false and return no items.`;
 
 export const SHELF_PROMPT = `This is a photo of a fridge shelf, a cupboard or a
@@ -109,10 +119,33 @@ export const SHELF_ITEMS = {
   },
 };
 
+// Receipt lines also carry what was paid, for receipt history and budgets.
+export const RECEIPT_ITEMS = {
+  type: "ARRAY",
+  items: {
+    type: "OBJECT",
+    properties: {
+      name: { type: "STRING" },
+      category: CATEGORY,
+      quantity: { type: "INTEGER" },
+      price: { type: "NUMBER" },
+    },
+    required: ["name", "category", "quantity", "price"],
+  },
+};
+
 export const RECEIPT_SCHEMA = {
   type: "OBJECT",
-  properties: { isReceipt: { type: "BOOLEAN" }, items: LIST_ITEMS },
-  required: ["isReceipt", "items"],
+  properties: {
+    isReceipt: { type: "BOOLEAN" },
+    items: RECEIPT_ITEMS,
+    shop: { type: "STRING" },
+    location: { type: "STRING" },
+    purchasedAt: { type: "STRING" },
+    total: { type: "NUMBER" },
+    currency: { type: "STRING" },
+  },
+  required: ["isReceipt", "items", "shop", "location", "purchasedAt", "total", "currency"],
 };
 
 export const SHELF_SCHEMA = {

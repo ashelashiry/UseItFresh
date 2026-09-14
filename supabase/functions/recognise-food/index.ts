@@ -2,7 +2,7 @@
 //
 // Four jobs, chosen by `mode` in the request body:
 //   "item"    (default) one food → { name, category, note }
-//   "receipt" a till receipt     → { items: [{ name, category, quantity }], note }
+//   "receipt" a till receipt     → { items: [{ name, category, quantity, price }], receiptInfo: { shop, location, purchasedAt, total, currency }, note }
 //   "shelf"   a fridge shelf or cupboard → { items: [...], note }
 //             with detectReceipt: true, a receipt photo is read as a receipt
 //             instead and the answer carries receipt: true
@@ -21,8 +21,11 @@
 // leaves the server.
 //
 // What it may say is deliberately narrow: names, categories and counts, as
-// suggestions. Never freshness, safety, spoilage, a price or a date, even when
-// one is visible. Nothing is saved from here — the person confirms first.
+// suggestions. Never freshness, safety, spoilage, or a use-by date, even when
+// one is visible. Receipts alone also give what was printed about the purchase
+// (shop, location, time, prices, total: owner, 14 Sep, for receipt history and
+// budgets) and never anything about who paid. Nothing is saved from here —
+// the person confirms first.
 //
 // Five files, because the Supabase editor stops a paste at about 20,000
 // characters: index.ts (this file), shared.ts, prompts.ts, gemini.ts,
@@ -122,7 +125,13 @@ Deno.serve(async (req) => {
       quantity?: number;
       kind?: string;
       box_2d?: number[];
+      price?: number;
     }[];
+    shop?: string;
+    location?: string;
+    purchasedAt?: string;
+    total?: number;
+    currency?: string;
   };
   const image = { inline_data: { mime_type: mime, data: toBase64(bytes) } };
 
@@ -195,9 +204,22 @@ Deno.serve(async (req) => {
       // Shelf photos only: what it comes in, and where it is on the photo.
       ...(kind === "shelf" ? { kind: KINDS.includes(String(i.kind)) ? String(i.kind) : "",
         box: outline(i.box_2d) } : {}),
+      // Receipts only: what was paid for the line, 0 when unread.
+      ...(kind === "receipt" ? { price: money(i.price) } : {}),
     }))
     .filter((i) => i.name)
     .slice(0, 40);
+  // The receipt as a whole, as printed: for receipt history and budgets.
+  const when = String(out.purchasedAt ?? "").trim();
+  const receiptInfo = kind === "receipt"
+    ? {
+      shop: String(out.shop ?? "").trim().slice(0, 120),
+      location: String(out.location ?? "").trim().slice(0, 200),
+      purchasedAt: /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/.test(when) ? when : "",
+      total: money(out.total),
+      currency: /^[A-Z]{3}$/.test(String(out.currency ?? "")) ? String(out.currency) : "",
+    }
+    : undefined;
   const none = kind === "receipt"
     ? "No food found on that receipt."
     : "No food I could name in that photo.";
@@ -205,5 +227,17 @@ Deno.serve(async (req) => {
   // from the logs. Counts only: no food names, no receipt text.
   console.log("read", kind, detectReceipt ? "(camera)" : "", `${items.length} items`, `${(out.items ?? []).length} from model`, model);
   // `receipt` tells the Scan camera to open the receipt list, not the photo map.
-  return reply({ items, note: items.length ? "" : none, model, receipt: kind === "receipt" && mode === "shelf" });
+  return reply({
+    items,
+    note: items.length ? "" : none,
+    model,
+    receipt: kind === "receipt" && mode === "shelf",
+    ...(receiptInfo ? { receiptInfo } : {}),
+  });
 });
+
+// A price or total as a number with two decimals; 0 when unreadable.
+function money(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n < 100000 ? Math.round(n * 100) / 100 : 0;
+}
