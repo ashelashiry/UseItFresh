@@ -157,16 +157,131 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Credit Open Food Facts on a food whose picture came from a barcode lookup.
+/// Product pictures, source 4: add or change a food's photo on its own screen.
 ///
-/// Their product photos are free to use with attribution. The copy the app
-/// keeps is stored as "product-<id>.jpg", so the food's screen can tell it
-/// apart from a photo the person took.
+/// A camera button sits on the photo. It offers: take a photo, choose one from
+/// the phone, and — when the food has a picture — remove it. The new picture
+/// is shrunk on the phone, stored in the food's household folder as
+/// "item-<id>.jpg", and saved on the food. A picture the app stored before
+/// (a crop, a photo, a product copy) is deleted once the new one is saved, so
+/// the folder does not fill with pictures nobody sees.
 void buildStarterEditFlow(App app) {
+  app.customAction(
+    'ChangeFoodPhoto',
+    args: {'itemId': string, 'source': string},
+    returns: string,
+    description:
+        'Sets a food\'s picture from the camera (source "camera") or the '
+        'phone\'s photos ("gallery"), or removes it ("remove"). Returns "ok", '
+        '"" when the person backed out, or why not.',
+    code: _changeFoodPhoto,
+  );
   app.raw((project) {
     updateCustomWidget(project, name: 'FoodDetail', code: _foodDetail);
   });
 }
+
+const _changeFoodPhoto = r'''
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+/// Sets or removes one food's picture.
+///
+/// "ok" when saved, "" when the person backed out of the camera or photos
+/// (not an error, so nothing is said), otherwise a sentence to show.
+Future<String> changeFoodPhoto(String itemId, String source) async {
+  final id = itemId.trim();
+  if (id.isEmpty) return 'This food could not be found.';
+  final client = SupaFlow.client;
+  final storage = client.storage.from('food-images');
+
+  String household;
+  String oldUrl;
+  try {
+    final row = await client
+        .from('food_items')
+        .select('household_id, image_url')
+        .eq('id', id)
+        .maybeSingle();
+    if (row == null) return 'This food is no longer in your kitchen.';
+    household = row['household_id'].toString();
+    oldUrl = (row['image_url'] ?? '').toString();
+  } catch (_) {
+    return 'Can’t reach your kitchen. Check your signal and try again.';
+  }
+
+  String? newPath;
+  String? newUrl;
+  if (source != 'remove') {
+    final XFile? shot;
+    try {
+      shot = await ImagePicker().pickImage(
+        source: source == 'gallery' ? ImageSource.gallery : ImageSource.camera,
+        // A card and the top of the food's screen, and quick to upload.
+        maxWidth: 900,
+        maxHeight: 900,
+        imageQuality: 82,
+      );
+    } catch (_) {
+      return source == 'gallery'
+          ? 'Use It Fresh can’t open your photos. Allow it in Settings.'
+          : 'Use It Fresh can’t use the camera. Allow it in Settings.';
+    }
+    if (shot == null) return '';
+    try {
+      final bytes = await shot.readAsBytes();
+      newPath = '$household/item-${const Uuid().v4()}.jpg';
+      await storage.uploadBinary(
+        newPath,
+        bytes,
+        fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+      );
+      // A year, the same as every other picture the app keeps.
+      newUrl = await storage.createSignedUrl(newPath, 60 * 60 * 24 * 365);
+    } catch (_) {
+      if (newPath != null) await _removeQuietly(storage, [newPath]);
+      return 'Could not save the photo. Check your signal and try again.';
+    }
+  }
+
+  try {
+    await client.from('food_items').update({'image_url': newUrl}).eq('id', id);
+  } on PostgrestException catch (error) {
+    if (newPath != null) await _removeQuietly(storage, [newPath]);
+    if (error.code == '42501') {
+      return 'Your account is not allowed to change this food.';
+    }
+    return error.message;
+  } catch (_) {
+    if (newPath != null) await _removeQuietly(storage, [newPath]);
+    return 'Could not save the photo. Check your signal and try again.';
+  }
+
+  // The picture it replaced, if the app stored it.
+  final oldPath = _storagePath(oldUrl);
+  if (oldPath != null && oldPath != newPath) {
+    await _removeQuietly(storage, [oldPath]);
+  }
+  return 'ok';
+}
+
+Future<void> _removeQuietly(StorageFileApi storage, List<String> paths) async {
+  try {
+    await storage.remove(paths);
+  } catch (_) {}
+}
+
+/// The object path inside the food-images bucket, from a signed URL.
+String? _storagePath(String signedUrl) {
+  const marker = '/object/sign/food-images/';
+  final at = signedUrl.indexOf(marker);
+  if (at < 0) return null;
+  final rest = signedUrl.substring(at + marker.length);
+  final q = rest.indexOf('?');
+  return Uri.decodeComponent(q < 0 ? rest : rest.substring(0, q));
+}
+''';
 
 const _foodDetail = r'''
 import 'package:flutter/material.dart';
@@ -199,6 +314,7 @@ class _FoodDetailState extends State<FoodDetail> {
   bool _offline = false;
   bool _replace = false;
   bool _busy = false;
+  bool _photoBusy = false;
 
   String get _id => (widget.itemId ?? '').trim();
 
@@ -326,6 +442,72 @@ class _FoodDetailState extends State<FoodDetail> {
 
   // ---- actions ---------------------------------------------------------------
 
+  bool get _hasOwnPhoto =>
+      _rows.isNotEmpty && (_rows.first.imageUrl ?? '').trim().isNotEmpty;
+
+  /// Take a photo, choose one, or remove the one it has.
+  Future<void> _changePhoto() async {
+    if (_photoBusy || _busy) return;
+    final t = FlutterFlowTheme.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final own = _hasOwnPhoto;
+    Widget option(BuildContext c, IconData icon, String label, String value,
+            {Color colour = _ink}) =>
+        ListTile(
+          minVerticalPadding: 14,
+          leading: Icon(icon, color: colour == _ink ? _forest : colour),
+          title: Text(label,
+              style: t.bodyLarge.copyWith(
+                  fontSize: 16, color: colour, fontWeight: FontWeight.w600)),
+          onTap: () => Navigator.of(c).pop(value),
+        );
+    final source = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (c) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(own ? 'Change the photo' : 'Add a photo',
+                    style: t.titleLarge.copyWith(
+                        fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
+              ),
+              option(c, Icons.photo_camera_outlined, 'Take a photo', 'camera'),
+              option(c, Icons.photo_library_outlined, 'Choose from your photos',
+                  'gallery'),
+              if (own)
+                option(c, Icons.hide_image_outlined, 'Remove the photo', 'remove',
+                    colour: const Color(0xFFB42318)),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    setState(() => _photoBusy = true);
+    try {
+      final said = await changeFoodPhoto(_id, source);
+      if (said == 'ok') {
+        messenger.showSnackBar(SnackBar(
+            content: Text(
+                source == 'remove' ? 'Photo removed.' : 'Photo saved.')));
+        await _load(quiet: true);
+      } else if (said.isNotEmpty) {
+        messenger.showSnackBar(SnackBar(content: Text(said)));
+      }
+    } finally {
+      if (mounted) setState(() => _photoBusy = false);
+    }
+  }
+
   void _back() {
     final router = GoRouter.of(context);
     if (router.canPop()) {
@@ -450,6 +632,48 @@ class _FoodDetailState extends State<FoodDetail> {
         ),
       );
 
+  // Top right of the photo: a camera, with words while there is no picture so
+  // the empty tile says what to do.
+  Widget _photoButton(FlutterFlowTheme t) {
+    final own = _hasOwnPhoto;
+    return Semantics(
+      button: true,
+      label: own ? 'Change the photo' : 'Add a photo',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: _photoBusy ? null : _changePhoto,
+        child: Container(
+          height: 44,
+          padding: EdgeInsets.symmetric(horizontal: own ? 0 : 14),
+          width: own ? 44 : null,
+          decoration: BoxDecoration(
+            color: _forest,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: const [
+              BoxShadow(color: Color(0x33000000), blurRadius: 8)
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.photo_camera_outlined,
+                  color: Colors.white, size: 21),
+              if (!own) ...[
+                const SizedBox(width: 6),
+                Text('Add a photo',
+                    style: t.bodyMedium.copyWith(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _food_(FlutterFlowTheme t) {
     final name = _field('name');
     final status = _field('status');
@@ -510,12 +734,25 @@ class _FoodDetailState extends State<FoodDetail> {
                 ),
               ),
               Positioned(left: 16, top: 16, child: _backButton()),
+              Positioned(right: 16, top: 16, child: _photoButton(t)),
+              if (_photoBusy)
+                const ColoredBox(
+                  color: Color(0x66000000),
+                  child: Center(
+                    child: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 3, color: Colors.white),
+                    ),
+                  ),
+                ),
               // Open Food Facts photos are free to use with credit. Our own
               // copies of them are stored as "product-…" in the household folder.
               if (photo != null && photo.contains('/product-'))
                 Positioned(
-                  right: 12,
-                  top: 24,
+                  right: 16,
+                  top: 68,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
