@@ -5,7 +5,19 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 
 ## In flight
 
-- **On main for build 13 (14 Sep), not yet on a phone:**
+- **Every listed feature built on main (14 Sep, later), each backed up with a
+  git tag and FlutterFlow branch of the same name:** Your day
+  (`feat-your-day-14sep`), receipt history (`feat-receipt-history-14sep`),
+  budget planning (`feat-budget-14sep`), household planning
+  (`feat-household-planning-14sep`), recipe collection
+  (`feat-recipe-collection-14sep`), product photos by country
+  (`feat-product-photos-14sep`). Migrations 7 and 8 run and checked by the
+  agent. Owner to paste function `2026-09-14.3` (index.ts, prompts.ts,
+  shared.ts) before build 13. Test journeys 21–26.
+- **Still open:** Plus subscription (owner: price, trial, free tier;
+  RevenueCat and App Store products); a "share my product photos" setting
+  (column exists, off; needs the consent wording checked legally first).
+- **Earlier on main for build 13 (14 Sep), not yet on a phone:**
   - Add, change or remove a food's photo on its screen.
   - Recipes for your goals: "Fits my goals" chip, calories per serving and
     high protein in Filters, estimated badges. Needs photo function
