@@ -522,6 +522,17 @@ const JOURNEYS = [
       ["25.9", "Open your own recipe → «Edit this recipe», change the name, save. Then «Delete this recipe» → «Delete».", "«Recipe updated.», then «Removed from your recipes.»", 1],
       ["25.10", "Back on Recipes, next to «Kept ideas», tap «See all».", "It opens Your recipes.", 1],
     ]},
+  { n:26, t:"The real pack, from your country", w:"A food’s screen · Profile → Receipts", tag:"core", isNew:1,
+    why:"Foods from receipts have no picture. Find the pack that matches yours among products sold in your country, and you pick it.",
+    s:[
+      ["26.1", "Open a food added from a receipt (no picture). Tap «Add a photo» → «Find the product photo».", "«Find the product photo» with the food's name already searched, a row of countries with Australia picked, and a grid of packs with brand and name.", 1],
+      ["26.2", "Tap the pack that matches yours.", "«Photo added. Credit: Open Food Facts.» The pack fills the top of the food's screen with «Photo: Open Food Facts».", 1],
+      ["26.3", "Open another food, «Find the product photo», and tap «the UK».", "The results change to packs sold in the UK. Close without picking: nothing changes.", 1],
+      ["26.4", "Open «Find the product photo» again.", "The UK is still picked (your country is remembered). Pick Australia again.", 1],
+      ["26.5", "Search for something odd, like «zzzz».", "«No photos found for “zzzz” in Australia. Try a shorter name or a brand.»", 1],
+      ["26.6", "Profile → Receipts → open a receipt whose foods have no pictures.", "«Find product photos for N foods» under the lines.", 1],
+      ["26.7", "Tap it. Pick a pack for the first food, close the sheet for the second.", "One sheet per food; the first gets its photo, the second is skipped. «1 photo added.»", 1],
+    ]},
 ];
 
 const STATES = [["works","✓","Works"],["problem","✕","Problem"],["skipped","–","Skip"]];
