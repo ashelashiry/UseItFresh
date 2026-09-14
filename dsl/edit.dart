@@ -157,932 +157,260 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Home ties the week together: the Tonight card shows what the household
-/// planned for today (dinner first) and opens Plan my week; with nothing
-/// planned it still offers an idea. Under "N foods need using soon", a link to
-/// find a meal that uses them.
+/// Product image dataset, from day one (owner's business idea, 14 Sep): each
+/// shelf-photo cut-out is recorded in product_images as source shelf_crop,
+/// with the name, the person's country and their sharing consent (default
+/// off). Nothing is shared anywhere; this only keeps the record honest.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomWidget(project, name: 'HomeKitchen', code: _homeKitchen);
+    updateCustomAction(project, name: 'SaveMapFoods', code: _saveMapFoods);
   });
 }
 
-const _homeKitchen = r'''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
+const _saveMapFoods = r'''
+import 'dart:typed_data';
 
-/// Home below the greeting, in the two states design guide v4 describes.
+import 'package:flutter/foundation.dart' show compute;
+import 'package:image/image.dart' as img;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+/// Adds every ticked food on the photo map, in one insert, each with its own
+/// picture cut from the shelf photo, then deletes the shelf photos.
 ///
-/// Reads the household's food itself (the page's own lists cannot be passed
-/// to a custom widget) and stays silent when there is no household or no
-/// signal: the page already has a card for each of those.
-class HomeKitchen extends StatefulWidget {
-  const HomeKitchen({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<HomeKitchen> createState() => _HomeKitchenState();
-}
-
-class _HomeKitchenState extends State<HomeKitchen> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  static const _food =
-      'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
-
-  // The supplied v3 line icons, drawn in forest.
-  static const _camera =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h5l2-3h4l2 3h5v15H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>';
-  static const _receipt =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 4 2 4-2 3 2V2l-3 2-4-2-4 2zM8 8h8m-8 4h8m-8 4h5"/></svg>';
-
-  String _for = '';
-  bool _loading = true;
-  bool _failed = false;
-  bool _busy = false;
-  List<Map<String, dynamic>> _items = const [];
-  Map<String, dynamic>? _kept;
-  // Today's planned meal from Plan my week, dinner first.
-  Map<String, dynamic>? _planned;
-
-  Future<void> _load(String household) async {
-    if (mounted) {
-      setState(() {
-        _loading = true;
-        _failed = false;
+/// One insert, so it is all or nothing. The map is emptied before the write,
+/// so a second tap while the first is still saving finds nothing to add twice;
+/// if the write fails, everything comes back.
+///
+/// A food given a use-by date on the map is saved with it as the printed
+/// date; the rest get the typical keep time for their category.
+Future<String> saveMapFoods() async {
+  final all = List<MapFoodStruct>.of(FFAppState().mapFoods);
+  final photos = List<String>.of(FFAppState().mapPhotos);
+  final ticked = all.where((f) => f.decision == 'yes').toList();
+  if (ticked.isEmpty) return 'Tick at least one food to add.';
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one before adding food.';
+  }
+  final photoPlace =
+      FFAppState().mapPlace.isEmpty ? 'fridge' : FFAppState().mapPlace;
+  final uid = SupaFlow.client.auth.currentUser?.id;
+  void putBack() => FFAppState().update(() {
+        FFAppState().mapFoods = all;
+        FFAppState().mapPhotos = photos;
       });
-    }
-    try {
-      final rows = await SupaFlow.client
-          .from('food_items_status')
-          .select(
-              'id, name, category, quantity, unit, image_url, computed_status, status_label, status_detail, days_left')
-          .eq('household_id', household)
-          .order('urgency_rank', ascending: true)
-          .order('days_left', ascending: true)
-          .limit(12);
-      Map<String, dynamic>? kept;
-      try {
-        final ideas = await SupaFlow.client
-            .from('saved_recipes')
-            .select('title, recipe_data')
-            .eq('household_id', household)
-            .order('created_at', ascending: false)
-            .limit(1);
-        if ((ideas as List).isNotEmpty) {
-          kept = Map<String, dynamic>.from(ideas.first as Map);
-        }
-      } catch (_) {
-        // A kept idea is a nicety; the kitchen still shows without one.
-      }
-      Map<String, dynamic>? planned;
-      try {
-        final n = DateTime.now();
-        final today =
-            '${n.year.toString().padLeft(4, '0')}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
-        final meals = await SupaFlow.client
-            .from('meal_plan_entries')
-            .select('id, meal, title, recipe_data, servings')
-            .eq('household_id', household)
-            .eq('plan_date', today)
-            .eq('status', 'planned');
-        const order = ['dinner', 'lunch', 'snack', 'breakfast'];
-        final list = [
-          for (final m in meals as List) Map<String, dynamic>.from(m as Map)
-        ]..sort((a, b) =>
-            order.indexOf('${a['meal']}').compareTo(order.indexOf('${b['meal']}')));
-        if (list.isNotEmpty) planned = list.first;
-      } catch (_) {
-        // No plan, or planning not set up: Tonight falls back to an idea.
-      }
-      if (!mounted || household != _for) return;
-      setState(() {
-        _items = List<Map<String, dynamic>>.from(rows as List);
-        _kept = kept;
-        _planned = planned;
-        _loading = false;
-      });
-      // Keep the daily reminder notes in step with the kitchen.
-      scheduleExpiryReminders();
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _failed = true;
-        _loading = false;
-      });
-    }
-  }
 
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await go();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _addFood() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'shelf'});
-  }
-
-  // The in-app camera, already set to Receipt: it reads the photo and opens
-  // the receipt review itself, or explains why nothing was added.
-  Future<void> _receiptTap() async {
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'receipt'});
-  }
-
-  /// Why a receipt was not read, in the middle of the screen until dismissed.
-  static Future<void> _explainReceipt(BuildContext host, String said) {
-    return showDialog<void>(
-      context: host,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Receipt not added'),
-        content: Text(said),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// The food's own photo, or a photo of that very food; otherwise null, and
-  /// the card draws a neutral tile. Never a different food for its category.
-  static String? _photoFor(Map<String, dynamic> item) {
-    final own = (item['image_url'] ?? '').toString().trim();
-    if (own.isNotEmpty) return own;
-    final n = (item['name'] ?? '').toString().toLowerCase();
-    const exact = {
-      'spinach': 'spinach',
-      'mushroom': 'mushrooms',
-      'tomato': 'tomatoes',
-      'egg': 'eggs',
-      'yogurt': 'yogurt',
-      'yoghurt': 'yogurt',
-      'pasta': 'pasta',
-    };
-    for (final e in exact.entries) {
-      if (n.contains(e.key)) return '$_food/${e.value}.webp';
-    }
-    return null;
-  }
-
-  /// How long a food has, in words, on a colour that says how soon (owner,
-  /// 14 Sep: "bold, on a coloured pill"). Red: past its use-by, use today, or
-  /// two days or less. Orange: three to seven days, or past best-before. Green:
-  /// more than a week. Blue: frozen, with no countdown — the clock does not
-  /// run in the freezer, so there is nothing to count.
-  static (String, Color, Color)? _timePill(String status, Object? daysLeft) {
-    const red = (Color(0xFFB42318), Color(0xFFFDE3E0));
-    const orange = (Color(0xFFB54708), Color(0xFFFFE9D1));
-    const green = (Color(0xFF1E6B3A), Color(0xFFDDF0E2));
-    const blue = (Color(0xFF285E8E), Color(0xFFE1ECF7));
-    const grey = (Color(0xFF59665D), Color(0xFFEDF2E8));
-    switch (status) {
-      case 'frozen':
-        return ('Frozen', blue.$1, blue.$2);
-      case 'past_use_by':
-        return ('Past use-by', red.$1, red.$2);
-      case 'past_best_before':
-        return ('Past best before', orange.$1, orange.$2);
-      case 'use_today':
-        return ('Use today', red.$1, red.$2);
-      case 'unknown':
-        return ('No date', grey.$1, grey.$2);
-      case 'consumed':
-      case 'discarded':
-        return null;
-    }
-    final days = daysLeft is num ? daysLeft.round() : null;
-    if (days == null) return null;
-    final label = days <= 0
-        ? 'Use today'
-        : (days == 1 ? '1 day left' : '$days days left');
-    final c = days <= 2 ? red : (days <= 7 ? orange : green);
-    return (label, c.$1, c.$2);
-  }
-
-  static Widget _pill(FlutterFlowTheme t, (String, Color, Color) p,
-          {double size = 13}) =>
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-            color: p.$3, borderRadius: BorderRadius.circular(999)),
-        child: Text(p.$1,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: t.bodySmall.copyWith(
-                color: p.$2, fontWeight: FontWeight.w800, fontSize: size)),
-      );
-
-  static Color _statusColour(String status) {
-    switch (status) {
-      case 'past_use_by':
-        return const Color(0xFFC44536);
-      case 'use_today':
-      case 'use_soon':
-      case 'past_best_before':
-        return const Color(0xFFB0621A);
-      case 'frozen':
-        return const Color(0xFF3B78B5);
-      case 'fresh':
-        return _forest;
-      default:
-        return _muted;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
-    // A reminder was tapped: open Use soon.
-    if (FFAppState().openUseSoon) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !FFAppState().openUseSoon) return;
-        FFAppState().openUseSoon = false;
-        context.pushNamed('UseSoonPage');
-      });
-    }
-    final household = FFAppState().currentHouseholdId;
-    // No household: the page's own prompt says what to do.
-    if (household.isEmpty) return const SizedBox.shrink();
-    if (household != _for) {
-      _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
-    }
-    // No signal: the page's own card says so, with Try again.
-    if (_failed) return const SizedBox.shrink();
-
-    final t = FlutterFlowTheme.of(context);
-    final title = t.headlineLarge.copyWith(
-        fontSize: 32, fontWeight: FontWeight.w800, color: _ink, height: 1.1);
-
-    return SizedBox(
-      width: widget.width,
-      child: _loading
-          ? _skeleton()
-          : AnimatedSwitcher(
-              duration: MediaQuery.of(context).disableAnimations
-                  ? Duration.zero
-                  : const Duration(milliseconds: 200),
-              child: _items.isEmpty ? _empty(t, title) : _populated(t, title),
-            ),
-    );
-  }
-
-  // ---- loading -------------------------------------------------------------
-
-  Widget _skeleton() {
-    Widget block(double h) => Container(
-          height: h,
-          decoration: BoxDecoration(
-            color: _sage,
-            borderRadius: BorderRadius.circular(20),
-          ),
-        );
-    return Semantics(
-      label: 'Loading your kitchen',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(width: 220, child: block(34)),
-          const SizedBox(height: 16),
-          block(240),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: block(112)),
-            const SizedBox(width: 12),
-            Expanded(child: block(112)),
-          ]),
-        ],
-      ),
-    );
-  }
-
-  // ---- empty kitchen -------------------------------------------------------
-
-  Widget _empty(FlutterFlowTheme t, TextStyle title) {
-    return Column(
-      key: const ValueKey('empty'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Fresh starts here.', style: title),
-        const SizedBox(height: 16),
-        _hero(t),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _shortcut(
-                  t,
-                  'Scan a receipt',
-                  SvgPicture.string(_receipt, width: 32, height: 32),
-                  () => _run(_receiptTap)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _shortcut(
-                  t,
-                  'Take a photo',
-                  SvgPicture.string(_camera, width: 32, height: 32),
-                  () => _run(() async => context.pushNamed('AddFoodItemPage'))),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        _kept != null ? _inspiration(t, _kept!) : _shelfPrompt(t),
-      ],
-    );
-  }
-
-  Widget _hero(FlutterFlowTheme t) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: SizedBox(
-        height: 240,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Illustrative: a photo to set the scene, not the person's food.
-            Image.network(
-              '$_food/tomatoes.webp',
-              fit: BoxFit.cover,
-              semanticLabel: '',
-              errorBuilder: (_, __, ___) => Container(color: _sage),
-            ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x00000000), Color(0xB3000000)],
-                  stops: [0.35, 1],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 20,
-              right: 20,
-              bottom: 20,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Let’s stock your kitchen',
-                    style: t.headlineSmall.copyWith(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15),
-                  ),
-                  const SizedBox(height: 12),
-                  _primaryButton(
-                      t, 'Add food', Icons.add, () => _run(_addFood)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _primaryButton(FlutterFlowTheme t, String label, IconData icon,
-          VoidCallback onTap) =>
-      SizedBox(
-        height: 48,
-        child: FilledButton.icon(
-          onPressed: _busy ? null : onTap,
-          style: FilledButton.styleFrom(
-            backgroundColor: _forest,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: _forest.withOpacity(0.6),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          icon: Icon(icon, size: 20),
-          label: Text(label,
-              style: t.bodyLarge
-                  .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-        ),
-      );
-
-  Widget _shortcut(
-      FlutterFlowTheme t, String label, Widget icon, VoidCallback onTap) {
-    return _Pressable(
-      enabled: !_busy,
-      label: label,
-      onTap: onTap,
-      child: Container(
-        height: 112,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: _sage, borderRadius: BorderRadius.circular(16)),
-              child: icon,
-            ),
-            const Spacer(),
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleSmall.copyWith(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _inspiration(FlutterFlowTheme t, Map<String, dynamic> kept) {
-    final data =
-        kept['recipe_data'] is Map ? kept['recipe_data'] as Map : const {};
-    final minutes =
-        data['minutes'] is num ? (data['minutes'] as num).round() : 0;
-    return _Pressable(
-      enabled: true,
-      label: 'A little inspiration: ${kept['title']}',
-      onTap: () => context.pushNamed('RecipesPage'),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: _sage,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('A little inspiration',
-                style: t.bodySmall.copyWith(
-                    color: _forest, fontWeight: FontWeight.w700, fontSize: 14)),
-            const SizedBox(height: 6),
-            Text((kept['title'] ?? '').toString(),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleLarge.copyWith(
-                    fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
-            if (minutes > 0) ...[
-              const SizedBox(height: 4),
-              Text('$minutes min · one of your kept ideas',
-                  style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _shelfPrompt(FlutterFlowTheme t) {
-    return _Pressable(
-      enabled: !_busy,
-      label: 'Photograph a shelf',
-      onTap: () => _run(_addFood),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: _sage,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Quickest start',
-                      style: t.bodySmall.copyWith(
-                          color: _forest,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14)),
-                  const SizedBox(height: 6),
-                  Text('Photograph one shelf',
-                      style: t.titleLarge.copyWith(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: _ink)),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: _forest, size: 28),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---- food in the kitchen -------------------------------------------------
-
-  Widget _populated(FlutterFlowTheme t, TextStyle title) {
-    return Column(
-      key: const ValueKey('populated'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Fresh today.', style: title),
-        const SizedBox(height: 20),
-        if (_soonCount > 0) ...[
-          _soonBanner(t),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 44), foregroundColor: _forest),
-              onPressed: () => context.pushNamed('RecipesPage'),
-              icon: const Icon(Icons.restaurant_menu, size: 18),
-              label: Text('Find a meal that uses them',
-                  style: t.bodyMedium
-                      .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        Row(
-          children: [
-            Expanded(
-              child: Text('Use these next',
-                  style: t.titleLarge.copyWith(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
-            ),
-            TextButton(
-              onPressed: () => context.pushNamed('InventoryPage'),
-              style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 48), foregroundColor: _forest),
-              child: Text('See all',
-                  style: t.bodyLarge
-                      .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 226,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            itemCount: _items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, i) => _foodCard(t, _items[i]),
-          ),
-        ),
-        const SizedBox(height: 24),
-        _tonight(t),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 48,
-          child: OutlinedButton.icon(
-            onPressed: _busy ? null : () => _run(_addFood),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _forest,
-              side: const BorderSide(color: _border),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            icon: const Icon(Icons.add, size: 20),
-            label: Text('Add food',
-                style: t.bodyLarge
-                    .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Foods close to their date — the same rule as Use soon: past it, today,
-  /// "use soon", or three days or fewer, and never frozen food.
-  int get _soonCount => _items.where((i) {
-        final status = (i['computed_status'] ?? '').toString();
-        if (status == 'frozen') return false;
-        if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-            .contains(status)) {
-          return true;
-        }
-        final d = i['days_left'];
-        return d is num && d <= 3;
-      }).length;
-
-  Widget _soonBanner(FlutterFlowTheme t) {
-    final n = _soonCount;
-    return Semantics(
-      button: true,
-      label:
-          '$n ${n == 1 ? 'food needs' : 'foods need'} using soon. Sort them.',
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () async {
-          await context.pushNamed('UseSoonPage');
-          if (mounted && _for.isNotEmpty) _load(_for);
-        },
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFE9D1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                    color: Color(0xFFB54708), shape: BoxShape.circle),
-                child: Text('$n',
-                    style: t.titleMedium.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.w800)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                    n == 1
-                        ? '1 food needs using soon'
-                        : '$n foods need using soon',
-                    style: t.bodyLarge.copyWith(
-                        color: const Color(0xFF5C2A04),
-                        fontWeight: FontWeight.w800)),
-              ),
-              Text('Sort them',
-                  style: t.bodyMedium.copyWith(
-                      color: const Color(0xFFB54708),
-                      fontWeight: FontWeight.w800)),
-              const Icon(Icons.chevron_right, color: Color(0xFFB54708)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _foodCard(FlutterFlowTheme t, Map<String, dynamic> item) {
-    final name = (item['name'] ?? '').toString();
-    final photo = _photoFor(item);
-    final status = (item['computed_status'] ?? '').toString();
-    final label = (item['status_label'] ?? '').toString();
-    final qty =
-        item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-    final amount = quantityLabel(qty, (item['unit'] ?? '').toString()) ?? '';
-    final pill = _timePill(status, item['days_left']);
-
-    return _Pressable(
-      enabled: true,
-      label: '$name, $label',
-      onTap: () => context.pushNamed('FoodItemPage',
-          queryParameters: {'itemId': item['id'].toString()}),
-      child: Container(
-        width: 160,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _border),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 128,
-              child: photo == null
-                  ? Container(
-                      color: _sage,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.restaurant,
-                          color: _forest, size: 36),
-                    )
-                  : Image.network(
-                      photo,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: _sage,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.restaurant,
-                            color: _forest, size: 36),
-                      ),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.titleSmall.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: _ink)),
-                  const SizedBox(height: 2),
-                  Text(
-                    amount.isNotEmpty ? amount : ' ',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13),
-                  ),
-                  const SizedBox(height: 8),
-                  if (pill != null) _pill(t, pill, size: 12),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _tonight(FlutterFlowTheme t) {
-    // What the household planned for today comes first (Plan my week).
-    final plan = _planned;
-    if (plan != null) {
-      final data =
-          plan['recipe_data'] is Map ? plan['recipe_data'] as Map : const {};
-      final mins = data['minutes'] is num ? (data['minutes'] as num).round() : 0;
-      final buy = data['extras'] is List ? (data['extras'] as List).length : 0;
-      const meals = {
-        'breakfast': 'Breakfast',
-        'lunch': 'Lunch',
-        'dinner': 'Dinner',
-        'snack': 'Snack'
-      };
-      return _Pressable(
-        enabled: true,
-        label: 'Planned today: ${plan['title']}',
-        onTap: () async {
-          await context.pushNamed('PlanWeekPage');
-          if (mounted && _for.isNotEmpty) _load(_for);
-        },
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: _forest,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Planned for today',
-                  style: t.bodySmall.copyWith(
-                      color: const Color(0xFFCFE3B8),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14)),
-              const SizedBox(height: 6),
-              Text('${plan['title']}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleLarge.copyWith(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white)),
-              const SizedBox(height: 4),
-              Text(
-                [
-                  meals['${plan['meal']}'] ?? 'Dinner',
-                  if (mins > 0) '$mins min',
-                  if (plan['servings'] is num) 'Serves ${plan['servings']}',
-                  buy == 0
-                      ? 'Everything in your kitchen'
-                      : (buy == 1 ? '1 thing to buy' : '$buy things to buy'),
-                ].join(' · '),
-                style: t.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.8), fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    // Otherwise a real idea only: the one just asked for, or one kept.
-    String ideaTitle = '';
-    int minutes = 0;
-    String cue = '';
-    final fresh = FFAppState().mealIdeas;
-    if (fresh.isNotEmpty) {
-      ideaTitle = fresh.first.title;
-      minutes = fresh.first.minutes;
-      if (fresh.first.uses.isNotEmpty)
-        cue = 'Uses your ${fresh.first.uses.first.toLowerCase()}';
-    } else if (_kept != null) {
-      ideaTitle = (_kept!['title'] ?? '').toString();
-      final data = _kept!['recipe_data'] is Map
-          ? _kept!['recipe_data'] as Map
-          : const {};
-      minutes = data['minutes'] is num ? (data['minutes'] as num).round() : 0;
-      cue = 'One of your kept ideas';
-    }
-
-    return _Pressable(
-      enabled: true,
-      label: ideaTitle.isEmpty
-          ? 'Find a meal from your food'
-          : 'Tonight: $ideaTitle',
-      onTap: () => context.pushNamed('RecipesPage'),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: _forest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tonight, sorted.',
-                style: t.bodySmall.copyWith(
-                    color: const Color(0xFFCFE3B8),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14)),
-            const SizedBox(height: 6),
-            Text(ideaTitle.isEmpty ? 'Find a meal from your food' : ideaTitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleLarge.copyWith(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white)),
-            if (ideaTitle.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                [if (minutes > 0) '$minutes min', if (cue.isNotEmpty) cue]
-                    .join(' · '),
-                style: t.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.8), fontSize: 14),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A whole-card tap target with an immediate pressed response (skipped when
-/// reduced motion is on).
-class _Pressable extends StatefulWidget {
-  const _Pressable({
-    required this.child,
-    required this.onTap,
-    required this.label,
-    required this.enabled,
+  FFAppState().update(() {
+    FFAppState().mapFoods = [];
+    FFAppState().mapPhotos = [];
   });
 
-  final Widget child;
-  final VoidCallback onTap;
-  final String label;
-  final bool enabled;
+  final storage = SupaFlow.client.storage.from('food-images');
+  // Each food's own picture, where one can be cut. Index-matched to `ticked`.
+  final pictures = await _cutPictures(ticked, household, storage);
 
-  @override
-  State<_Pressable> createState() => _PressableState();
+  try {
+    final rows = await SupaFlow.client
+        .from('storage_locations')
+        .select('id, location_type, is_default')
+        .eq('household_id', household);
+    final locations = List<Map<String, dynamic>>.from(rows as List);
+    String? locationFor(String type) {
+      for (final l in locations) {
+        if (l['location_type'] == type) return l['id'].toString();
+      }
+      for (final l in locations) {
+        if (l['is_default'] == true) return l['id'].toString();
+      }
+      return locations.isEmpty ? null : locations.first['id'].toString();
+    }
+
+    await SupaFlow.client.from('food_items').insert([
+      for (var i = 0; i < ticked.length; i++)
+        {
+          'household_id': household,
+          'storage_location_id': locationFor(
+              ticked[i].place.isEmpty ? photoPlace : ticked[i].place),
+          'created_by': uid,
+          'name': ticked[i].name,
+          if (ticked[i].category.isNotEmpty) 'category': ticked[i].category,
+          'quantity': ticked[i].quantity < 1 ? 1 : ticked[i].quantity,
+          'source_type': 'fridge_scan',
+          if (pictures[i].isNotEmpty) 'image_url': pictures[i],
+          if (DateTime.tryParse(ticked[i].useBy) != null) ...{
+            'printed_date': ticked[i].useBy,
+            'printed_date_type': 'use_by',
+          },
+        },
+    ]);
+  } on PostgrestException catch (error) {
+    putBack();
+    await _removeQuietly(storage, pictures);
+    if (error.code == '42501') {
+      return 'Your account is not allowed to add to this household.';
+    }
+    return error.message;
+  } catch (_) {
+    putBack();
+    await _removeQuietly(storage, pictures);
+    return 'Could not add them. Check your signal and try again.';
+  }
+
+  // Each cut-out is also a picture of that product, as sold here: recorded
+  // with the person's country and their choice about sharing (off unless they
+  // said yes). Extra: a failure here never affects the food.
+  await _recordCrops(ticked, pictures, household, uid);
+
+  // The shelf photos were only needed for the map; the cut pictures stay.
+  final paths =
+      [for (final u in photos) _storagePath(u)].whereType<String>().toList();
+  if (paths.isNotEmpty) {
+    try {
+      await storage.remove(paths);
+    } catch (_) {}
+  }
+  return '';
 }
 
-class _PressableState extends State<_Pressable> {
-  bool _down = false;
+Future<void> _recordCrops(List<MapFoodStruct> foods, List<String> pictures,
+    String household, String? uid) async {
+  if (uid == null || !pictures.any((p) => p.isNotEmpty)) return;
+  try {
+    final client = SupaFlow.client;
+    final profile = await client
+        .from('profiles')
+        .select('country_code')
+        .eq('id', uid)
+        .maybeSingle();
+    final cc = '${profile?['country_code'] ?? ''}'.toUpperCase();
+    final settings = await client
+        .from('user_settings')
+        .select('share_product_photos')
+        .eq('profile_id', uid)
+        .maybeSingle();
+    final consent = settings?['share_product_photos'] == true;
+    final rows = [
+      for (var i = 0; i < foods.length && i < pictures.length; i++)
+        if (_storagePath(pictures[i]) != null)
+          {
+            'household_id': household,
+            'name_key': foods[i].name.trim().toLowerCase(),
+            if (RegExp(r'^[A-Z]{2}$').hasMatch(cc)) 'country_code': cc,
+            'storage_path': _storagePath(pictures[i]),
+            'source': 'shelf_crop',
+            'share_consent': consent,
+            'created_by': uid,
+          }
+    ];
+    if (rows.isNotEmpty) await client.from('product_images').insert(rows);
+  } catch (_) {}
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final still = MediaQuery.of(context).disableAnimations;
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        onTapDown: widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapCancel: () => setState(() => _down = false),
-        onTapUp: (_) => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedScale(
-          scale: (_down && !still) ? 0.98 : 1,
-          duration: const Duration(milliseconds: 150),
-          child: widget.child,
-        ),
-      ),
-    );
+/// A signed URL for each ticked food's own picture, or '' where none could be
+/// cut. Photos are downloaded once each; the cutting runs off the main thread
+/// on the phone so the screen does not freeze.
+Future<List<String>> _cutPictures(
+    List<MapFoodStruct> foods, String household, StorageFileApi storage) async {
+  final out = List<String>.filled(foods.length, '');
+  final byPhoto = <String, List<int>>{};
+  for (var i = 0; i < foods.length; i++) {
+    if (foods[i].photo.isEmpty || _box(foods[i].box) == null) continue;
+    byPhoto.putIfAbsent(foods[i].photo, () => []).add(i);
   }
+  for (final entry in byPhoto.entries) {
+    final path = _storagePath(entry.key);
+    if (path == null) continue;
+    try {
+      final bytes = await storage.download(path);
+      final boxes = [for (final i in entry.value) foods[i].box];
+      final crops = await compute(_cropAll, {'bytes': bytes, 'boxes': boxes});
+      for (var k = 0; k < entry.value.length; k++) {
+        final crop = crops[k];
+        if (crop == null) continue;
+        final cropPath = '$household/item-${const Uuid().v4()}.jpg';
+        await storage.uploadBinary(
+          cropPath,
+          crop,
+          fileOptions:
+              const FileOptions(contentType: 'image/jpeg', upsert: false),
+        );
+        // A year, the same as a photo taken on the Add food form.
+        out[entry.value[k]] =
+            await storage.createSignedUrl(cropPath, 60 * 60 * 24 * 365);
+      }
+    } catch (_) {
+      // No picture for these foods; they are still added.
+    }
+  }
+  return out;
+}
+
+/// Cuts each outline out of one photo. Runs in a background isolate on the
+/// phone (compute), so it only takes plain data and returns plain data.
+List<Uint8List?> _cropAll(Map<String, Object> args) {
+  final bytes = args['bytes'] as Uint8List;
+  final boxes = (args['boxes'] as List).cast<String>();
+  final photo = img.decodeImage(bytes);
+  if (photo == null) return List<Uint8List?>.filled(boxes.length, null);
+  final oriented = img.bakeOrientation(photo);
+  final w = oriented.width;
+  final h = oriented.height;
+  return [
+    for (final b in boxes)
+      () {
+        final box = _box(b);
+        if (box == null) return null;
+        final (y0, x0, y1, x1) = box;
+        // A little room around the packet, and no more: the rest of the fridge
+        // is not the food's picture.
+        final padX = (x1 - x0) * 0.06;
+        final padY = (y1 - y0) * 0.06;
+        final left = ((x0 - padX) / 1000 * w).clamp(0, w - 1).round();
+        final top = ((y0 - padY) / 1000 * h).clamp(0, h - 1).round();
+        final right = ((x1 + padX) / 1000 * w).clamp(1, w).round();
+        final bottom = ((y1 + padY) / 1000 * h).clamp(1, h).round();
+        final cw = right - left;
+        final ch = bottom - top;
+        // Too small to be a useful picture.
+        if (cw < 80 || ch < 80) return null;
+        var crop =
+            img.copyCrop(oriented, x: left, y: top, width: cw, height: ch);
+        if (crop.width > 640 || crop.height > 640) {
+          crop = crop.width >= crop.height
+              ? img.copyResize(crop, width: 640)
+              : img.copyResize(crop, height: 640);
+        }
+        return Uint8List.fromList(img.encodeJpg(crop, quality: 82));
+      }(),
+  ];
+}
+
+/// "ymin,xmin,ymax,xmax" on 0-1000, as the photo function sends it.
+(double, double, double, double)? _box(String s) {
+  final parts = s.split(',').map((p) => double.tryParse(p.trim())).toList();
+  if (parts.length != 4 || parts.any((p) => p == null)) return null;
+  final (y0, x0, y1, x1) = (parts[0]!, parts[1]!, parts[2]!, parts[3]!);
+  if (y1 <= y0 || x1 <= x0) return null;
+  return (y0, x0, y1, x1);
+}
+
+Future<void> _removeQuietly(StorageFileApi storage, List<String> urls) async {
+  final paths =
+      [for (final u in urls) _storagePath(u)].whereType<String>().toList();
+  if (paths.isEmpty) return;
+  try {
+    await storage.remove(paths);
+  } catch (_) {}
+}
+
+/// The object path inside the food-images bucket, from a signed URL.
+String? _storagePath(String signedUrl) {
+  const marker = '/object/sign/food-images/';
+  final at = signedUrl.indexOf(marker);
+  if (at < 0) return null;
+  final rest = signedUrl.substring(at + marker.length);
+  final q = rest.indexOf('?');
+  return Uri.decodeComponent(q < 0 ? rest : rest.substring(0, q));
 }
 ''';
