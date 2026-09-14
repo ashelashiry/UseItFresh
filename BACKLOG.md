@@ -75,6 +75,29 @@ Notes to settle before building these:
 - **Recipe collection** overlaps with kept ideas, which already save to the
   household; "Later" is mostly linking ingredients to inventory and the list.
 
+## Business idea — product image service (owner, 14 Sep)
+
+A subscription service that keeps a current picture of every product and SKU,
+by country and packaging variant, for apps like this one.
+
+- **Who is already there:** GS1 and its national catalogues (brand-supplied,
+  retailer-priced), product-content firms (Syndigo, 1WorldSync, Salsify, Nielsen
+  Brandbank), Open Food Facts (free, crowd-sourced, patchy by country), food-data
+  APIs (Edamam, Spoonacular). The open gap is affordable, developer-friendly,
+  current, country-variant coverage — a niche, not an empty market.
+- **Hard parts:** image rights (packaging art and photos belong to brands or
+  photographers — never scrape retailer sites; brand-supplied or consented user
+  photos only; get legal advice before selling images), keeping packaging
+  current, matching products across countries and redesigns.
+- **Use It Fresh's edge:** shelf-photo crops from real users, tagged with
+  barcode or name, country and date, with consent — a local, current dataset as
+  a by-product of using the app. Cautions: privacy (crop tightly, never the rest
+  of the fridge), variable photo quality.
+- **Now:** do not pivot. Build in-app product pictures so the data is captured
+  properly from day one (crop, barcode, country, date, consent flag).
+- **To validate:** GS1 Australia catalogue pricing; whether other app makers
+  would pay; a legal view on selling crowd-sourced product photos.
+
 ## Done recently (for context)
 
 - 14 Sep: in-app camera with modes; daily reminder note → Use soon; live shared

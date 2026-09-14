@@ -19,9 +19,6 @@ import 'package:flutterflow_ai/src/helpers/data_type_helpers.dart' show stringTy
 
 import 'package:ff_agent_useitfresh_fridge_wise_gvpy0s/flutterflow_project.dart'
     as ff;
-// ignore: implementation_imports
-import 'package:flutterflow_ai/schema/gen/flutterflow.pb.dart' as pb;
-import 'dart:convert' as convert;
 
 
 Future<void> main(List<String> args) async {
@@ -160,39 +157,226 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Tell Apple once, in the app itself, that it uses no non-exempt encryption.
+/// Product pictures, source 1: each food's own picture, cut from the shelf photo.
 ///
-/// Every TestFlight upload stopped at "App Encryption Documentation" until
-/// someone answered "None of the algorithms mentioned above". The answer lives
-/// in Info.plist as ITSAppUsesNonExemptEncryption = false; with it there, App
-/// Store Connect stops asking. The app only uses HTTPS through the operating
-/// system, which is exempt.
+/// The photo map already outlines every food on the person's own photo. When
+/// the ticked foods are added, each outline is cut out (a little padding, no
+/// more — the rest of the fridge stays private), shrunk to a card-sized JPEG,
+/// stored in the household's own folder, and saved as that food's picture. It
+/// is the exact packet, in the exact country, so nothing is guessed.
 ///
-/// Spot a Paw did this by unlocking the whole Info.plist, which stops
-/// FlutterFlow maintaining the rest of it (permissions, the app's name). Here
-/// it is added as an Info.plist property hook instead, so FlutterFlow still
-/// writes everything else.
+/// The full shelf photos are still deleted once the foods are in. A crop that
+/// fails (no outline, too small, no signal) just leaves that food without a
+/// picture, as before; it never stops the foods being added.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    final files = project.ensureCustomCode().ensureCustomFiles().files;
-    var plist = files.where((f) => f.type == pb.FFCustomFile_Type.INFO_PLIST).toList();
-    pb.FFCustomFile file;
-    if (plist.isEmpty) {
-      file = pb.FFCustomFile(
-        identifier: pb.FFIdentifier(name: 'Info.plist', key: 'custom_file_info_plist'),
-        type: pb.FFCustomFile_Type.INFO_PLIST,
-        isUnlocked: false,
-      );
-      files.add(file);
-    } else {
-      file = plist.first;
-    }
-    final already = file.hooks.any((h) => h.content.contains('ITSAppUsesNonExemptEncryption'));
-    if (already) return;
-    file.hooks.add(pb.FFCustomFile_Hook(
-      type: pb.FFCustomFile_Hook_Type.INFO_PLIST_PROPERTY,
-      identifier: pb.FFIdentifier(name: 'ExportCompliance', key: 'hook_export_compliance'),
-      content: '<key>ITSAppUsesNonExemptEncryption</key>\n<false/>',
-    ));
+    updateCustomAction(project, name: 'SaveMapFoods', code: _saveMapFoods);
   });
 }
+
+const _saveMapFoods = r'''
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart' show compute;
+import 'package:image/image.dart' as img;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+/// Adds every ticked food on the photo map, in one insert, each with its own
+/// picture cut from the shelf photo, then deletes the shelf photos.
+///
+/// One insert, so it is all or nothing. The map is emptied before the write,
+/// so a second tap while the first is still saving finds nothing to add twice;
+/// if the write fails, everything comes back.
+///
+/// A food given a use-by date on the map is saved with it as the printed
+/// date; the rest get the typical keep time for their category.
+Future<String> saveMapFoods() async {
+  final all = List<MapFoodStruct>.of(FFAppState().mapFoods);
+  final photos = List<String>.of(FFAppState().mapPhotos);
+  final ticked = all.where((f) => f.decision == 'yes').toList();
+  if (ticked.isEmpty) return 'Tick at least one food to add.';
+  final household = FFAppState().currentHouseholdId;
+  if (household.isEmpty) {
+    return 'No household yet. Create or join one before adding food.';
+  }
+  final photoPlace =
+      FFAppState().mapPlace.isEmpty ? 'fridge' : FFAppState().mapPlace;
+  final uid = SupaFlow.client.auth.currentUser?.id;
+  void putBack() => FFAppState().update(() {
+        FFAppState().mapFoods = all;
+        FFAppState().mapPhotos = photos;
+      });
+
+  FFAppState().update(() {
+    FFAppState().mapFoods = [];
+    FFAppState().mapPhotos = [];
+  });
+
+  final storage = SupaFlow.client.storage.from('food-images');
+  // Each food's own picture, where one can be cut. Index-matched to `ticked`.
+  final pictures = await _cutPictures(ticked, household, storage);
+
+  try {
+    final rows = await SupaFlow.client
+        .from('storage_locations')
+        .select('id, location_type, is_default')
+        .eq('household_id', household);
+    final locations = List<Map<String, dynamic>>.from(rows as List);
+    String? locationFor(String type) {
+      for (final l in locations) {
+        if (l['location_type'] == type) return l['id'].toString();
+      }
+      for (final l in locations) {
+        if (l['is_default'] == true) return l['id'].toString();
+      }
+      return locations.isEmpty ? null : locations.first['id'].toString();
+    }
+
+    await SupaFlow.client.from('food_items').insert([
+      for (var i = 0; i < ticked.length; i++)
+        {
+          'household_id': household,
+          'storage_location_id': locationFor(
+              ticked[i].place.isEmpty ? photoPlace : ticked[i].place),
+          'created_by': uid,
+          'name': ticked[i].name,
+          if (ticked[i].category.isNotEmpty) 'category': ticked[i].category,
+          'quantity': ticked[i].quantity < 1 ? 1 : ticked[i].quantity,
+          'source_type': 'fridge_scan',
+          if (pictures[i].isNotEmpty) 'image_url': pictures[i],
+          if (DateTime.tryParse(ticked[i].useBy) != null) ...{
+            'printed_date': ticked[i].useBy,
+            'printed_date_type': 'use_by',
+          },
+        },
+    ]);
+  } on PostgrestException catch (error) {
+    putBack();
+    await _removeQuietly(storage, pictures);
+    if (error.code == '42501') {
+      return 'Your account is not allowed to add to this household.';
+    }
+    return error.message;
+  } catch (_) {
+    putBack();
+    await _removeQuietly(storage, pictures);
+    return 'Could not add them. Check your signal and try again.';
+  }
+
+  // The shelf photos were only needed for the map; the cut pictures stay.
+  final paths =
+      [for (final u in photos) _storagePath(u)].whereType<String>().toList();
+  if (paths.isNotEmpty) {
+    try {
+      await storage.remove(paths);
+    } catch (_) {}
+  }
+  return '';
+}
+
+/// A signed URL for each ticked food's own picture, or '' where none could be
+/// cut. Photos are downloaded once each; the cutting runs off the main thread
+/// on the phone so the screen does not freeze.
+Future<List<String>> _cutPictures(
+    List<MapFoodStruct> foods, String household, StorageFileApi storage) async {
+  final out = List<String>.filled(foods.length, '');
+  final byPhoto = <String, List<int>>{};
+  for (var i = 0; i < foods.length; i++) {
+    if (foods[i].photo.isEmpty || _box(foods[i].box) == null) continue;
+    byPhoto.putIfAbsent(foods[i].photo, () => []).add(i);
+  }
+  for (final entry in byPhoto.entries) {
+    final path = _storagePath(entry.key);
+    if (path == null) continue;
+    try {
+      final bytes = await storage.download(path);
+      final boxes = [for (final i in entry.value) foods[i].box];
+      final crops = await compute(_cropAll, {'bytes': bytes, 'boxes': boxes});
+      for (var k = 0; k < entry.value.length; k++) {
+        final crop = crops[k];
+        if (crop == null) continue;
+        final cropPath = '$household/item-${const Uuid().v4()}.jpg';
+        await storage.uploadBinary(
+          cropPath,
+          crop,
+          fileOptions:
+              const FileOptions(contentType: 'image/jpeg', upsert: false),
+        );
+        // A year, the same as a photo taken on the Add food form.
+        out[entry.value[k]] =
+            await storage.createSignedUrl(cropPath, 60 * 60 * 24 * 365);
+      }
+    } catch (_) {
+      // No picture for these foods; they are still added.
+    }
+  }
+  return out;
+}
+
+/// Cuts each outline out of one photo. Runs in a background isolate on the
+/// phone (compute), so it only takes plain data and returns plain data.
+List<Uint8List?> _cropAll(Map<String, Object> args) {
+  final bytes = args['bytes'] as Uint8List;
+  final boxes = (args['boxes'] as List).cast<String>();
+  final photo = img.decodeImage(bytes);
+  if (photo == null) return List<Uint8List?>.filled(boxes.length, null);
+  final oriented = img.bakeOrientation(photo);
+  final w = oriented.width;
+  final h = oriented.height;
+  return [
+    for (final b in boxes)
+      () {
+        final box = _box(b);
+        if (box == null) return null;
+        final (y0, x0, y1, x1) = box;
+        // A little room around the packet, and no more: the rest of the fridge
+        // is not the food's picture.
+        final padX = (x1 - x0) * 0.06;
+        final padY = (y1 - y0) * 0.06;
+        final left = ((x0 - padX) / 1000 * w).clamp(0, w - 1).round();
+        final top = ((y0 - padY) / 1000 * h).clamp(0, h - 1).round();
+        final right = ((x1 + padX) / 1000 * w).clamp(1, w).round();
+        final bottom = ((y1 + padY) / 1000 * h).clamp(1, h).round();
+        final cw = right - left;
+        final ch = bottom - top;
+        // Too small to be a useful picture.
+        if (cw < 80 || ch < 80) return null;
+        var crop = img.copyCrop(oriented, x: left, y: top, width: cw, height: ch);
+        if (crop.width > 640 || crop.height > 640) {
+          crop = crop.width >= crop.height
+              ? img.copyResize(crop, width: 640)
+              : img.copyResize(crop, height: 640);
+        }
+        return Uint8List.fromList(img.encodeJpg(crop, quality: 82));
+      }(),
+  ];
+}
+
+/// "ymin,xmin,ymax,xmax" on 0-1000, as the photo function sends it.
+(double, double, double, double)? _box(String s) {
+  final parts = s.split(',').map((p) => double.tryParse(p.trim())).toList();
+  if (parts.length != 4 || parts.any((p) => p == null)) return null;
+  final (y0, x0, y1, x1) = (parts[0]!, parts[1]!, parts[2]!, parts[3]!);
+  if (y1 <= y0 || x1 <= x0) return null;
+  return (y0, x0, y1, x1);
+}
+
+Future<void> _removeQuietly(StorageFileApi storage, List<String> urls) async {
+  final paths = [for (final u in urls) _storagePath(u)].whereType<String>().toList();
+  if (paths.isEmpty) return;
+  try {
+    await storage.remove(paths);
+  } catch (_) {}
+}
+
+/// The object path inside the food-images bucket, from a signed URL.
+String? _storagePath(String signedUrl) {
+  const marker = '/object/sign/food-images/';
+  final at = signedUrl.indexOf(marker);
+  if (at < 0) return null;
+  final rest = signedUrl.substring(at + marker.length);
+  final q = rest.indexOf('?');
+  return Uri.decodeComponent(q < 0 ? rest : rest.substring(0, q));
+}
+''';
