@@ -462,6 +462,17 @@ const JOURNEYS = [
       ["20.5", "Do it again on another meal, then tap «Undo» straight away.", "«Undone. Nothing changed.» The meal is back to planned and its foods are back in the kitchen.", 1],
       ["20.6", "Open an eaten meal and «Mark as still to cook».", "It goes back to a normal planned meal.", 1],
     ]},
+  { n:21, t:"Your day", w:"Recipes → Plan my week", tag:"core", isNew:1,
+    why:"Today's estimated calories and protein from what you marked as eaten, against targets you choose. Private to you, and only there when «Fits my goals» is on.",
+    s:[
+      ["21.1", "With «Fits my goals» off, open Plan my week.", "No «Your day» card. No calories anywhere.", 1],
+      ["21.2", "Turn «Fits my goals» on (Recipes chip) and open Plan my week again.", "A «Your day» card above the days: «0 kcal so far», «0 g protein so far», «Nothing logged today…», and «Set targets».", 1],
+      ["21.3", "Tap «Set targets». Use − and + to pick 2,000 kcal and 90 g, then «Save targets».", "«Targets saved.» The card now reads «0 of 2,000 kcal» and «0 of 90 g protein» with empty bars.", 1],
+      ["21.4", "Mark a meal planned for today «I ate this» (journey 20).", "The card fills in: the meal with its portions and kcal, and the bars move.", 1],
+      ["21.5", "Tap the ✕ next to that meal in «Your day».", "«Taken off your day. Your kitchen is unchanged.» with «Undo». The totals go back down. Tap «Undo»: it comes back.", 1],
+      ["21.6", "On the second person's phone, open Plan my week with goals on.", "Their own «Your day», without the first person's meals or targets.", 1],
+      ["21.7", "Back on the first phone, «Change targets» → «No targets, just totals».", "«Targets cleared.» Totals only, no bars.", 1],
+    ]},
 ];
 
 const STATES = [["works","✓","Works"],["problem","✕","Problem"],["skipped","–","Skip"]];
