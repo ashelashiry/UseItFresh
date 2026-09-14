@@ -4,28 +4,10 @@ library;
 
 import 'package:flutterflow_ai/flutterflow_ai.dart' as ffai;
 import 'components/bottom_navigation.dart' show BottomNavigationComponentHandle;
-import 'components/empty_state_card.dart' show EmptyStateCardComponentHandle;
-import 'components/feature_panel.dart' show FeaturePanelComponentHandle;
-import 'components/food_card.dart' show FoodCardComponentHandle;
-import 'components/menu_row.dart' show MenuRowComponentHandle;
-import 'components/section_heading.dart' show SectionHeadingComponentHandle;
-import 'components/status_badge.dart' show StatusBadgeComponentHandle;
 
 abstract final class Components {
   static final bottomNavigation = BottomNavigationComponentHandle();
-  static final emptyStateCard = EmptyStateCardComponentHandle();
-  static final featurePanel = FeaturePanelComponentHandle();
-  static final foodCard = FoodCardComponentHandle();
-  static final menuRow = MenuRowComponentHandle();
-  static final sectionHeading = SectionHeadingComponentHandle();
-  static final statusBadge = StatusBadgeComponentHandle();
   static final all = <ffai.ProjectComponentHandle>[
     bottomNavigation,
-    emptyStateCard,
-    featurePanel,
-    foodCard,
-    menuRow,
-    sectionHeading,
-    statusBadge,
   ];
 }

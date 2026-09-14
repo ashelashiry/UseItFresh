@@ -6,6 +6,7 @@ import 'package:flutterflow_ai/flutterflow_ai.dart' as ffai;
 import 'pages/add_food_item_page.dart' show addFoodItemPageHandle;
 import 'pages/add_food_review_page.dart' show addFoodReviewPageHandle;
 import 'pages/barcode_scan_page.dart' show barcodeScanPageHandle;
+import 'pages/camera_page.dart' show cameraPageHandle;
 import 'pages/edit_item_page.dart' show editItemPageHandle;
 import 'pages/food_item_page.dart' show foodItemPageHandle;
 import 'pages/food_preferences_page.dart' show foodPreferencesPageHandle;
@@ -26,6 +27,7 @@ import 'pages/sign_in_page.dart' show signInPageHandle;
 import 'pages/sign_up_page.dart' show signUpPageHandle;
 import 'pages/storage_locations_page.dart' show storageLocationsPageHandle;
 import 'pages/update_password_page.dart' show updatePasswordPageHandle;
+import 'pages/use_soon_page.dart' show useSoonPageHandle;
 import 'pages/waste_history_page.dart' show wasteHistoryPageHandle;
 import 'pages/welcome_page.dart' show welcomePageHandle;
 
@@ -33,6 +35,7 @@ abstract final class Pages {
   static final addFoodItemPage = addFoodItemPageHandle;
   static final addFoodReviewPage = addFoodReviewPageHandle;
   static final barcodeScanPage = barcodeScanPageHandle;
+  static final cameraPage = cameraPageHandle;
   static final editItemPage = editItemPageHandle;
   static final foodItemPage = foodItemPageHandle;
   static final foodPreferencesPage = foodPreferencesPageHandle;
@@ -53,12 +56,14 @@ abstract final class Pages {
   static final signUpPage = signUpPageHandle;
   static final storageLocationsPage = storageLocationsPageHandle;
   static final updatePasswordPage = updatePasswordPageHandle;
+  static final useSoonPage = useSoonPageHandle;
   static final wasteHistoryPage = wasteHistoryPageHandle;
   static final welcomePage = welcomePageHandle;
   static final all = <ffai.ProjectPageHandle>[
     addFoodItemPage,
     addFoodReviewPage,
     barcodeScanPage,
+    cameraPage,
     editItemPage,
     foodItemPage,
     foodPreferencesPage,
@@ -79,6 +84,7 @@ abstract final class Pages {
     signUpPage,
     storageLocationsPage,
     updatePasswordPage,
+    useSoonPage,
     wasteHistoryPage,
     welcomePage,
   ];

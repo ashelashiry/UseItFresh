@@ -96,171 +96,21 @@ abstract final class RemindersPageWidgets {
                     text: "Reminders.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Text_ynqtb18p",
-                    type: "Text",
+                    key: "Container_98k68p6t",
+                    type: "Container",
                     path: "RemindersPage.body[0].children[0].children[2]",
-                    name: "RemindersLede",
-                    text: "A nudge before something needs using, while there is still time to cook it.",
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Container_ksgnt69t",
-                    type: "Container",
-                    path: "RemindersPage.body[0].children[0].children[3]",
-                    name: "RemindersToggle",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
-                    children: <ffai.ProjectWidgetHandle>[
-                      ffai.ProjectWidgetHandle(
-                        key: "Row_pimlvlyi",
-                        type: "Row",
-                        path: "RemindersPage.body[0].children[0].children[3].children[0]",
-                        name: "Row",
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Icon_ck4kf3bw",
-                            type: "Icon",
-                            path: "RemindersPage.body[0].children[0].children[3].children[0].children[0]",
-                            name: "RemindersOff",
-                          ),
-                          ffai.ProjectWidgetHandle(
-                            key: "Icon_5utfg2al",
-                            type: "Icon",
-                            path: "RemindersPage.body[0].children[0].children[3].children[0].children[1]",
-                            name: "RemindersOn",
-                          ),
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_u204u5bk",
-                            type: "Text",
-                            path: "RemindersPage.body[0].children[0].children[3].children[0].children[2]",
-                            name: "RemindersToggleLabel",
-                            text: "Remind me before food goes off",
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Text_a5wz78w1",
-                    type: "Text",
-                    path: "RemindersPage.body[0].children[0].children[4]",
-                    name: "RemindersWhenLabel",
-                    text: "HOW LONG BEFORE",
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Row_t8fmzxuf",
-                    type: "Row",
-                    path: "RemindersPage.body[0].children[0].children[5]",
-                    name: "RemindersDaysRow",
-                    children: <ffai.ProjectWidgetHandle>[
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_9s0r909y",
-                        type: "Container",
-                        path: "RemindersPage.body[0].children[0].children[5].children[0]",
-                        name: "RemindersDay1",
-                        triggers: const <String>[
-                          "ON_TAP",
-                        ],
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_h8jw5oei",
-                            type: "Text",
-                            path: "RemindersPage.body[0].children[0].children[5].children[0].children[0]",
-                            name: "RemindersDayLabel1",
-                            text: "1 day",
-                          ),
-                        ],
-                      ),
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_flygp3ri",
-                        type: "Container",
-                        path: "RemindersPage.body[0].children[0].children[5].children[1]",
-                        name: "RemindersDay2",
-                        triggers: const <String>[
-                          "ON_TAP",
-                        ],
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_2hrhfomb",
-                            type: "Text",
-                            path: "RemindersPage.body[0].children[0].children[5].children[1].children[0]",
-                            name: "RemindersDayLabel2",
-                            text: "2 days",
-                          ),
-                        ],
-                      ),
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_txvf3xzl",
-                        type: "Container",
-                        path: "RemindersPage.body[0].children[0].children[5].children[2]",
-                        name: "RemindersDay3",
-                        triggers: const <String>[
-                          "ON_TAP",
-                        ],
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_qu4hxc7b",
-                            type: "Text",
-                            path: "RemindersPage.body[0].children[0].children[5].children[2].children[0]",
-                            name: "RemindersDayLabel3",
-                            text: "3 days",
-                          ),
-                        ],
-                      ),
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_90c44vso",
-                        type: "Container",
-                        path: "RemindersPage.body[0].children[0].children[5].children[3]",
-                        name: "RemindersDay5",
-                        triggers: const <String>[
-                          "ON_TAP",
-                        ],
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Text_3gcs8qbd",
-                            type: "Text",
-                            path: "RemindersPage.body[0].children[0].children[5].children[3].children[0]",
-                            name: "RemindersDayLabel5",
-                            text: "5 days",
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Container_u6p07e91",
-                    type: "Container",
-                    path: "RemindersPage.body[0].children[0].children[6]",
-                    name: "RemindersNote",
-                    children: <ffai.ProjectWidgetHandle>[
-                      ffai.ProjectWidgetHandle(
-                        key: "Text_mbxv11v4",
-                        type: "Text",
-                        path: "RemindersPage.body[0].children[0].children[6].children[0]",
-                        name: "RemindersNoteText",
-                      ),
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Button_5cm71fhm",
-                    type: "Button",
-                    path: "RemindersPage.body[0].children[0].children[7]",
-                    name: "RemindersSave",
-                    text: "Save reminders",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
+                    name: "ReminderControls",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_lolarpje",
                     type: "Container",
-                    path: "RemindersPage.body[0].children[0].children[8]",
+                    path: "RemindersPage.body[0].children[0].children[3]",
                     name: "RemindersHonesty",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Text_7xvynvsm",
                         type: "Text",
-                        path: "RemindersPage.body[0].children[0].children[8].children[0]",
+                        path: "RemindersPage.body[0].children[0].children[3].children[0]",
                         name: "RemindersHonestyText",
                         text: "Reminders are set on this phone, so nothing about your kitchen is sent anywhere to make them work. They are refreshed whenever you open the app.",
                       ),

@@ -96,85 +96,10 @@ abstract final class StorageLocationsPageWidgets {
                     text: "Where do you keep food? These are used to sort your inventory and to work out how long things last.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "ListView_hj1izs2i",
-                    type: "ListView",
+                    key: "Container_9r4t3ouc",
+                    type: "Container",
                     path: "StorageLocationsPage.body[0].children[0].children[1]",
-                    name: "StorageLocationsList",
-                    children: <ffai.ProjectWidgetHandle>[
-                      ffai.ProjectWidgetHandle(
-                        key: "Container_99buocdt",
-                        type: "Container",
-                        path: "StorageLocationsPage.body[0].children[0].children[1].children[0]",
-                        name: "StorageLocationRow",
-                        children: <ffai.ProjectWidgetHandle>[
-                          ffai.ProjectWidgetHandle(
-                            key: "Row_lygiqgz7",
-                            type: "Row",
-                            path: "StorageLocationsPage.body[0].children[0].children[1].children[0].children[0]",
-                            name: "Row",
-                            children: <ffai.ProjectWidgetHandle>[
-                              ffai.ProjectWidgetHandle(
-                                key: "ListTile_vuj6wyqf",
-                                type: "ListTile",
-                                path: "StorageLocationsPage.body[0].children[0].children[1].children[0].children[0].children[0]",
-                                name: "ListTile",
-                              ),
-                              ffai.ProjectWidgetHandle(
-                                key: "IconButton_lyli1xe1",
-                                type: "IconButton",
-                                path: "StorageLocationsPage.body[0].children[0].children[1].children[0].children[0].children[1]",
-                                name: "DeleteLocationButton",
-                                triggers: const <String>[
-                                  "ON_TAP",
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Divider_iwmfoeu2",
-                    type: "Divider",
-                    path: "StorageLocationsPage.body[0].children[0].children[2]",
-                    name: "AddLocationDivider",
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Text_c44mmjf3",
-                    type: "Text",
-                    path: "StorageLocationsPage.body[0].children[0].children[3]",
-                    name: "AddLocationHeading",
-                    text: "Add a location",
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "TextField_utlynq7w",
-                    type: "TextField",
-                    path: "StorageLocationsPage.body[0].children[0].children[4]",
-                    name: "NewLocationNameField",
-                    text: "Name",
-                    triggers: const <String>[
-                      "ON_TEXTFIELD_CHANGE",
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "DropDown_0o0t8lwa",
-                    type: "DropDown",
-                    path: "StorageLocationsPage.body[0].children[0].children[5]",
-                    name: "NewLocationTypeDropdown",
-                    triggers: const <String>[
-                      "ON_FORM_WIDGET_SELECTED",
-                    ],
-                  ),
-                  ffai.ProjectWidgetHandle(
-                    key: "Button_8lpqe4v9",
-                    type: "Button",
-                    path: "StorageLocationsPage.body[0].children[0].children[6]",
-                    name: "AddLocationButton",
-                    text: "Add location",
-                    triggers: const <String>[
-                      "ON_TAP",
-                    ],
+                    name: "StoragePlaces",
                   ),
                 ],
               ),

@@ -84,22 +84,15 @@ abstract final class EditItemPageWidgets {
                     text: "Fix the details.",
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Text_5l8kvj2p",
-                    type: "Text",
-                    path: "EditItemPage.body[0].children[0].children[2]",
-                    name: "EditItemLede",
-                    text: "Anything the app guessed, or left blank when you added it in a hurry.",
-                  ),
-                  ffai.ProjectWidgetHandle(
                     key: "Container_colj4ubr",
                     type: "Container",
-                    path: "EditItemPage.body[0].children[0].children[3]",
+                    path: "EditItemPage.body[0].children[0].children[2]",
                     name: "EditItemPanel",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Button_nvf99yhf",
                     type: "Button",
-                    path: "EditItemPage.body[0].children[0].children[4]",
+                    path: "EditItemPage.body[0].children[0].children[3]",
                     name: "EditItemSave",
                     text: "Save changes",
                     triggers: const <String>[

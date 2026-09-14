@@ -156,40 +156,46 @@ abstract final class WasteHistoryPageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Container_ptodtv7j",
+                    key: "Container_0c20hq6l",
                     type: "Container",
                     path: "WasteHistoryPage.body[0].children[0].children[5]",
+                    name: "WasteMonths",
+                  ),
+                  ffai.ProjectWidgetHandle(
+                    key: "Container_ptodtv7j",
+                    type: "Container",
+                    path: "WasteHistoryPage.body[0].children[0].children[6]",
                     name: "WastePutItBack",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_hgnd8ev5",
                     type: "Container",
-                    path: "WasteHistoryPage.body[0].children[0].children[6]",
+                    path: "WasteHistoryPage.body[0].children[0].children[7]",
                     name: "WasteWorstCard",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Column_zhcc6uyo",
                         type: "Column",
-                        path: "WasteHistoryPage.body[0].children[0].children[6].children[0]",
+                        path: "WasteHistoryPage.body[0].children[0].children[7].children[0]",
                         name: "Column",
                         children: <ffai.ProjectWidgetHandle>[
                           ffai.ProjectWidgetHandle(
                             key: "Text_4tml258v",
                             type: "Text",
-                            path: "WasteHistoryPage.body[0].children[0].children[6].children[0].children[0]",
+                            path: "WasteHistoryPage.body[0].children[0].children[7].children[0].children[0]",
                             name: "WasteWorstLabel",
                             text: "MOST OFTEN THROWN OUT",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_cm44u6pb",
                             type: "Text",
-                            path: "WasteHistoryPage.body[0].children[0].children[6].children[0].children[1]",
+                            path: "WasteHistoryPage.body[0].children[0].children[7].children[0].children[1]",
                             name: "WasteWorstValue",
                           ),
                           ffai.ProjectWidgetHandle(
                             key: "Text_hrp5nigp",
                             type: "Text",
-                            path: "WasteHistoryPage.body[0].children[0].children[6].children[0].children[2]",
+                            path: "WasteHistoryPage.body[0].children[0].children[7].children[0].children[2]",
                             name: "WasteWorstHint",
                             text: "Worth buying less of, or freezing sooner.",
                           ),
@@ -200,13 +206,13 @@ abstract final class WasteHistoryPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_5uy9k60x",
                     type: "Container",
-                    path: "WasteHistoryPage.body[0].children[0].children[7]",
+                    path: "WasteHistoryPage.body[0].children[0].children[8]",
                     name: "WasteTrendCard",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Text_qtby2sbe",
                         type: "Text",
-                        path: "WasteHistoryPage.body[0].children[0].children[7].children[0]",
+                        path: "WasteHistoryPage.body[0].children[0].children[8].children[0]",
                         name: "WasteTrendText",
                       ),
                     ],
@@ -214,13 +220,13 @@ abstract final class WasteHistoryPageWidgets {
                   ffai.ProjectWidgetHandle(
                     key: "Container_b9yin71k",
                     type: "Container",
-                    path: "WasteHistoryPage.body[0].children[0].children[8]",
+                    path: "WasteHistoryPage.body[0].children[0].children[9]",
                     name: "WasteEmptyNote",
                     children: <ffai.ProjectWidgetHandle>[
                       ffai.ProjectWidgetHandle(
                         key: "Text_fprf0mkc",
                         type: "Text",
-                        path: "WasteHistoryPage.body[0].children[0].children[8].children[0]",
+                        path: "WasteHistoryPage.body[0].children[0].children[9].children[0]",
                         name: "WasteEmptyText",
                         text: "This counts only things you have finished with — marked used up, or thrown out — from the item screen.",
                       ),

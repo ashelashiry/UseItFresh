@@ -82,7 +82,7 @@ abstract final class MapReviewPageWidgets {
                     type: "Text",
                     path: "MapReviewPage.body[0].children[0].children[2]",
                     name: "MapReviewLede",
-                    text: "Tap an outline or its line: ✓ to add it, ✕ to leave it out, or tap the name to fix it.",
+                    text: "✓ to add, ✕ to leave out, or tap a name to fix it.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_bh11gbi4",

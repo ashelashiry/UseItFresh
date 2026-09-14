@@ -72,14 +72,14 @@ abstract final class FoodPreferencesPageWidgets {
                     type: "Text",
                     path: "FoodPreferencesPage.body[0].children[0].children[1]",
                     name: "FoodPrefsHeadline",
-                    text: "What you leave out.",
+                    text: "Diet & allergies.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Text_i81g1xxk",
                     type: "Text",
                     path: "FoodPreferencesPage.body[0].children[0].children[2]",
                     name: "FoodPrefsLede",
-                    text: "Meal ideas will not use these foods. Nothing else in the app changes: your kitchen still holds whatever you put in it.",
+                    text: "Meal ideas will leave these out.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "Container_gqlu1eef",

@@ -85,7 +85,7 @@ abstract final class ScanReviewPageWidgets {
                     type: "Text",
                     path: "ScanReviewPage.body[0].children[0].children[3]",
                     name: "ScanReviewLede",
-                    text: "Tap a line to fix its name, or ✕ to remove it. Nothing is added until you tap Add.",
+                    text: "Tap a line to fix it, or ✕ to remove it.",
                   ),
                   ffai.ProjectWidgetHandle(
                     key: "ListView_qk68i5tv",

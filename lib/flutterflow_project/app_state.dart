@@ -161,6 +161,18 @@ abstract final class AppState {
     typeName: "List<DataStruct<MealIdea>>",
     persisted: false,
   );
+  static const openUseSoon = ffai.ProjectAppStateFieldHandle(
+    name: "openUseSoon",
+    key: "st8bp52j",
+    typeName: "Boolean",
+    persisted: false,
+  );
+  static const receiptFromCamera = ffai.ProjectAppStateFieldHandle(
+    name: "receiptFromCamera",
+    key: "k10h6wc6",
+    typeName: "Boolean",
+    persisted: false,
+  );
   static const scanBarcode = ffai.ProjectAppStateFieldHandle(
     name: "scanBarcode",
     key: "pne0944b",
@@ -302,6 +314,8 @@ abstract final class AppState {
     mapPlace,
     mapReading,
     mealIdeas,
+    openUseSoon,
+    receiptFromCamera,
     scanBarcode,
     scanBrand,
     scanCategory,

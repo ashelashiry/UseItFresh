@@ -118,16 +118,9 @@ abstract final class OnboardingPageWidgets {
                     ],
                   ),
                   ffai.ProjectWidgetHandle(
-                    key: "Text_6jkuvt4l",
-                    type: "Text",
-                    path: "OnboardingPage.body[0].children[0].children[2]",
-                    name: "Text",
-                    text: "Dietary preferences and allergies arrive with recipe features. Allergy filtering will never be a medical guarantee.",
-                  ),
-                  ffai.ProjectWidgetHandle(
                     key: "Button_amrnytm9",
                     type: "Button",
-                    path: "OnboardingPage.body[0].children[0].children[3]",
+                    path: "OnboardingPage.body[0].children[0].children[2]",
                     name: "SaveProfileButton",
                     text: "Save and continue",
                     triggers: const <String>[
