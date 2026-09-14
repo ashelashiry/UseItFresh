@@ -157,297 +157,35 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Loose end, Reminders, step 2 of 2: RemindersSettings.
+/// Loose end, Household: no "Create a household" flash for people who have one.
 ///
-/// Shows what is actually saved (loading placeholder first), saves each change
-/// straight away and rebuilds the reminders, keeps "Save reminders" and
-/// "Reminders saved.", and says how reminders now arrive: one note a day that
-/// opens Use soon.
+/// Until the page's households load, its list is empty, so "is this person in
+/// a household?" answered no and the Create a household card showed for a
+/// moment above the real one. The card now also needs the app to have no
+/// current household — which it only lacks for someone who has none (leaving
+/// one clears it, and Home and Inventory reset a stale one on load).
 void buildStarterEditFlow(App app) {
-  app.customWidget(
-    'RemindersSettings',
-    parameters: {},
+  final showSetup = app.customFunction(
+    'showHouseholdSetup',
+    args: {'rows': listOf(ff.Tables.households), 'current': string},
+    returns: bool_,
     description:
-        'Reminder settings as saved: on or off, how many days before, saved as '
-        'they change.',
-    code: _remindersSettings,
+        'True only when there are no households loaded and the app has no '
+        'current household: the moment to offer creating one.',
+    code: '''
+final none = rows == null || rows.isEmpty;
+return none && (current ?? '').trim().isEmpty;
+''',
   );
 
-  final reminders = ff.Pages.remindersPage;
-  app.editPage(reminders, (page) {
-    page.ensureInsertedAfter(
-      reminders.widgets.byKey('Text_udvfbz96').single, // "Reminders."
-      CustomWidget(widgetName: 'RemindersSettings', name: 'ReminderControls', arguments: {}),
+  final household = ff.Pages.householdSetupPage;
+  app.editPage(household, (page) {
+    page.bindVisible(
+      household.widgets.byKey('Container_exwspk68').single, // Create a household
+      CustomFunction(showSetup, args: {
+        'rows': State('households'),
+        'current': AppState('currentHouseholdId'),
+      }),
     );
   });
 }
-
-const _remindersSettings = r'''
-import 'package:flutter/material.dart';
-
-/// Reminder settings, as they are saved.
-class RemindersSettings extends StatefulWidget {
-  const RemindersSettings({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<RemindersSettings> createState() => _RemindersSettingsState();
-}
-
-class _RemindersSettingsState extends State<RemindersSettings> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  bool _loading = true;
-  bool _on = true;
-  int _days = 2;
-  bool _saving = false;
-  String _note = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final user = SupaFlow.client.auth.currentUser?.id;
-    try {
-      if (user != null) {
-        final row = await SupaFlow.client
-            .from('notification_preferences')
-            .select('expiry_enabled, expiry_days_before')
-            .eq('profile_id', user)
-            .maybeSingle();
-        if (row != null) {
-          _on = row['expiry_enabled'] as bool? ?? true;
-          _days = row['expiry_days_before'] as int? ?? 2;
-        }
-      }
-    } catch (_) {
-      _note = 'Can’t reach your settings right now. What you see are the defaults.';
-    }
-    if (mounted) setState(() => _loading = false);
-  }
-
-  Future<bool> _save({bool announce = false}) async {
-    final user = SupaFlow.client.auth.currentUser?.id;
-    if (user == null) return false;
-    setState(() => _saving = true);
-    try {
-      await SupaFlow.client.from('notification_preferences').upsert({
-        'profile_id': user,
-        'expiry_enabled': _on,
-        'expiry_days_before': _days,
-      }, onConflict: 'profile_id');
-      await scheduleExpiryReminders();
-      if (mounted && announce) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Reminders saved.')));
-      }
-      return true;
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Could not save. Check your signal and try again.')));
-      }
-      return false;
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _toggle() async {
-    if (_saving) return;
-    if (_on) {
-      setState(() {
-        _on = false;
-        _note = 'Reminders are off.';
-      });
-      await _save();
-      return;
-    }
-    final allowed = await askNotificationPermission();
-    if (!mounted) return;
-    if (!allowed) {
-      setState(() => _note =
-          'Your phone is blocking notifications for Use It Fresh. Settings > Notifications > Use It Fresh to allow them.');
-      return;
-    }
-    setState(() {
-      _on = true;
-      _note = '';
-    });
-    await _save();
-  }
-
-  Future<void> _pickDays(int d) async {
-    if (_saving || d == _days) return;
-    setState(() => _days = d);
-    await _save();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    if (_loading) {
-      Widget block(double h) => Container(
-            height: h,
-            decoration:
-                BoxDecoration(color: _sage, borderRadius: BorderRadius.circular(16)),
-          );
-      return SizedBox(
-        width: widget.width,
-        child: Column(children: [
-          const SizedBox(height: 16),
-          block(64),
-          const SizedBox(height: 20),
-          block(48),
-          const SizedBox(height: 20),
-          block(52),
-        ]),
-      );
-    }
-
-    return SizedBox(
-      width: widget.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 16),
-          Semantics(
-            toggled: _on,
-            label: 'Remind me before food goes off',
-            excludeSemantics: true,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: _toggle,
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 64),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _border),
-                ),
-                child: Row(
-                  children: [
-                    Icon(_on ? Icons.notifications_active_outlined : Icons.notifications_off_outlined,
-                        color: _forest, size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text('Remind me before food goes off',
-                          style: t.bodyLarge.copyWith(
-                              fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
-                    ),
-                    Switch.adaptive(
-                      value: _on,
-                      activeColor: _forest,
-                      onChanged: (_) => _toggle(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (_note.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(_note, style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-          ],
-          AnimatedOpacity(
-            opacity: _on ? 1 : 0.45,
-            duration: const Duration(milliseconds: 150),
-            child: IgnorePointer(
-              ignoring: !_on,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  Text('How long before',
-                      style: t.bodyMedium.copyWith(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: _muted)),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      for (final d in const [1, 2, 3, 5]) ...[
-                        Expanded(child: _dayChip(t, d)),
-                        if (d != 5) const SizedBox(width: 8),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                        color: _sage, borderRadius: BorderRadius.circular(14)),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.info_outline, color: _forest, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                              'One note at 10am on the day, naming the foods that are $_days ${_days == 1 ? 'day' : 'days'} from their date. Tap it to mark what you used.',
-                              style: t.bodyMedium.copyWith(color: _ink, fontSize: 14, height: 1.4)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              onPressed: _saving ? null : () => _save(announce: true),
-              child: Text('Save reminders',
-                  style: t.bodyLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _dayChip(FlutterFlowTheme t, int d) {
-    final on = _days == d;
-    return Semantics(
-      button: true,
-      selected: on,
-      label: d == 1 ? '1 day before' : '$d days before',
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => _pickDays(d),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: 48,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: on ? _forest : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: on ? _forest : _border),
-          ),
-          child: Text(d == 1 ? '1 day' : '$d days',
-              style: t.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w800, color: on ? Colors.white : _ink)),
-        ),
-      ),
-    );
-  }
-}
-''';
