@@ -536,6 +536,43 @@ widget. On 13 Sep, six (Recipes), five (Inventory) and eight (Profile), all
 listed bottom-up by key, each removed everything. List removals bottom-up and
 check the generated Dart afterwards either way.
 
+### Work on main; branches are snapshots only (14 Sep)
+
+The owner's FlutterFlow is on the Individual plan: `merge start` fails with
+UNCOMMITTED_CHANGES and there is no commit control, so a working branch cannot
+be merged back. Push straight to main. Every feature, once it builds, gets a git
+tag and a FlutterFlow branch of the same name (`branchCreate` with
+`fromCommitId` = main's head from the push output), e.g. `feat-your-day-14sep`.
+
+### Edit custom code from the generated body, not from an old script
+
+FlutterFlow reformats custom code on push. Anchors copied from the script you
+pushed stop matching. Take the current code from `generated_code/lib/custom_code/`
+(everything after `// DO NOT REMOVE OR MODIFY THE CODE ABOVE!`), apply exact
+replacements that must each match once, and push that.
+
+### Check a widget before pushing it
+
+Push failures cost a round trip and a broken web build costs more. Copy the
+widget body under the generated header into
+`generated_code/lib/custom_code/widgets/zz_probe.dart` with its class names
+suffixed, run `dart analyze` on that one file, then delete it (the scratchpad's
+`probe.sh`). Fields or app state added in the same push do not exist yet, so
+those errors are expected. After every push: `flutter build web --release` in
+`generated_code`, then commit, tag and snapshot (`land.sh`).
+
+### New tables are read with the anon key to check a migration
+
+`GET /rest/v1/<table>?select=*&limit=1` with the anon key returns `[]` when the
+table exists (row-level security hides rows) and `PGRST205` when it does not. It
+reads no one's data and needs no password. Same for new columns via `select=`.
+
+### Features that need a migration say "almost ready"
+
+Every screen that reads a new table catches `42P01`/`PGRST205` and shows
+"… is almost ready" instead of failing, so main can build before the owner runs
+the SQL.
+
 ---
 
 ## 6. The verification harness
