@@ -19,6 +19,9 @@ import 'package:flutterflow_ai/src/helpers/data_type_helpers.dart' show stringTy
 
 import 'package:ff_agent_useitfresh_fridge_wise_gvpy0s/flutterflow_project.dart'
     as ff;
+// ignore: implementation_imports
+import 'package:flutterflow_ai/schema/gen/flutterflow.pb.dart' as pb;
+import 'dart:convert' as convert;
 
 
 Future<void> main(List<String> args) async {
@@ -157,35 +160,39 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Loose end, Household: no "Create a household" flash for people who have one.
+/// Tell Apple once, in the app itself, that it uses no non-exempt encryption.
 ///
-/// Until the page's households load, its list is empty, so "is this person in
-/// a household?" answered no and the Create a household card showed for a
-/// moment above the real one. The card now also needs the app to have no
-/// current household — which it only lacks for someone who has none (leaving
-/// one clears it, and Home and Inventory reset a stale one on load).
+/// Every TestFlight upload stopped at "App Encryption Documentation" until
+/// someone answered "None of the algorithms mentioned above". The answer lives
+/// in Info.plist as ITSAppUsesNonExemptEncryption = false; with it there, App
+/// Store Connect stops asking. The app only uses HTTPS through the operating
+/// system, which is exempt.
+///
+/// Spot a Paw did this by unlocking the whole Info.plist, which stops
+/// FlutterFlow maintaining the rest of it (permissions, the app's name). Here
+/// it is added as an Info.plist property hook instead, so FlutterFlow still
+/// writes everything else.
 void buildStarterEditFlow(App app) {
-  final showSetup = app.customFunction(
-    'showHouseholdSetup',
-    args: {'rows': listOf(ff.Tables.households), 'current': string},
-    returns: bool_,
-    description:
-        'True only when there are no households loaded and the app has no '
-        'current household: the moment to offer creating one.',
-    code: '''
-final none = rows == null || rows.isEmpty;
-return none && (current ?? '').trim().isEmpty;
-''',
-  );
-
-  final household = ff.Pages.householdSetupPage;
-  app.editPage(household, (page) {
-    page.bindVisible(
-      household.widgets.byKey('Container_exwspk68').single, // Create a household
-      CustomFunction(showSetup, args: {
-        'rows': State('households'),
-        'current': AppState('currentHouseholdId'),
-      }),
-    );
+  app.raw((project) {
+    final files = project.ensureCustomCode().ensureCustomFiles().files;
+    var plist = files.where((f) => f.type == pb.FFCustomFile_Type.INFO_PLIST).toList();
+    pb.FFCustomFile file;
+    if (plist.isEmpty) {
+      file = pb.FFCustomFile(
+        identifier: pb.FFIdentifier(name: 'Info.plist', key: 'custom_file_info_plist'),
+        type: pb.FFCustomFile_Type.INFO_PLIST,
+        isUnlocked: false,
+      );
+      files.add(file);
+    } else {
+      file = plist.first;
+    }
+    final already = file.hooks.any((h) => h.content.contains('ITSAppUsesNonExemptEncryption'));
+    if (already) return;
+    file.hooks.add(pb.FFCustomFile_Hook(
+      type: pb.FFCustomFile_Hook_Type.INFO_PLIST_PROPERTY,
+      identifier: pb.FFIdentifier(name: 'ExportCompliance', key: 'hook_export_compliance'),
+      content: '<key>ITSAppUsesNonExemptEncryption</key>\n<false/>',
+    ));
   });
 }
