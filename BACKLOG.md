@@ -9,10 +9,9 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
   (design v4 screens, in-app camera, Use soon reminders, live shopping list,
   Storage, What you used chart, Reminders and Household fixes). Owner to test on
   the phone from the test round page.
-- **Snapshot build 11** — create FlutterFlow branch `build-11-ios` from main's
-  commit `fjwngcLM2As3H3u2YFy9`, tag git, add the RELEASES.md row. Failed on
-  14 Sep because the laptop's connection to FlutterFlow kept timing out. Build 9
-  stays the fallback until this is done and build 11 passes.
+- **Snapshot build 11** — done 14 Sep: FlutterFlow branch `build-11-ios` at
+  `fjwngcLM2As3H3u2YFy9`, git tag `build-11-ios`, RELEASES.md row. Becomes the
+  fallback once build 11 passes the phone round; build 9 until then.
 
 ## Quality
 
