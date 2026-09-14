@@ -376,6 +376,7 @@ const JOURNEYS = [
     s:[
       ["14.1","Profile tab → Reminders. Turn on «Remind me before food goes off».","The first time, the phone asks to allow notifications. Allow."],
       ["14.2","Choose «HOW LONG BEFORE», then tap «Save reminders».","«Reminders saved.»"],
+      ["14.2b", "Choose «5 days», go back, then open Reminders again.", "It opens showing «5 days» chosen and the switch as you left it — not the defaults.", 1],
       ["14.3", "Leave a food whose date is a couple of days away, and wait until 10am on its reminder day.", "One note, such as «3 foods to use soon» naming them — not one note per food. It never says a food is off.", 1],
       ["14.4", "Tap that note.", "The app opens «Use soon.» listing foods close to their date, each with a coloured pill, «Used» and «Throw out».", 1],
       ["14.5", "On «Use soon.», tap «Used» on one food, then «Undo» on the message.", "It leaves the list with «Good. Nothing wasted.»; «Undo» puts it back.", 1],
@@ -384,6 +385,7 @@ const JOURNEYS = [
     why:"Arrives in this build: someone else joins your kitchen with its invite code, and you both see the same food. Needs a second account: someone in your family, or you with a second email address on another phone.",
     s:[
       ["15.1","Profile tab → «Household».","«Your household.» with «YOUR HOUSEHOLD», its name and an invite code. Write the code down."],
+      ["15.1b", "Open the household screen a few times, watching as it loads.", "«Create a household» never flashes up for you, because you already belong to a household.", 1],
       ["15.2","Second person, on their phone: open the app, «Get started», create an account with their email, and set up their profile.","They reach the household screen, with «Create a household» and «Join with an invite code»."],
       ["15.3","Second person: type a wrong code, then «Join household».","A plain message that the code didn’t match. Nothing is joined."],
       ["15.4","Second person: type your real code, then «Join household».","They’re in. Their Home and Inventory show your kitchen’s food."],
