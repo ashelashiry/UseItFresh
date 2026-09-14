@@ -51,6 +51,11 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 | Household meal planning | Shared meals with different serving sizes and individual preferences | Next |
 | Recipe collection | Save favourite recipes and connect their ingredients to inventory and shopping | Later |
 
+**Owner's steer:** start with meal planning before building a full calorie
+diary. Finding dinner within a chosen calorie range is a manageable extension;
+accurate daily tracking also needs snacks, drinks, meals eaten out, quantities
+and a dependable nutrition database.
+
 Notes to settle before building these:
 
 - **Paywall.** None of these can be "paid" until there is a subscription
