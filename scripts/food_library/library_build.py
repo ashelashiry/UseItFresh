@@ -3,11 +3,13 @@ import io, json, os, re, sys, urllib.request
 from PIL import Image
 from library_catalogue import C, TRIAL, index_json
 
-SP = os.path.dirname(os.path.abspath(__file__))
+# Job lists (lib_urls.txt, lib_done.txt) and raw downloads live in a scratch folder, not the repo.
+SP = os.environ.get("FOOD_LIBRARY_WORK", os.path.dirname(os.path.abspath(__file__)))
 REPO = "C:/Users/ashel/AppData/Local/FlutterFlow/agent-workspaces/ff-agent-useitfresh-fridge-wise-gvpy0s"
 OUT = os.path.join(REPO, "design", "library")
 RAW = os.path.join(SP, "lib_raw")
-PFX = "https://d8j0ntlcm91z4.cloudfront.net/user_3HYvaIoVSDigfsCRXVwbeVBNvbX/hf_"
+# Result URL prefix of the generation account, e.g. https://<cdn>/user_<id>/hf_ (kept out of the repo)
+PFX = os.environ.get("HIGGSFIELD_URL_PREFIX", "")
 os.makedirs(OUT, exist_ok=True)
 prompts = json.load(open(os.path.join(SP, "library_prompts.json")))
 
