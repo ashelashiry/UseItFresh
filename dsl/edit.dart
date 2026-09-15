@@ -157,494 +157,393 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Owner's review (15 Sep): Inventory places as icon buttons - the icon with
-/// its count beside it and the name underneath - and a sub-menu of food groups
-/// for the chosen place (Freezer: meals, ice cream, meat & fish, fruit & veg,
-/// bread & pastry; Pantry: tins, jars & sauces, rice, pasta & grains, baking &
-/// spices, snacks & drinks).
+/// Owner's review (15 Sep), My details: "too plain". A MyDetails widget -
+/// profile photo, name, units as two cards, Save changes - replaces the plain
+/// name field, imperial checkbox and button (kept, hidden). Saving no longer
+/// sends someone who already has a household to household setup.
 void buildStarterEditFlow(App app) {
-  app.raw((project) {
-    updateCustomWidget(project, name: 'InventoryKitchen', code: _wInventoryKitchen);
+  final dynamic myDetails = app.customWidget(
+    'MyDetails',
+    parameters: {},
+    description: 'My details: profile photo, name, units as two cards and Save changes.',
+    code: _wMyDetails,
+  );
+  app.editPage(ff.Pages.onboardingPage, (page) {
+    for (final i in [0, 1, 2]) {
+      page.update(
+          ff.Pages.onboardingPage.widgets
+              .byPath('OnboardingPage.body[0].children[0].children[$i]')
+              .single,
+          (patch) => patch.visible(false));
+    }
+    page.ensureInsertedInto(
+      ff.Pages.onboardingPage.widgets.byPath('OnboardingPage.body[0].children[0]').single,
+      myDetails(name: 'MyDetailsForm'),
+      index: 0,
+    );
   });
 }
 
-const _wInventoryKitchen = r'''
+const _wMyDetails = r'''
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
-/// Everything below "Your kitchen.": where the food is, and what to use first.
+/// My details (owner, 15 Sep: "too plain"): a profile photo, the name, units
+/// as two cards (Metric / Imperial) and one Save changes button.
 ///
-/// Hybrid design (brief, 15 Sep): a segmented place control with counts, an
-/// always-visible search field, and the two-column grid of sculpted food
-/// cards with two-line names, amounts and date badges that say their basis.
-class InventoryKitchen extends StatefulWidget {
-  const InventoryKitchen({super.key, this.width, this.height});
+/// The photo is a large round picture - or their initial - with a camera
+/// badge; tapping it offers Take a photo, Choose a photo and Remove photo.
+///
+/// Photos go to the public `avatars` bucket under the person's own folder
+/// (the only folder the storage policy lets them write) and the address is
+/// kept in `profiles.avatar_url`. The previous file is removed after the new
+/// one is saved.
+class MyDetails extends StatefulWidget {
+  const MyDetails({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<InventoryKitchen> createState() => _InventoryKitchenState();
+  State<MyDetails> createState() => _MyDetailsState();
 }
 
-class _InventoryKitchenState extends State<InventoryKitchen> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  static const _food =
-      'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
-
-  static const _places = <String, String>{
-    'all': 'All',
-    'fridge': 'Fridge',
-    'freezer': 'Freezer',
-    'pantry': 'Pantry',
-  };
-
-  String _for = '';
-  bool _loading = true;
-  bool _failed = false;
+class _MyDetailsState extends State<MyDetails> {
+  String _url = '';
+  String _name = '';
   bool _busy = false;
-  List<Map<String, dynamic>> _items = const [];
-  String _place = 'all';
-  String _group = 'all';
-  final _search = TextEditingController();
+  bool _loaded = false;
+  bool _saving = false;
+  String _units = 'metric';
+  final _nameField = TextEditingController();
 
   @override
   void dispose() {
-    _search.dispose();
+    _nameField.dispose();
     super.dispose();
   }
 
-  // ---- data ----------------------------------------------------------------
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  Future<void> _load(String household, {bool quiet = false}) async {
-    if (mounted && !quiet) {
-      setState(() {
-        _loading = true;
-        _failed = false;
-      });
-    }
+  String? get _uid => SupaFlow.client.auth.currentUser?.id;
+
+  Future<void> _load() async {
+    final uid = _uid;
+    if (uid == null) return;
     try {
-      final rows = await SupaFlow.client
-          .from('food_items_status')
-          .select(
-              'id, name, category, category_display_name, quantity, unit, image_url, location_type, computed_status, status_label, status_detail, days_left, printed_date, printed_date_type, status_basis')
-          .eq('household_id', household)
-          .order('urgency_rank', ascending: true)
-          .order('days_left', ascending: true);
-      if (!mounted || household != _for) return;
+      final row = await SupaFlow.client
+          .from('profiles')
+          .select('display_name, avatar_url, unit_system')
+          .eq('id', uid)
+          .maybeSingle();
+      if (!mounted || row == null) return;
       setState(() {
-        _items = List<Map<String, dynamic>>.from(rows as List);
-        _loading = false;
-        _failed = false;
+        _url = (row['avatar_url'] ?? '').toString();
+        _name = (row['display_name'] ?? '').toString();
+        _nameField.text = _name;
+        _units = row['unit_system'] == 'imperial' ? 'imperial' : 'metric';
+        _loaded = true;
       });
     } catch (_) {
-      if (!mounted || household != _for) return;
-      // A quiet reload keeps what is on screen rather than blanking it.
-      if (quiet && _items.isNotEmpty) return;
-      setState(() {
-        _failed = true;
-        _loading = false;
-      });
+      // Offline: the initial still shows.
     }
   }
 
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await go();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  void _say(String text) {
+    if (!mounted || text.isEmpty) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
   }
 
-  Future<void> _open(Map<String, dynamic> item) async {
-    await context.pushNamed('FoodItemPage',
-        queryParameters: {'itemId': item['id'].toString()});
-    if (mounted && _for.isNotEmpty) _load(_for, quiet: true);
+  static String? _pathOf(String url) {
+    const marker = '/storage/v1/object/public/avatars/';
+    final i = url.indexOf(marker);
+    if (i < 0) return null;
+    return Uri.decodeComponent(url.substring(i + marker.length).split('?').first);
   }
 
-  Future<void> _photographShelf() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'shelf'});
-    if (mounted && _for.isNotEmpty) _load(_for, quiet: true);
-  }
-
-  Future<void> _addByHand() async {
-    await context.pushNamed('AddFoodItemPage');
-    if (mounted && _for.isNotEmpty) _load(_for, quiet: true);
-  }
-
-  static String _place0(Map<String, dynamic> i) =>
-      (i['location_type'] ?? '').toString().toLowerCase();
-
-  List<Map<String, dynamic>> get _inPlace {
-    final here = _place == 'all'
-        ? _items
-        : _items.where((i) => _place0(i) == _place).toList();
-    if (_place == 'all' || _group == 'all') return here;
-    return here.where((i) => _groupOf(i, _place) == _group).toList();
-  }
-
-  // ---- food groups (owner, 15 Sep) -------------------------------------------
-  // Each place offers the groups that make sense there; a food belongs to the
-  // first group (in that place's order) whose words appear in its name or
-  // category. Words ending in a space must match a whole word.
-
-  static const _groupInfo = <String, (String, IconData)>{
-    'meals': ('Meals', Icons.lunch_dining_outlined),
-    'meat': ('Meat & fish', Icons.set_meal_outlined),
-    'veg': ('Fruit & veg', Icons.eco_outlined),
-    'dairy': ('Dairy & eggs', Icons.egg_outlined),
-    'bread': ('Bread & pastry', Icons.bakery_dining_outlined),
-    'ice': ('Ice cream', Icons.icecream_outlined),
-    'tins': ('Tins', Icons.takeout_dining_outlined),
-    'jars': ('Jars & sauces', Icons.liquor_outlined),
-    'grains': ('Rice, pasta & grains', Icons.rice_bowl_outlined),
-    'baking': ('Baking & spices', Icons.cookie_outlined),
-    'snacks': ('Snacks & drinks', Icons.local_cafe_outlined),
-    'other': ('Other', Icons.more_horiz),
-  };
-
-  static const _placeGroups = <String, List<String>>{
-    'fridge': ['meals', 'meat', 'dairy', 'veg', 'jars', 'bread', 'snacks', 'other'],
-    'freezer': ['meals', 'ice', 'meat', 'veg', 'bread', 'other'],
-    'pantry': ['tins', 'jars', 'grains', 'baking', 'snacks', 'bread', 'veg', 'other'],
-  };
-
-  static const _groupWords = <String, List<String>>{
-    'meals': ['leftover', 'cooked', 'meal ', 'meals ', 'lasagne', 'lasagna', 'curry', 'soup', 'stew', 'casserole', 'bolognese', 'pizza', 'dumpling', 'sushi', 'fried rice', 'pie ', 'pies ', 'quiche', 'ready meal'],
-    'meat': ['beef', 'steak', 'mince', 'chicken', 'pork', 'lamb', 'sausage', 'bacon', 'ham ', 'salami', 'prosciutto', 'chorizo', 'turkey', 'duck', 'veal', 'schnitzel', 'rump', 'drumstick', 'wings', 'fish', 'salmon', 'tuna', 'prawn', 'shrimp', 'seafood', 'mussel', 'calamari', 'squid', 'crab', 'barramundi', 'snapper', 'cod ', 'meat', 'burger', 'meatball', 'frankfurt', 'kangaroo'],
-    'dairy': ['milk', 'cheese', 'cheddar', 'feta', 'mozzarella', 'parmesan', 'brie', 'halloumi', 'ricotta', 'yoghurt', 'yogurt', 'butter ', 'cream', 'custard', 'egg ', 'eggs ', 'kefir', 'dairy'],
-    'veg': ['apple', 'banana', 'orange', 'lemon', 'lime', 'berr', 'grape', 'pear', 'peach', 'plum', 'mango', 'melon', 'kiwi', 'avocado', 'lettuce', 'spinach', 'kale', 'rocket', 'salad', 'tomato', 'cucumber', 'capsicum', 'pepper', 'carrot', 'onion', 'garlic', 'potato', 'pumpkin', 'broccoli', 'cauliflower', 'cabbage', 'zucchini', 'eggplant', 'mushroom', 'celery', 'corn', 'peas ', 'pea ', 'beans ', 'asparagus', 'beetroot', 'herb', 'basil', 'coriander', 'parsley', 'mint', 'ginger', 'chilli', 'fruit', 'veg', 'produce'],
-    'bread': ['bread', 'loaf', 'roll ', 'rolls ', 'bun ', 'buns ', 'wrap', 'tortilla', 'pita', 'naan', 'bagel', 'croissant', 'muffin', 'crumpet', 'pastry', 'baguette', 'sourdough', 'bakery'],
-    'ice': ['ice cream', 'gelato', 'sorbet', 'ice block', 'icy pole', 'dessert', 'frozen yoghurt', 'frozen yogurt'],
-    'tins': ['can ', 'cans ', 'canned', 'tin ', 'tins ', 'tinned', 'baked beans', 'chickpea', 'kidney bean', 'black bean', 'cannellini', 'tuna', 'sardine', 'coconut milk', 'coconut cream', 'chopped tomato', 'diced tomato', 'condensed milk', 'beetroot slices'],
-    'jars': ['jar ', 'jars ', 'sauce', 'jam ', 'honey', 'peanut butter', 'spread', 'mayo', 'mustard', 'ketchup', 'pesto', 'vinegar', 'oil ', 'paste', 'pickle', 'olive', 'relish', 'chutney', 'syrup', 'dressing', 'salsa', 'vegemite', 'nutella', 'tahini', 'capers', 'passata', 'hummus', 'dip '],
-    'grains': ['rice', 'pasta', 'spaghetti', 'penne', 'fusilli', 'macaroni', 'lasagne sheet', 'noodle', 'oats', 'porridge', 'muesli', 'granola', 'cereal', 'flour', 'quinoa', 'couscous', 'lentil', 'barley', 'polenta', 'grain'],
-    'baking': ['sugar', 'salt ', 'pepper ', 'spice', 'cinnamon', 'paprika', 'cumin', 'turmeric', 'baking', 'cocoa', 'yeast', 'stock', 'vanilla', 'gelatine', 'cornflour', 'herbs ', 'seasoning'],
-    'snacks': ['chips', 'crisps', 'biscuit', 'cookie', 'chocolate', 'lolly', 'lollies', 'nuts', 'almond', 'cashew', 'peanut', 'cracker', 'popcorn', 'pretzel', 'bar ', 'bars ', 'tea ', 'coffee', 'juice', 'drink', 'water', 'soda', 'cola', 'lemonade', 'wine', 'beer', 'snack'],
-  };
-
-  static String _groupOf(Map<String, dynamic> i, String place) {
-    final text = ' ${[
-      i['name'],
-      i['category'],
-      i['category_display_name']
-    ].map((v) => (v ?? '').toString().toLowerCase()).join(' ').replaceAll(RegExp(r'[^a-z]+'), ' ')} ';
-    for (final g in _placeGroups[place] ?? const <String>[]) {
-      for (final w in _groupWords[g] ?? const <String>[]) {
-        if (text.contains(' $w')) return g;
+  Future<void> _change(String source) async {
+    final uid = _uid;
+    if (uid == null || _busy) return;
+    final storage = SupaFlow.client.storage.from('avatars');
+    final old = _pathOf(_url);
+    String? path;
+    String url = '';
+    if (source != 'remove') {
+      final XFile? shot;
+      try {
+        shot = await ImagePicker().pickImage(
+          source: source == 'gallery' ? ImageSource.gallery : ImageSource.camera,
+          maxWidth: 600,
+          maxHeight: 600,
+          imageQuality: 85,
+          preferredCameraDevice: CameraDevice.front,
+        );
+      } catch (_) {
+        _say(source == 'gallery'
+            ? 'Use It Fresh can’t open your photos. Allow it in Settings.'
+            : 'Use It Fresh can’t use the camera. Allow it in Settings.');
+        return;
       }
+      if (shot == null) return;
+      setState(() => _busy = true);
+      try {
+        final bytes = await shot.readAsBytes();
+        path = '$uid/avatar-${const Uuid().v4()}.jpg';
+        await storage.uploadBinary(path, bytes,
+            fileOptions:
+                const FileOptions(contentType: 'image/jpeg', upsert: false));
+        url = storage.getPublicUrl(path);
+      } catch (_) {
+        if (mounted) setState(() => _busy = false);
+        _say('Could not save the photo. Check your signal and try again.');
+        return;
+      }
+    } else {
+      setState(() => _busy = true);
     }
-    return 'other';
+    try {
+      await SupaFlow.client
+          .from('profiles')
+          .update({'avatar_url': url.isEmpty ? null : url}).eq('id', uid);
+    } catch (_) {
+      if (path != null) {
+        try {
+          await storage.remove([path]);
+        } catch (_) {}
+      }
+      if (mounted) setState(() => _busy = false);
+      _say('Could not change your photo. Check your signal and try again.');
+      return;
+    }
+    if (old != null) {
+      try {
+        await storage.remove([old]);
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    setState(() {
+      _url = url;
+      _busy = false;
+    });
+    _say(source == 'remove' ? 'Photo removed.' : 'Photo saved.');
   }
 
-  void _choosePlace(String place) => setState(() {
-        _place = place;
-        _group = 'all';
-      });
-
-  List<Map<String, dynamic>> get _shown {
-    final q = _search.text.trim().toLowerCase();
-    if (q.isEmpty) return _inPlace;
-    return _inPlace.where((i) {
-      final name = (i['name'] ?? '').toString().toLowerCase();
-      final cat = (i['category_display_name'] ?? '').toString().toLowerCase();
-      return name.contains(q) || cat.contains(q);
-    }).toList();
-  }
-
-  static IconData _placeIcon(String place) {
-    switch (place) {
-      case 'fridge':
-        return Icons.kitchen_outlined;
-      case 'freezer':
-        return Icons.ac_unit;
-      case 'pantry':
-        return Icons.inventory_2_outlined;
-      default:
-        return Icons.restaurant;
-    }
-  }
-
-  // ---- page ----------------------------------------------------------------
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
-    // A reminder was tapped: open Use soon.
-    if (FFAppState().openUseSoon) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !FFAppState().openUseSoon) return;
-        FFAppState().openUseSoon = false;
-        context.pushNamed('UseSoonPage');
-      });
-    }
-    final household = FFAppState().currentHouseholdId;
+  Future<void> _choose() async {
     final t = FlutterFlowTheme.of(context);
-    if (household.isEmpty) {
-      // The page's on-load is still choosing the household.
-      return SizedBox(width: widget.width, child: _skeleton());
-    }
-    if (household != _for) {
-      _for = household;
-      _place = 'all';
-      _group = 'all';
-      _search.clear();
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
-    }
-
-    Widget body;
-    String key;
-    if (_loading) {
-      body = _skeleton();
-      key = 'loading';
-    } else if (_failed) {
-      body = _offline(t);
-      key = 'offline';
-    } else if (_items.isEmpty) {
-      body = _emptyKitchen(t);
-      key = 'empty';
-    } else {
-      body = _kitchen(t);
-      key = 'kitchen';
-    }
-
-    return SizedBox(
-      width: widget.width,
-      child: AnimatedSwitcher(
-        duration: MediaQuery.of(context).disableAnimations
-            ? Duration.zero
-            : const Duration(milliseconds: 200),
-        child: KeyedSubtree(key: ValueKey(key), child: body),
-      ),
-    );
-  }
-
-  Widget _kitchen(FlutterFlowTheme t) {
-    final soon = _items.where(_uSoon).length;
-    final count = _items.length == 1 ? '1 item' : '${_items.length} items';
-    final shown = _shown;
-    final searching = _search.text.trim().isNotEmpty;
-
-    Widget results;
-    if (shown.isNotEmpty) {
-      results = _grid(t, shown);
-    } else if (searching) {
-      results = _noMatches(t);
-    } else {
-      results = _emptyPlace(t);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          soon == 0 ? count : '$count · $soon to use soon',
-          style: t.bodyLarge.copyWith(color: _muted, fontSize: 16),
-        ),
-        const SizedBox(height: 16),
-        _placeControl(t),
-        _groupMenu(t),
-        if (_items.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _searchField(t),
-        ],
-        const SizedBox(height: 16),
-        results,
-      ],
-    );
-  }
-
-  // ---- controls ------------------------------------------------------------
-
-  Widget _placeControl(FlutterFlowTheme t) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDEE6D5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFCBD6BF)),
-      ),
-      child: Row(
-        children: [
-          for (final e in _places.entries)
-            Expanded(child: _segment(t, e.key, e.value)),
-        ],
-      ),
-    );
-  }
-
-  /// A place as an icon with its count beside it and the name underneath
-  /// (owner, 15 Sep).
-  Widget _segment(FlutterFlowTheme t, String place, String label) {
-    final on = _place == place;
-    final n = place == 'all'
-        ? _items.length
-        : _items.where((i) => _place0(i) == place).length;
-    return Semantics(
-      button: true,
-      selected: on,
-      label: '$label, $n',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _choosePlace(place),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: 66,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            gradient: on
-                ? const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFFFFFEFA), Color(0xFFF3F4EA)])
-                : null,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: on
-                ? const [
-                    BoxShadow(color: Color(0xFFCBD6BF), offset: Offset(0, 2)),
-                    BoxShadow(
-                        color: Color(0x1A254221),
-                        blurRadius: 6,
-                        offset: Offset(0, 3))
-                  ]
-                : null,
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: _uCream,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheet) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Your photo',
+                  style: t.headlineSmall.copyWith(
+                      fontSize: 22, fontWeight: FontWeight.w800, color: _uInk)),
+              const SizedBox(height: 14),
+              _UButton('Take a photo',
+                  icon: Icons.photo_camera_outlined,
+                  onTap: () => Navigator.of(sheet).pop('camera')),
+              const SizedBox(height: 10),
+              _UButton('Choose a photo',
+                  icon: Icons.photo_library_outlined,
+                  kind: 'secondary',
+                  onTap: () => Navigator.of(sheet).pop('gallery')),
+              if (_url.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                _UButton('Remove photo',
+                    icon: Icons.delete_outline,
+                    kind: 'danger',
+                    onTap: () => Navigator.of(sheet).pop('remove')),
+              ],
+            ],
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+        ),
+      ),
+    );
+    if (picked != null) await _change(picked);
+  }
+
+  Widget _photo(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    final initial = _name.trim().isEmpty
+        ? (SupaFlow.client.auth.currentUser?.email ?? '?').substring(0, 1).toUpperCase()
+        : _name.trim().substring(0, 1).toUpperCase();
+    final circle = Container(
+      width: 104,
+      height: 104,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFE9F0E1), Color(0xFFCFDDC5)]),
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: const [
+          BoxShadow(color: Color(0x26203A2B), blurRadius: 14, offset: Offset(0, 6)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: _busy
+          ? const Center(
+              child: SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: CircularProgressIndicator(strokeWidth: 2.5, color: _uForest)))
+          : (_url.isEmpty
+              ? Center(
+                  child: Text(initial,
+                      style: t.headlineLarge.copyWith(
+                          fontSize: 40, fontWeight: FontWeight.w800, color: _uForest)))
+              : Image.network(_url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Center(
+                      child: Text(initial,
+                          style: t.headlineLarge.copyWith(
+                              fontSize: 40,
+                              fontWeight: FontWeight.w800,
+                              color: _uForest))))),
+    );
+    return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Semantics(
+              button: true,
+              label: _url.isEmpty ? 'Add a profile photo' : 'Change your profile photo',
+              child: GestureDetector(
+                onTap: _busy ? null : _choose,
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    Icon(place == 'all' ? Icons.grid_view_rounded : _placeIcon(place),
-                        size: 22, color: on ? _forest : _ink),
-                    const SizedBox(width: 5),
-                    Text('$n',
-                        style: t.bodyMedium.copyWith(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: on ? _forest : _muted)),
+                    circle,
+                    Positioned(
+                      right: -2,
+                      bottom: 2,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [_uForestTop, _uForest]),
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.photo_camera_outlined,
+                            size: 18, color: Colors.white),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 3),
-                Text(label,
-                    style: t.bodySmall.copyWith(
-                        fontSize: 12.5,
-                        fontWeight: on ? FontWeight.w800 : FontWeight.w600,
-                        color: on ? _forest : _ink)),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _busy ? null : _choose,
+              style: TextButton.styleFrom(
+                  foregroundColor: _uForest, minimumSize: const Size(48, 40)),
+              child: Text(_url.isEmpty ? 'Add a photo' : 'Change photo',
+                  style: t.bodyMedium
+                      .copyWith(color: _uForest, fontWeight: FontWeight.w700)),
+            ),
+          ],
         ),
-      ),
     );
   }
 
-  /// The chosen place's food groups, as a row of chips with counts.
-  Widget _groupMenu(FlutterFlowTheme t) {
-    final groups = _placeGroups[_place];
-    Widget menu = const SizedBox(width: double.infinity);
-    if (groups != null) {
-      final here = _items.where((i) => _place0(i) == _place).toList();
-      final counts = <String, int>{};
-      for (final i in here) {
-        final g = _groupOf(i, _place);
-        counts[g] = (counts[g] ?? 0) + 1;
-      }
-      final shown = [
-        'all',
-        for (final g in groups)
-          if ((counts[g] ?? 0) > 0) g
-      ];
-      if (shown.length > 2) {
-        menu = Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (final g in shown)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _groupChip(
-                        t,
-                        g,
-                        g == 'all' ? 'All' : _groupInfo[g]!.$1,
-                        g == 'all' ? null : _groupInfo[g]!.$2,
-                        g == 'all' ? here.length : counts[g]!),
-                  ),
-              ],
-            ),
-          ),
-        );
-      }
+  Future<void> _save() async {
+    final uid = _uid;
+    if (uid == null || _saving) return;
+    final name = _nameField.text.trim();
+    setState(() => _saving = true);
+    try {
+      await SupaFlow.client.from('profiles').update({
+        'display_name': name.isEmpty ? null : name,
+        'unit_system': _units,
+      }).eq('id', uid);
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+      _say('Could not save. Check your signal and try again.');
+      return;
     }
-    return AnimatedSize(
-      duration: MediaQuery.of(context).disableAnimations
-          ? Duration.zero
-          : const Duration(milliseconds: 180),
-      alignment: Alignment.topCenter,
-      child: menu,
-    );
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      _name = name;
+    });
+    _say('Saved.');
+    // New here: set up the household next. Otherwise back to Profile.
+    if (FFAppState().currentHouseholdId.isEmpty) {
+      context.pushNamed('HouseholdSetupPage');
+    } else if (Navigator.of(context).canPop()) {
+      context.pop();
+    }
   }
 
-  Widget _groupChip(
-      FlutterFlowTheme t, String group, String label, IconData? icon, int n) {
-    final on = _group == group;
+  Widget _unitCard(FlutterFlowTheme t, String value, String title, String sub,
+      IconData icon) {
+    final on = _units == value;
     return Semantics(
       button: true,
       selected: on,
-      label: '$label, $n',
+      label: '$title, $sub',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() => _group = group),
+        onTap: () => setState(() => _units = value),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          constraints: const BoxConstraints(minHeight: 40),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: on
-                  ? const [_uForestTop, _uForest]
-                  : const [Color(0xFFFFFEFA), Color(0xFFEFF2E7)],
+                  ? const [Color(0xFFF1F7EC), Color(0xFFDDEAD2)]
+                  : const [Color(0xFFFFFEFA), Color(0xFFF1F3EA)],
             ),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
-                color: on ? const Color(0xFF06422E) : const Color(0xFFCCD7C2)),
+                color: on ? _uForest : const Color(0xFFCCD7C2),
+                width: on ? 2 : 1),
+            boxShadow: const [
+              BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
+            ],
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (icon != null) ...[
-                Icon(icon, size: 17, color: on ? Colors.white : _forest),
-                const SizedBox(width: 6),
-              ],
-              Text(label,
-                  style: t.bodySmall.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: on ? Colors.white : _ink)),
-              const SizedBox(width: 5),
-              Text('$n',
-                  style: t.bodySmall.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: on ? const Color(0xCCFFFFFF) : _muted)),
+              Row(
+                children: [
+                  Icon(icon, color: _uForest, size: 24),
+                  const Spacer(),
+                  Icon(on ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: on ? _uForest : const Color(0xFFB9C4AF), size: 22),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(title,
+                  style: t.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w800, color: _uInk, fontSize: 16)),
+              const SizedBox(height: 2),
+              Text(sub, style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
             ],
           ),
         ),
@@ -652,246 +551,88 @@ class _InventoryKitchenState extends State<InventoryKitchen> {
     );
   }
 
-  Widget _searchField(FlutterFlowTheme t) {
-    return TextField(
-      controller: _search,
-      onChanged: (_) => setState(() {}),
-      textInputAction: TextInputAction.search,
-      style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-      decoration: InputDecoration(
-        hintText: 'Search your food',
-        hintStyle: t.bodyLarge.copyWith(fontSize: 16, color: _muted),
-        prefixIcon: const Icon(Icons.search, color: _muted),
-        suffixIcon: _search.text.isEmpty
-            ? null
-            : IconButton(
-                tooltip: 'Clear search',
-                icon: const Icon(Icons.close, color: _muted),
-                onPressed: () => setState(_search.clear),
-              ),
-        filled: true,
-        fillColor: const Color(0xFFFFFDF7),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _uLine),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _uLine),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _forest, width: 1.5),
-        ),
-      ),
-    );
-  }
-
-  // ---- grid ----------------------------------------------------------------
-
-  Widget _grid(FlutterFlowTheme t, List<Map<String, dynamic>> items) {
-    return LayoutBuilder(builder: (context, box) {
-      const gap = 12.0;
-      final w = (box.maxWidth - gap) / 2;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: [
-          for (final i in items)
-            SizedBox(
-                width: w, child: _uFoodCard(context, i, onTap: () => _open(i))),
-        ],
-      );
-    });
-  }
-
-  // ---- states --------------------------------------------------------------
-
-  Widget _skeleton() {
-    return LayoutBuilder(builder: (context, box) {
-      const gap = 12.0;
-      final w = box.maxWidth.isFinite ? (box.maxWidth - gap) / 2 : 160.0;
-      Widget block(double width, double h, double r) => Container(
-            width: width,
-            height: h,
-            decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(r)),
-          );
-      return Semantics(
-        label: 'Loading your kitchen',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            block(140, 18, 8),
-            const SizedBox(height: 16),
-            block(double.infinity, 56, 16),
-            const SizedBox(height: 16),
-            Wrap(spacing: gap, runSpacing: gap, children: [
-              for (var i = 0; i < 4; i++) block(w, w * 0.8 + 56, 20),
-            ]),
-          ],
-        ),
-      );
-    });
-  }
-
-  Widget _message(
-    FlutterFlowTheme t, {
-    required IconData icon,
-    required String title,
-    required String body,
-    required String action,
-    required IconData actionIcon,
-    required VoidCallback onAction,
-    String? second,
-    VoidCallback? onSecond,
-  }) {
-    return _USurface(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    final email = SupaFlow.client.auth.currentUser?.email;
+    OutlineInputBorder line(Color c, [double w = 1]) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: c, width: w));
+    return SizedBox(
+      width: widget.width,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: _forest, size: 28),
-          ),
-          const SizedBox(height: 16),
-          Text(title,
-              style: t.titleLarge.copyWith(
-                  fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
-          const SizedBox(height: 6),
-          Text(body,
-              style: t.bodyLarge
-                  .copyWith(fontSize: 16, color: _muted, height: 1.4)),
-          const SizedBox(height: 16),
-          _UButton(action,
-              icon: actionIcon, busy: _busy, onTap: _busy ? null : onAction),
-          if (second != null && onSecond != null)
-            Center(
-              child: TextButton(
-                style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48), foregroundColor: _forest),
-                onPressed: _busy ? null : onSecond,
-                child: Text(second,
-                    style: t.bodyLarge
-                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-              ),
+          Center(child: _photo(context)),
+          _USurface(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Your name',
+                    style: t.bodyMedium
+                        .copyWith(color: _uMuted, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _nameField,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.done,
+                  style: t.bodyLarge.copyWith(color: _uInk, fontSize: 17),
+                  decoration: InputDecoration(
+                    hintText: 'What should we call you?',
+                    filled: true,
+                    fillColor: const Color(0xFFFFFDF7),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    border: line(const Color(0xFFCCD7C2)),
+                    enabledBorder: line(const Color(0xFFCCD7C2)),
+                    focusedBorder: line(_uForest, 2),
+                  ),
+                ),
+                if (email != null) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.mail_outline, size: 18, color: _uMuted),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(email,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: t.bodyMedium.copyWith(color: _uMuted)),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
+          ),
+          const SizedBox(height: 20),
+          Text('Units',
+              style: t.titleMedium.copyWith(
+                  fontWeight: FontWeight.w800, color: _uInk, fontSize: 18)),
+          const SizedBox(height: 4),
+          Text('How amounts and temperatures are shown.',
+              style: t.bodyMedium.copyWith(color: _uMuted)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                  child: _unitCard(
+                      t, 'metric', 'Metric', 'g, kg, ml, °C', Icons.straighten)),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _unitCard(t, 'imperial', 'Imperial',
+                      'oz, lb, fl oz, °F', Icons.scale_outlined)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _UButton('Save changes',
+              busy: _saving, onTap: _loaded ? _save : null),
         ],
       ),
     );
-  }
-
-  Widget _offline(FlutterFlowTheme t) => _message(
-        t,
-        icon: Icons.cloud_off_outlined,
-        title: 'Can’t reach your kitchen.',
-        body:
-            'No signal, or the connection dropped. Your food will show again as soon as you are back online.',
-        action: 'Try again',
-        actionIcon: Icons.refresh,
-        onAction: () => _load(_for),
-      );
-
-  Widget _emptyKitchen(FlutterFlowTheme t) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _USurface(
-          child: SizedBox(
-            height: 190,
-            child: Image.network('$_food/tomatoes.webp',
-                fit: BoxFit.cover,
-                semanticLabel: '',
-                errorBuilder: (_, __, ___) => Container(color: _sage)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text('Your fresh start.',
-            style: t.titleLarge.copyWith(
-                fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
-        const SizedBox(height: 6),
-        Text(
-            'Add a few things you already have and this is where they will live.',
-            style:
-                t.bodyLarge.copyWith(fontSize: 16, color: _muted, height: 1.4)),
-        const SizedBox(height: 16),
-        _UButton('Add food',
-            icon: Icons.add,
-            busy: _busy,
-            onTap: _busy ? null : () => _run(_photographShelf)),
-        Center(
-          child: TextButton(
-            style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48), foregroundColor: _forest),
-            onPressed: _busy ? null : () => _run(_addByHand),
-            child: Text('Enter manually',
-                style: t.bodyLarge
-                    .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _emptyPlace(FlutterFlowTheme t) {
-    final name = (_places[_place] ?? '').toLowerCase();
-    switch (_place) {
-      case 'fridge':
-        return _message(t,
-            icon: _placeIcon(_place),
-            title: 'Nothing in the fridge yet.',
-            body: 'Photograph a shelf to add what is on it.',
-            action: 'Photograph a shelf',
-            actionIcon: Icons.photo_camera_outlined,
-            onAction: () => _run(_photographShelf),
-            second: 'Enter manually',
-            onSecond: () => _run(_addByHand));
-      default:
-        return _message(t,
-            icon: _placeIcon(_place),
-            title: 'Nothing in the $name yet.',
-            body: _place == 'freezer'
-                ? 'Food you freeze shows here, with how long it keeps.'
-                : 'Dry food, tins and jars show here.',
-            action: 'Add food',
-            actionIcon: Icons.add,
-            onAction: () => _run(_addByHand),
-            second: 'See everything',
-            onSecond: () => setState(() {
-                  _place = 'all';
-                  _group = 'all';
-                }));
-    }
-  }
-
-  Widget _noMatches(FlutterFlowTheme t) {
-    final q = _search.text.trim();
-    final where =
-        _place == 'all' ? '' : ' in the ${_places[_place]!.toLowerCase()}';
-    return _message(t,
-        icon: Icons.search_off,
-        title: 'Nothing matches “$q”$where.',
-        body: 'Check the spelling, or search everywhere.',
-        action: 'Clear search',
-        actionIcon: Icons.close,
-        onAction: () => setState(_search.clear),
-        second: _place == 'all' ? null : 'Search everywhere',
-        onSecond:
-            _place == 'all'
-                ? null
-                : () => setState(() {
-                      _place = 'all';
-                      _group = 'all';
-                    }));
   }
 }
 
@@ -1368,4 +1109,3 @@ BoxDecoration _uBackDeco() => BoxDecoration(
       ],
     );
 ''';
-
