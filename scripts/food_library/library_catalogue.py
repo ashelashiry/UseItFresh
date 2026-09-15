@@ -103,7 +103,7 @@ C = [
     # ---- dairy and eggs
     ("eggs", "fresh", "fresh brown eggs in a simple bowl, one cracked showing a golden yolk", ["egg", "free range egg", "free range eggs"], {"not": ["noodle", "noodles", "easter", "chocolate", "plant"]}),
     ("milk", "fresh", "a glass bottle of fresh milk and a glass of milk", ["milk", "full cream milk", "skim milk", "whole milk", "lite milk"], {"allow": ["milk"], "not": ["coconut", "almond", "oat", "soy", "rice", "condensed", "evaporated", "powder", "chocolate", "powdered"]}),
-    ("butter", "fresh", "a block of pale yellow butter on a small board, a curl sliced off", ["butter", "salted butter", "unsalted butter"], {"not": ["peanut", "almond", "nut", "cashew", "bean", "beans", "milk"]}),
+    ("butter", "fresh", "a block of pale yellow butter on a small board, a curl sliced off", ["butter", "salted butter", "unsalted butter"], {"allow": ["salted"], "not": ["peanut", "almond", "nut", "cashew", "bean", "beans", "milk"]}),
     ("cheddar", "fresh", "a wedge of mature cheddar cheese with a few slices", ["cheddar", "cheese", "tasty cheese", "block cheese", "sliced cheese", "grated cheese", "shredded cheese"], {"not": ["cream", "cottage", "feta", "mozzarella", "parmesan", "brie", "camembert", "halloumi", "ricotta", "blue", "goat", "haloumi", "cake", "macaroni"]}),
     ("feta", "fresh", "a block of white feta cheese, some crumbled", ["feta"], {}),
     ("mozzarella", "fresh", "fresh white mozzarella balls, one torn open", ["mozzarella", "bocconcini", "burrata"], {}),
@@ -118,7 +118,7 @@ C = [
     ("chicken-breast", "fresh", "raw skinless chicken breast fillets on a wooden board with a sprig of rosemary", ["chicken", "chicken breast", "chicken fillet", "chicken tenderloin"], {"not": ["thigh", "drumstick", "wing", "whole", "stock", "nugget", "nuggets", "schnitzel", "soup", "salt"]}),
     ("chicken-thighs", "fresh", "raw chicken thigh fillets on a wooden board", ["chicken thigh", "thigh fillet", "chicken drumstick", "drumstick", "chicken wing"], {}),
     ("whole-chicken", "fresh", "a whole raw chicken on a wooden board", ["whole chicken"], {"not": ["roast", "cooked", "bbq"]}),
-    ("beef-mince", "fresh", "raw beef mince in a simple bowl", ["mince", "beef mince", "ground beef", "minced beef", "pork mince", "chicken mince", "lamb mince"], {}),
+    ("beef-mince", "fresh", "raw beef mince in a simple bowl", ["mince", "beef mince", "ground beef", "minced beef", "pork mince", "chicken mince", "lamb mince"], {"allow": ["ground"]}),
     ("steak", "fresh", "raw marbled beef steaks on a wooden board with a sprig of thyme", ["steak", "beef", "scotch fillet", "rump", "sirloin", "porterhouse", "eye fillet", "ribeye", "stir fry beef", "diced beef", "beef strips"], {"allow": ["diced"], "not": ["mince", "stock", "jerky", "corned", "sausage", "sausages"]}),
     ("lamb", "fresh", "raw lamb cutlets on a wooden board with rosemary", ["lamb", "lamb chop", "lamb cutlet", "lamb leg", "lamb shoulder"], {"not": ["mince"]}),
     ("pork", "fresh", "raw pork chops and pork loin on a wooden board", ["pork", "pork chop", "pork loin", "pork belly", "pork cutlet", "pork fillet"], {"not": ["mince", "sausage", "sausages", "bacon", "ham", "crackling"]}),
@@ -141,22 +141,22 @@ C = [
     # ---- pantry, dry
     ("dry-pasta", "pack", "uncooked dry penne and spaghetti pasta, some spilling from a plain glass jar. Dry uncooked pasta only, no sauce, no cooked food", ["pasta", "penne", "spaghetti", "fusilli", "macaroni", "rigatoni", "linguine", "fettuccine", "farfalle", "spirals", "lasagne sheets", "lasagna sheets", "orzo", "tagliatelle"], {"allow": ["dry", "dried"], "not": ["cooked", "fresh", "salad", "bake", "sauce"]}),
     ("rice", "pack", "uncooked white rice in a simple ceramic bowl with a wooden scoop", ["rice", "basmati", "jasmine rice", "white rice", "brown rice", "arborio", "sushi rice", "long grain"], {"allow": ["dry"], "not": ["cooked", "fried", "microwave", "cake", "cakes", "crackers", "paper", "noodles", "milk", "wine", "vinegar"]}),
-    ("oats", "pack", "rolled oats in a simple bowl with a wooden spoon", ["oats", "rolled oats", "porridge oats", "quick oats", "oat", "porridge", "muesli", "granola"], {"allow": ["dry"], "not": ["milk", "bar", "bars"]}),
+    ("oats", "pack", "rolled oats in a simple bowl with a wooden spoon", ["oats", "rolled oats", "porridge oats", "quick oats", "oat", "porridge", "muesli", "granola"], {"allow": ["dry", "instant"], "not": ["milk", "bar", "bars"]}),
     ("flour", "pack", "white flour in a simple ceramic bowl with a scoop, a little dusted on the surface", ["flour", "plain flour", "self raising flour", "self-raising flour", "bread flour", "wholemeal flour", "cornflour"], {"not": ["tortilla", "tortillas", "wraps"]}),
     ("sugar", "pack", "white sugar in a simple glass jar with a spoon", ["sugar", "caster sugar", "white sugar", "brown sugar", "raw sugar", "icing sugar"], {"allow": ["jar"], "not": ["snap", "snaps", "free"]}),
     ("lentils", "pack", "dried red and green lentils in small simple bowls", ["lentil", "red lentil", "green lentil", "split pea", "split peas"], {"allow": ["dry", "dried"]}),
     ("quinoa", "pack", "uncooked quinoa grains in a simple bowl", ["quinoa"], {"allow": ["dry"]}),
     ("couscous", "pack", "uncooked couscous in a simple bowl", ["couscous", "cous cous", "bulgur", "burghul"], {"allow": ["dry"]}),
     ("noodles", "pack", "dried egg noodle nests and rice noodles, uncooked", ["noodle", "egg noodle", "rice noodle", "ramen", "udon", "soba", "vermicelli", "hokkien noodle"], {"allow": ["noodles", "dried", "dry"], "not": ["cooked", "soup", "instant cup"]}),
-    ("nuts", "pack", "a simple bowl of raw almonds, cashews and walnuts", ["nuts", "almond", "cashew", "walnut", "mixed nuts", "peanut", "pistachio", "hazelnut", "pecan", "macadamia"], {"not": ["butter", "milk", "meal", "flour", "oil", "bar"]}),
+    ("nuts", "pack", "a simple bowl of raw almonds, cashews and walnuts", ["nuts", "almond", "cashew", "walnut", "mixed nuts", "peanut", "pistachio", "hazelnut", "pecan", "macadamia"], {"allow": ["roasted", "salted"], "not": ["butter", "milk", "meal", "flour", "oil", "bar"]}),
     ("peanut-butter", "pack", "an open plain unlabelled glass jar of smooth peanut butter with a knife", ["peanut butter", "almond butter", "nut butter", "cashew butter"], {"allow": ["jar"]}),
     ("honey", "pack", "a plain unlabelled glass jar of golden honey with a wooden dipper", ["honey", "maple syrup", "golden syrup"], {"allow": ["jar"], "not": ["soy", "mustard", "chicken"]}),
     ("olive-oil", "pack", "a plain unlabelled glass bottle of golden-green olive oil with a small dish of oil", ["olive oil", "extra virgin olive oil", "oil", "vegetable oil", "canola oil", "sunflower oil", "cooking oil"], {"allow": ["oil"], "not": ["spray", "fish", "tuna", "coconut", "sesame"]}),
     ("breakfast-cereal", "pack", "a simple bowl of cornflakes breakfast cereal", ["cereal", "cornflakes", "corn flakes", "weet-bix", "weetbix", "bran flakes", "rice bubbles"], {"allow": ["flakes"]}),
     ("crackers", "pack", "a small stack of plain water crackers and rice crackers on a board", ["cracker", "rice cracker", "water cracker", "crispbread", "rice cake"], {"allow": ["cake"]}),
-    ("coffee", "pack", "roasted coffee beans and a small bowl of ground coffee", ["coffee", "coffee beans", "ground coffee", "instant coffee"], {"allow": ["roasted"], "not": ["pod", "pods", "capsule", "capsules"]}),
+    ("coffee", "pack", "roasted coffee beans and a small bowl of ground coffee", ["coffee", "coffee beans", "ground coffee", "instant coffee"], {"allow": ["roasted", "ground"], "not": ["pod", "pods", "capsule", "capsules"]}),
     ("tea", "pack", "loose black tea leaves and plain tea bags in a small bowl", ["tea", "tea bags", "black tea", "green tea", "herbal tea"], {"not": ["towel", "iced"]}),
-    ("dark-chocolate", "pack", "pieces of a broken dark chocolate bar, unwrapped", ["chocolate", "dark chocolate", "milk chocolate", "cooking chocolate", "choc chips", "chocolate chips"], {"allow": ["milk"], "not": ["milk drink", "cake", "biscuit", "ice", "spread"]}),
+    ("dark-chocolate", "pack", "pieces of a broken dark chocolate bar, unwrapped", ["chocolate", "dark chocolate", "milk chocolate", "cooking chocolate", "choc chips", "chocolate chips"], {"allow": ["milk", "chips"], "not": ["milk drink", "cake", "biscuit", "ice", "spread"]}),
     # ---- cans
     ("canned-tomatoes", "pack", "an opened plain unbranded metal tin of chopped tomatoes in rich red juice, with a spoon beside it, no fresh tomatoes", ["tomato", "chopped tomato", "diced tomato", "crushed tomato", "whole peeled tomato"], {"needs": CANS + ["chopped", "diced", "crushed"], "allow": CANS + ["chopped", "diced"]}),
     ("canned-tuna", "pack", "an opened plain unbranded metal tin of tuna chunks, a fork beside it", ["tuna", "tuna chunks", "tuna in oil", "tuna in springwater", "canned salmon", "sardines"], {"allow": CANS + ["oil"], "not": ["steak", "fresh", "sashimi"]}),
@@ -166,7 +166,7 @@ C = [
     ("coconut-milk", "pack", "an opened plain unbranded metal tin of creamy coconut milk, a small bowl of it beside", ["coconut milk", "coconut cream"], {"allow": CANS + ["milk"]}),
     ("canned-corn", "pack", "an opened plain unbranded metal tin of golden sweetcorn kernels with a spoon", ["corn", "corn kernels", "sweetcorn", "sweet corn", "creamed corn"], {"needs": CANS + ["kernels", "creamed"], "allow": CANS}),
     ("canned-soup", "pack", "a simple bowl of smooth tomato soup next to an opened plain unbranded metal tin", ["soup", "tomato soup", "pumpkin soup", "chicken soup", "vegetable soup"], {"allow": CANS + ["soup"]}),
-    ("canned-fruit", "pack", "an opened plain unbranded metal tin of peach slices in light syrup", ["peach", "pear", "pineapple", "fruit salad", "apricot", "fruit"], {"needs": CANS, "allow": CANS}),
+    ("canned-fruit", "pack", "an opened plain unbranded metal tin of peach slices in light syrup", ["peach", "pear", "fruit salad", "apricot", "fruit", "two fruits", "fruit cocktail"], {"needs": CANS, "allow": CANS}),
     # ---- jars, bottles, sauces
     ("pasta-sauce", "pack", "an open plain unlabelled glass jar of rich red tomato pasta sauce with a spoon", ["pasta sauce", "passata", "tomato passata", "marinara", "bolognese sauce", "napoletana", "tomato pasta sauce", "arrabbiata"], {"allow": ["sauce", "passata", "jar"]}),
     ("tomato-paste", "pack", "a small simple bowl of thick red tomato paste with a spoon", ["tomato paste", "tomato puree", "concentrated tomato"], {"allow": ["paste", "puree", "can", "tin", "jar"]}),
@@ -184,9 +184,9 @@ C = [
     ("vinegar", "pack", "a plain unlabelled glass bottle of vinegar with a small dish of balsamic", ["vinegar", "balsamic", "apple cider vinegar", "white vinegar", "red wine vinegar"], {}),
     # ---- frozen
     ("frozen-peas", "pack", "frozen green peas with a light frost in a simple bowl", ["pea", "garden pea", "baby pea"], {"needs": ["frozen"], "allow": ["frozen"]}),
-    ("frozen-berries", "pack", "frozen mixed berries with a light frost in a simple bowl", ["berry", "mixed berry", "blueberry", "raspberry", "strawberry", "mango"], {"needs": ["frozen"], "allow": ["frozen"]}),
-    ("frozen-vegetables", "pack", "frozen mixed vegetables (peas, corn, carrot, beans) with a light frost in a simple bowl", ["vegetable", "veg", "mixed vegetable", "mixed veg", "stir fry vegetable", "broccoli", "spinach", "corn", "beans", "vegies", "veggies"], {"needs": ["frozen"], "allow": ["frozen"]}),
-    ("frozen-chips", "pack", "frozen potato chips fries with a light frost on a simple tray", ["chips", "fries", "potato chips", "wedges", "hash brown", "potato gems"], {"needs": ["frozen", "oven", "fries", "wedges", "hash", "gems"], "allow": ["frozen", "chips"]}),
+    ("frozen-berries", "pack", "frozen mixed berries with a light frost in a simple bowl", ["berry", "mixed berry", "blueberry", "raspberry", "strawberry"], {"needs": ["frozen"], "allow": ["frozen"]}),
+    ("frozen-vegetables", "pack", "frozen mixed vegetables (peas, corn, carrot, beans) with a light frost in a simple bowl", ["vegetable", "veg", "mixed vegetable", "mixed veg", "stir fry vegetable", "vegies", "veggies", "peas and corn"], {"needs": ["frozen"], "allow": ["frozen"]}),
+    ("frozen-chips", "pack", "frozen potato chips fries with a light frost on a simple tray", ["chips", "fries", "oven chips", "wedges", "shoestring fries", "steak fries"], {"needs": ["frozen", "oven", "fries", "wedges"], "allow": ["frozen", "chips"]}),
     ("ice-cream", "pack", "scoops of vanilla ice cream in a simple bowl", ["ice cream", "gelato", "sorbet", "frozen yogurt", "frozen yoghurt"], {"allow": ["frozen"]}),
     ("frozen-meals", "pack", "a frosted plain unbranded frozen food container with a clear lid", ["frozen meal", "ready meal", "frozen dinner", "frozen pizza", "pizza"], {"allow": ["frozen"]}),
     # ---- drinks and other fridge food
@@ -197,10 +197,15 @@ C = [
     ("pastry-sheets", "pack", "folded sheets of raw puff pastry dusted with flour", ["puff pastry", "pastry sheet", "shortcrust pastry", "filo", "filo pastry", "phyllo"], {"allow": ["frozen"]}),
     ("spices", "pack", "small simple bowls of ground paprika, turmeric, cumin and black pepper", ["spice", "paprika", "turmeric", "cumin", "cinnamon", "curry powder", "chilli powder", "garlic powder", "onion powder", "black pepper", "mixed herbs", "oregano", "dried herbs", "ground pepper", "peppercorn", "salt"], {"allow": ["powder", "dried", "ground"]}),
     ("biscuits", "pack", "a small stack of plain golden biscuits cookies on a simple plate", ["biscuit", "cookie", "shortbread", "digestive"], {}),
-    ("potato-crisps", "pack", "a simple bowl of golden potato crisps", ["crisps", "potato crisps", "chips", "corn chips", "tortilla chips"], {"needs": ["crisps", "corn", "tortilla", "salt", "vinegar"], "allow": ["crisps", "chips"]}),
+    ("potato-crisps", "pack", "a simple bowl of golden potato crisps", ["crisps", "potato crisps", "chips", "potato chips"], {"needs": ["crisps", "potato", "salt", "vinegar", "salted"], "allow": ["crisps", "chips", "salted"]}),
     ("sundried-tomatoes", "pack", "a small simple bowl of sun-dried tomatoes in oil", ["sun dried tomato", "sundried tomato", "semi dried tomato"], {"allow": ["dried", "jar", "oil"]}),
     ("leftovers", "pack", "a clear glass meal-prep container with a home-cooked meal of rice, vegetables and chicken, lid beside it", ["leftover", "leftovers", "meal prep", "cooked meal", "home cooked"], {"allow": ["leftover", "leftovers", "cooked", "curry", "stew", "roast", "roasted", "fried", "pie", "soup", "bake", "baked", "salad", "sauce"]}),
 ]
+
+from library_catalogue_more import C2, MORE_PROCESSED  # noqa: E402
+
+C = C + C2
+PROCESSED = PROCESSED + MORE_PROCESSED
 
 TRIAL = {  # already generated on 15 Sep (4-photo trial)
     "red-onions": "abeaefb9-1d1b-440c-b631-b8014c488e37",
@@ -235,11 +240,22 @@ def norm(p):
 
 
 def index_json(files):
+    # A phrase shared by items without `needs` belongs to the last item that lists it
+    # (later entries are the more specific ones).
+    owner = {}
+    for id_, kind, subject, match, opts in C:
+        if id_ in files and not opts.get("needs"):
+            for p in match:
+                for x in plurals(norm(p)):
+                    owner[x] = id_
     items = []
     for id_, kind, subject, match, opts in C:
         if id_ not in files:
             continue
-        m = sorted({x for p in match for x in plurals(norm(p))})
+        m = sorted({x for p in match for x in plurals(norm(p))
+                    if opts.get("needs") or owner.get(x) == id_})
+        if not m:
+            continue
         item = {"id": id_, "kind": kind, "file": files[id_], "match": m}
         for k in ("needs", "allow", "not"):
             if opts.get(k):
