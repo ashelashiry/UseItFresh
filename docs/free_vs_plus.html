@@ -1,0 +1,160 @@
+<title>Use It Fresh Free and Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Nunito:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --ground:#F7F6EF; --surface:#FFFEF9; --sunk:#EEF1E7; --line:#DCE3D2; --line-soft:#E8ECE0;
+    --ink:#1F2A22; --ink-mid:#3F4C42; --ink-soft:#5B685E; --ink-faint:#86927F;
+    --forest:#07533A; --forest-wash:#E3EDDD; --gold:#B7791F; --gold-wash:#F8EDD5;
+    --lock:#8A4B14; --lock-wash:#F6E6D6;
+    --f-display:"Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-body:"Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#131913; --surface:#1B231C; --sunk:#212B22; --line:#324034; --line-soft:#29342A;
+      --ink:#E7EDE4; --ink-mid:#C1CCBD; --ink-soft:#A1AF9D; --ink-faint:#7D8B79;
+      --forest:#8FD1AE; --forest-wash:#1E3026; --gold:#E9B55B; --gold-wash:#342A17;
+      --lock:#EBA46A; --lock-wash:#35261A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#131913; --surface:#1B231C; --sunk:#212B22; --line:#324034; --line-soft:#29342A;
+    --ink:#E7EDE4; --ink-mid:#C1CCBD; --ink-soft:#A1AF9D; --ink-faint:#7D8B79;
+    --forest:#8FD1AE; --forest-wash:#1E3026; --gold:#E9B55B; --gold-wash:#342A17;
+    --lock:#EBA46A; --lock-wash:#35261A;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--f-body);
+         font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:940px; margin:0 auto; padding:40px 22px 90px; }
+  header { border-bottom:2px solid var(--ink); padding-bottom:20px; }
+  .eyebrow { font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.12em;
+             text-transform:uppercase; color:var(--forest); margin:0 0 8px; }
+  h1 { font-family:var(--f-display); font-weight:800; font-size:clamp(30px,5vw,40px); line-height:1.08;
+       letter-spacing:-.02em; margin:0; text-wrap:balance; }
+  .sub { color:var(--ink-soft); margin:10px 0 0; max-width:64ch; }
+  .meta { font-family:var(--f-mono); font-size:11.5px; color:var(--ink-faint); margin-top:12px; }
+
+  .rules { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; margin-top:26px; }
+  .rule { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .rule b { font-family:var(--f-display); font-size:16px; display:block; margin-bottom:4px; }
+  .rule p { margin:0; color:var(--ink-soft); font-size:14.5px; }
+
+  h2 { font-family:var(--f-display); font-size:22px; font-weight:700; margin:44px 0 6px; letter-spacing:-.01em; }
+  .lede { color:var(--ink-soft); margin:0 0 16px; max-width:68ch; font-size:14.5px; }
+
+  .tbl { overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:14px; }
+  table { width:100%; border-collapse:collapse; min-width:640px; }
+  th, td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  thead th { font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--ink-faint); background:var(--sunk); }
+  thead th.c, td.c { text-align:center; width:74px; }
+  tr.group td { font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+                text-transform:uppercase; color:var(--forest); background:var(--forest-wash); padding:7px 14px; }
+  tbody tr:last-child td { border-bottom:none; }
+  td.f b { font-family:var(--f-display); font-weight:700; font-size:15px; display:block; }
+  td.f span { color:var(--ink-soft); font-size:13.5px; }
+  .yes { color:var(--forest); font-weight:800; font-size:17px; }
+  .no { color:var(--ink-faint); font-size:17px; }
+  .chip { display:inline-block; font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.04em;
+          padding:3px 8px; border-radius:999px; white-space:nowrap; }
+  .chip.page { background:var(--lock-wash); color:var(--lock); }
+  .chip.sheet { background:var(--gold-wash); color:var(--gold); }
+  .chip.free { background:var(--forest-wash); color:var(--forest); }
+
+  ol.steps, ul.plain { margin:0; padding-left:20px; max-width:70ch; }
+  ol.steps li, ul.plain li { margin:6px 0; }
+  code { font-family:var(--f-mono); font-size:13px; background:var(--sunk); padding:1px 5px; border-radius:5px; }
+  pre { font-family:var(--f-mono); font-size:13px; background:var(--sunk); border:1px solid var(--line);
+        border-radius:10px; padding:12px 14px; overflow-x:auto; line-height:1.5; }
+  .open { display:grid; gap:10px; }
+  .q { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--gold); border-radius:10px; padding:12px 16px; }
+  .q b { font-family:var(--f-display); display:block; }
+  .q span { color:var(--ink-soft); font-size:14px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Use It Fresh · reference</p>
+    <h1>Free and Plus</h1>
+    <p class="sub">What each plan includes, how the app locks Plus features, how a plan is set, and what is still to decide. Built on main on 15 Sep 2026 (snapshot <code>feat-plus-15sep</code>).</p>
+    <p class="meta">Promise of Plus: meals that fit your goals, made with food you already have.</p>
+  </header>
+
+  <div class="rules">
+    <div class="rule"><b>One Plus for the household</b><p>When anyone in a household has Plus, everyone in it gets Plus. Meal plans, receipts and recipes are shared, so a half-locked household would not work.</p></div>
+    <div class="rule"><b>Free stays genuinely useful</b><p>Your kitchen, date reminders, allergy exclusions and meal ideas are free for good. Nobody is nagged to waste less.</p></div>
+    <div class="rule"><b>Only the server sets a plan</b><p>The app can read a plan but never change one. Today plans are set by hand for testing; later a purchase sets them.</p></div>
+  </div>
+
+  <h2>What is in each plan</h2>
+  <p class="lede">«How it locks» says what a free account sees: <span class="chip page">Lock screen</span> the whole page is replaced by what Plus adds; <span class="chip sheet">Plus sheet</span> tapping the button opens that explanation instead; <span class="chip free">Free</span> no lock.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Feature</th><th class="c">Free</th><th class="c">Plus</th><th>How it locks</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="4">Your kitchen</td></tr>
+        <tr><td class="f"><b>Inventory</b><span>Fridge, freezer, pantry, food groups, search</span></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>Date badges and Use soon</b><span>Use-by, best-before, estimates, reminders</span></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>Shopping list, storage, What you used</b></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>Food pictures</b><span>Stock photo library, your photos, product photos</span></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+
+        <tr class="group"><td colspan="4">Adding food</td></tr>
+        <tr><td class="f"><b>Add by hand, one-food photo, barcode</b></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>Shelf scanning</b><span>A whole shelf, fridge or pantry from one photo</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip sheet">Plus sheet</span> gold PLUS tag on the tile, lock in the camera</td></tr>
+        <tr><td class="f"><b>Receipt scanning</b><span>A whole shop from a receipt, with prices</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip sheet">Plus sheet</span> gold PLUS tag on the tile, lock in the camera</td></tr>
+
+        <tr class="group"><td colspan="4">Meals</td></tr>
+        <tr><td class="f"><b>Meal ideas from your food</b><span>Use my food, Quick meals, Filters, allergy exclusions</span></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>Fits my goals</b><span>Calories per serving, high protein</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip sheet">Plus sheet</span> switched off on free accounts</td></tr>
+        <tr><td class="f"><b>Your recipes</b><span>Kept ideas, your own recipes, «you have 3 of 5»</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span></td></tr>
+
+        <tr class="group"><td colspan="4">Planning</td></tr>
+        <tr><td class="f"><b>Plan my week</b><span>Seven days, swaps, the week’s shopping</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span> «Add to my week» opens the Plus sheet</td></tr>
+        <tr><td class="f"><b>Cook once, eat twice · «I ate this»</b></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span> (inside Plan my week)</td></tr>
+        <tr><td class="f"><b>Your day</b><span>Estimated calories and protein against your targets</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span> (inside Plan my week)</td></tr>
+        <tr><td class="f"><b>Household meal planning</b><span>Who eats, portions, everyone’s allergies</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span> (inside Plan my week)</td></tr>
+
+        <tr class="group"><td colspan="4">Money</td></tr>
+        <tr><td class="f"><b>Receipt history</b><span>Shop, date, items, prices, totals</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span></td></tr>
+        <tr><td class="f"><b>Budget meal planning</b><span>Weekly budget and what the week costs</span></td><td class="c no">–</td><td class="c yes">✓</td><td><span class="chip page">Lock screen</span> (inside Plan my week)</td></tr>
+
+        <tr class="group"><td colspan="4">You and your household</td></tr>
+        <tr><td class="f"><b>Household sharing</b><span>Invite, switch households, shared kitchen</span></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>My details, diet and allergies, units</b></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+        <tr><td class="f"><b>Your plan</b><span>Profile → Your plan: Free, Plus, or Plus shared by your household</span></td><td class="c yes">✓</td><td class="c yes">✓</td><td><span class="chip free">Free</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>How a plan is set</h2>
+  <ul class="plain">
+    <li>Each account has <code>profiles.plan</code> (<code>free</code> or <code>plus</code>), <code>plan_source</code> (<code>test</code> today; later <code>app_store</code>) and <code>plan_expires_at</code> (empty means no end). Added by migration 10, <code>20260915150000_plans_free_plus.sql</code>.</li>
+    <li>A database trigger keeps those three columns unchanged when the app updates a profile, so nobody can make themselves Plus. The SQL editor and server functions can change them.</li>
+    <li>The app treats you as Plus when your own plan is Plus and not expired, <em>or</em> anyone in your current household is. It rechecks whenever Home or Profile opens.</li>
+    <li>If Plus ends, nothing is deleted: plans, receipts and recipes stay in the database and come back when Plus does. Free accounts just see the lock.</li>
+    <li>Before migration 10 is run, every account is open (nothing locked).</li>
+  </ul>
+
+  <h2>Testing</h2>
+  <ol class="steps">
+    <li>Run migration 10 in Supabase (done 15 Sep).</li>
+    <li>Set test accounts to Plus (done 15 Sep for tester 1 and tester 2, one household):
+<pre>update public.profiles
+set plan = 'plus', plan_source = 'test', plan_expires_at = null
+where id in (select id from auth.users where email in ('…', '…'));</pre></li>
+    <li>For a free experience, sign up a new account and create its own household. Joining the Plus household makes it Plus too.</li>
+    <li>Follow journey 32 on the test round page.</li>
+  </ol>
+
+  <h2>Still to decide</h2>
+  <div class="open">
+    <div class="q"><b>Price and trial</b><span>Monthly and yearly price, and whether there is a free trial (and how long).</span></div>
+    <div class="q"><b>Household size</b><span>Whether one Plus covers any number of members, or a limit such as 6.</span></div>
+    <div class="q"><b>Taster for free accounts</b><span>For example a few shelf or receipt scans a month on free, to show what Plus does.</span></div>
+    <div class="q"><b>Selling it</b><span>RevenueCat and App Store products; a purchase then sets the same plan columns from the server, and a Plus upgrade screen replaces «Plus isn’t on sale yet».</span></div>
+  </div>
+</div>

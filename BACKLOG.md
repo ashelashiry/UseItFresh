@@ -14,7 +14,7 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
   allergies, meal ideas, barcode, single-food photo, manual add. Lock screens
   on Plus pages, a Plus sheet on Plus actions, gold PLUS tags on Shelf and
   Receipt, Profile → Your plan. Until migration 10 runs nothing is locked.
-  Next: RevenueCat + App Store products set the same columns.
+  Plus is shared by the household. Reference: `docs/free_vs_plus.html` (https://claude.ai/code/artifact/ee0cf8a3-98ac-472a-b720-7ae58a2676d5). Next: RevenueCat + App Store products set the same columns.
 - **Also 15 Sep:** imperial units shown on food amounts; Profile header with
   photo and name; test round journeys 28–32.
 
