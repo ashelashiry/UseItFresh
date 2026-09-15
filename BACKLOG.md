@@ -18,11 +18,16 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
     confirmed).
   - Owner to run migration 9 (`20260915090000_no_short_estimate_in_pantry.sql`):
     no invented 1-day estimate for canned food in the pantry.
-- **Hybrid design, still to do:** Add food tiles, camera mode row, Profile
-  header and Edit profile ("Make it yours", Metric/Imperial), Use soon rows
-  with Find meals, Shopping list compact add, Receipts empty state with Scan
-  a receipt, What you used calm summary, background on the remaining 10
-  pages (FlutterFlow rate-limited the patches), bottom navigation styling.
+- **Hybrid design complete (15 Sep)**, snapshot `hybrid-complete-15sep`: Add
+  food tiles, camera modes, Use soon rows with actions sheet, Receipts empty
+  action, Profile, Shopping, Storage, Reminders, Diet, Plan my week, Your
+  recipes, household and history in the new material; warm cream theme; food
+  background on every everyday page; FlutterFlow pages' back controls and
+  buttons; "My details" / "Save changes" / "Bring it in.". Migration 9 run.
+- **Hybrid follow-ups (from the brief's P1/P2, not yet built):** location
+  deletion reassigning its food; household join saying it switches the active
+  household; What you used distinguishing "no activity" from zero; duplicate
+  entry review; Metric/Imperial as two cards on My details.
 - **From the brief, backlog only (proposals, not to build yet):** H01
   "Planning to use" (household reservations), H02 plan notifications, H03
   coordinated planning (Plus), the proposed free/Plus split, duplicate-entry
