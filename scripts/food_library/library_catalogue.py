@@ -134,7 +134,7 @@ C = [
     ("sourdough", "fresh", "a crusty sourdough loaf with a few slices cut", ["sourdough", "sourdough loaf", "loaf", "crusty bread", "baguette", "ciabatta"], {"not": ["tin"]}),
     ("sliced-bread", "fresh", "a soft white sandwich loaf, sliced, with a few slices fanned out", ["bread", "sliced bread", "sandwich bread", "white bread", "wholemeal bread", "multigrain bread", "toast bread", "toast"], {"not": ["crumbs", "breadcrumbs", "banana", "garlic", "roll", "rolls", "flat", "pita", "naan", "sourdough", "gluten"]}),
     ("bread-rolls", "fresh", "soft golden bread rolls", ["bread roll", "roll", "burger bun", "bun", "dinner roll", "hot dog roll"], {"not": ["spring", "sausage", "sushi", "egg", "cinnamon"]}),
-    ("wraps", "fresh", "a stack of soft flour tortilla wraps", ["wrap", "tortilla", "flatbread", "pita", "pita bread", "naan", "mountain bread", "lavash"], {"not": ["cling", "plastic", "chips"]}),
+    ("wraps", "pack", "a neat stack of plain soft flour tortilla wraps, unfilled and folded, nothing inside them", ["wrap", "tortilla", "flatbread", "pita", "pita bread", "naan", "mountain bread", "lavash"], {"not": ["cling", "plastic", "chips"]}),
     ("croissants", "fresh", "golden flaky croissants", ["croissant", "pastry", "danish"], {}),
     ("bagels", "fresh", "fresh plain and sesame bagels, one sliced", ["bagel"], {}),
     ("english-muffins", "fresh", "english muffins, one split and toasted", ["english muffin", "crumpet"], {}),
@@ -158,7 +158,7 @@ C = [
     ("tea", "pack", "loose black tea leaves and plain tea bags in a small bowl", ["tea", "tea bags", "black tea", "green tea", "herbal tea"], {"not": ["towel", "iced"]}),
     ("dark-chocolate", "pack", "pieces of a broken dark chocolate bar, unwrapped", ["chocolate", "dark chocolate", "milk chocolate", "cooking chocolate", "choc chips", "chocolate chips"], {"allow": ["milk"], "not": ["milk drink", "cake", "biscuit", "ice", "spread"]}),
     # ---- cans
-    ("canned-tomatoes", "pack", "an opened plain unbranded metal tin of chopped tomatoes in rich red juice, with a spoon beside it", ["tomato", "chopped tomato", "diced tomato", "crushed tomato", "whole peeled tomato"], {"needs": CANS + ["chopped", "diced", "crushed"], "allow": CANS + ["chopped", "diced"]}),
+    ("canned-tomatoes", "pack", "an opened plain unbranded metal tin of chopped tomatoes in rich red juice, with a spoon beside it, no fresh tomatoes", ["tomato", "chopped tomato", "diced tomato", "crushed tomato", "whole peeled tomato"], {"needs": CANS + ["chopped", "diced", "crushed"], "allow": CANS + ["chopped", "diced"]}),
     ("canned-tuna", "pack", "an opened plain unbranded metal tin of tuna chunks, a fork beside it", ["tuna", "tuna chunks", "tuna in oil", "tuna in springwater", "canned salmon", "sardines"], {"allow": CANS + ["oil"], "not": ["steak", "fresh", "sashimi"]}),
     ("canned-chickpeas", "pack", "an opened plain unbranded metal tin of chickpeas with a spoon", ["chickpea", "chick pea", "garbanzo"], {"allow": CANS + ["dried", "dry"]}),
     ("canned-beans", "pack", "an opened plain unbranded metal tin of red kidney beans with a spoon", ["kidney bean", "red kidney bean", "black bean", "cannellini bean", "butter bean", "four bean mix", "mixed beans", "bean"], {"allow": CANS + ["dried", "dry"], "not": ["green", "string", "french", "runner", "baked", "coffee", "jelly", "sprout", "sprouts", "broad", "edamame"]}),
@@ -205,7 +205,7 @@ C = [
 TRIAL = {  # already generated on 15 Sep (4-photo trial)
     "red-onions": "abeaefb9-1d1b-440c-b631-b8014c488e37",
     "lemons": "71620e8a-a5eb-48d3-9bb7-f1e6cce4da0a",
-    "canned-tomatoes": "3891434d-fea4-4ef4-9c3b-0902a3dce5bb",
+    "canned-tomatoes": "eed166a2-b38a-4f39-99a5-4eff89c6e852",
     "dry-pasta": "29162599-5a55-43a1-b1a0-1aa13a30e40b",
 }
 

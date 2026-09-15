@@ -1642,7 +1642,7 @@
   },
   {
    "id": "wraps",
-   "kind": "fresh",
+   "kind": "pack",
    "file": "wraps.webp",
    "match": [
     "flatbread",
@@ -2778,6 +2778,362 @@
    ],
    "allow": [
     "frozen"
+   ]
+  },
+  {
+   "id": "frozen-vegetables",
+   "kind": "pack",
+   "file": "frozen-vegetables.webp",
+   "match": [
+    "beans",
+    "beanses",
+    "broccoli",
+    "broccolis",
+    "corn",
+    "corns",
+    "mixed veg",
+    "mixed vegetable",
+    "mixed vegetables",
+    "mixed vegs",
+    "spinach",
+    "spinaches",
+    "stir fry vegetable",
+    "stir fry vegetables",
+    "veg",
+    "vegetable",
+    "vegetables",
+    "veggies",
+    "veggieses",
+    "vegies",
+    "vegieses",
+    "vegs"
+   ],
+   "needs": [
+    "frozen"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "frozen-chips",
+   "kind": "pack",
+   "file": "frozen-chips.webp",
+   "match": [
+    "chips",
+    "chipses",
+    "fries",
+    "frieses",
+    "hash brown",
+    "hash browns",
+    "potato chips",
+    "potato chipses",
+    "potato gems",
+    "potato gemses",
+    "wedges",
+    "wedgeses"
+   ],
+   "needs": [
+    "fries",
+    "frozen",
+    "gems",
+    "hash",
+    "oven",
+    "wedges"
+   ],
+   "allow": [
+    "chips",
+    "frozen"
+   ]
+  },
+  {
+   "id": "ice-cream",
+   "kind": "pack",
+   "file": "ice-cream.webp",
+   "match": [
+    "frozen yoghurt",
+    "frozen yoghurts",
+    "frozen yogurt",
+    "frozen yogurts",
+    "gelato",
+    "gelatoes",
+    "gelatos",
+    "ice cream",
+    "ice creams",
+    "sorbet",
+    "sorbets"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "frozen-meals",
+   "kind": "pack",
+   "file": "frozen-meals.webp",
+   "match": [
+    "frozen dinner",
+    "frozen dinners",
+    "frozen meal",
+    "frozen meals",
+    "frozen pizza",
+    "frozen pizzas",
+    "pizza",
+    "pizzas",
+    "ready meal",
+    "ready meals"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "orange-juice",
+   "kind": "pack",
+   "file": "orange-juice.webp",
+   "match": [
+    "apple juice",
+    "apple juices",
+    "juice",
+    "juices",
+    "oj",
+    "ojs",
+    "orange juice",
+    "orange juices"
+   ],
+   "allow": [
+    "juice"
+   ]
+  },
+  {
+   "id": "plant-milk",
+   "kind": "pack",
+   "file": "plant-milk.webp",
+   "match": [
+    "almond milk",
+    "almond milks",
+    "coconut drink",
+    "coconut drinks",
+    "oat milk",
+    "oat milks",
+    "plant milk",
+    "plant milks",
+    "rice milk",
+    "rice milks",
+    "soy milk",
+    "soy milks",
+    "soya milk",
+    "soya milks"
+   ],
+   "allow": [
+    "milk"
+   ]
+  },
+  {
+   "id": "sparkling-water",
+   "kind": "pack",
+   "file": "sparkling-water.webp",
+   "match": [
+    "mineral water",
+    "mineral waters",
+    "soda water",
+    "soda waters",
+    "sparkling water",
+    "sparkling waters",
+    "water",
+    "waters"
+   ],
+   "not": [
+    "chestnut",
+    "coconut",
+    "crackers",
+    "cress",
+    "melon"
+   ]
+  },
+  {
+   "id": "dumplings",
+   "kind": "pack",
+   "file": "dumplings.webp",
+   "match": [
+    "dim sum",
+    "dim sums",
+    "dumpling",
+    "dumplings",
+    "gyoza",
+    "gyozas",
+    "potsticker",
+    "potstickers",
+    "wonton",
+    "wontons"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "pastry-sheets",
+   "kind": "pack",
+   "file": "pastry-sheets.webp",
+   "match": [
+    "filo",
+    "filo pastries",
+    "filo pastry",
+    "filoes",
+    "filos",
+    "pastry sheet",
+    "pastry sheets",
+    "phyllo",
+    "phylloes",
+    "phyllos",
+    "puff pastries",
+    "puff pastry",
+    "shortcrust pastries",
+    "shortcrust pastry"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "spices",
+   "kind": "pack",
+   "file": "spices.webp",
+   "match": [
+    "black pepper",
+    "black peppers",
+    "chilli powder",
+    "chilli powders",
+    "cinnamon",
+    "cinnamons",
+    "cumin",
+    "cumins",
+    "curry powder",
+    "curry powders",
+    "dried herbs",
+    "dried herbses",
+    "garlic powder",
+    "garlic powders",
+    "ground pepper",
+    "ground peppers",
+    "mixed herbs",
+    "mixed herbses",
+    "onion powder",
+    "onion powders",
+    "oregano",
+    "oreganoes",
+    "oreganos",
+    "paprika",
+    "paprikas",
+    "peppercorn",
+    "peppercorns",
+    "salt",
+    "salts",
+    "spice",
+    "spices",
+    "turmeric",
+    "turmerics"
+   ],
+   "allow": [
+    "dried",
+    "ground",
+    "powder"
+   ]
+  },
+  {
+   "id": "biscuits",
+   "kind": "pack",
+   "file": "biscuits.webp",
+   "match": [
+    "biscuit",
+    "biscuits",
+    "cookie",
+    "cookies",
+    "digestive",
+    "digestives",
+    "shortbread",
+    "shortbreads"
+   ]
+  },
+  {
+   "id": "potato-crisps",
+   "kind": "pack",
+   "file": "potato-crisps.webp",
+   "match": [
+    "chips",
+    "chipses",
+    "corn chips",
+    "corn chipses",
+    "crisps",
+    "crispses",
+    "potato crisps",
+    "potato crispses",
+    "tortilla chips",
+    "tortilla chipses"
+   ],
+   "needs": [
+    "corn",
+    "crisps",
+    "salt",
+    "tortilla",
+    "vinegar"
+   ],
+   "allow": [
+    "chips",
+    "crisps"
+   ]
+  },
+  {
+   "id": "sundried-tomatoes",
+   "kind": "pack",
+   "file": "sundried-tomatoes.webp",
+   "match": [
+    "semi dried tomato",
+    "semi dried tomatoes",
+    "semi dried tomatos",
+    "sun dried tomato",
+    "sun dried tomatoes",
+    "sun dried tomatos",
+    "sundried tomato",
+    "sundried tomatoes",
+    "sundried tomatos"
+   ],
+   "allow": [
+    "dried",
+    "jar",
+    "oil"
+   ]
+  },
+  {
+   "id": "leftovers",
+   "kind": "pack",
+   "file": "leftovers.webp",
+   "match": [
+    "cooked meal",
+    "cooked meals",
+    "home cooked",
+    "home cookeds",
+    "leftover",
+    "leftovers",
+    "leftoverses",
+    "meal prep",
+    "meal preps"
+   ],
+   "allow": [
+    "bake",
+    "baked",
+    "cooked",
+    "curry",
+    "fried",
+    "leftover",
+    "leftovers",
+    "pie",
+    "roast",
+    "roasted",
+    "salad",
+    "sauce",
+    "soup",
+    "stew"
    ]
   }
  ]
