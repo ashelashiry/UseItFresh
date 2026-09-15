@@ -90,6 +90,9 @@ export async function ideas(
     choices.kitchenOnly
       ? "Every idea must use only the food listed, plus salt, pepper, cooking oil and water: extras must be empty."
       : "",
+    choices.useFood
+      ? `Every idea must use ${choices.useFood} from the food listed, as a main part of the dish.`
+      : "",
   ].filter(Boolean).join("\n");
   const list = foods.map((f) => `- ${f.name}${f.soon ? " (use first)" : ""}`).join("\n");
   const avoid = choices.leaveOut.length
@@ -154,7 +157,9 @@ export async function ideas(
     )
     .filter((i) => !choices.minutes || (i.minutes > 0 && i.minutes <= choices.minutes))
     // "Use my food" is checked, not trusted, like everything the model says.
-    .filter((i) => !choices.kitchenOnly || i.extras.length === 0);
+    .filter((i) => !choices.kitchenOnly || i.extras.length === 0)
+    // So is "Find a meal that uses this".
+    .filter((i) => !choices.useFood || i.uses.some((u) => sameFood(u, choices.useFood)));
   // Goals are checked on the estimate that will be shown, so a card never says
   // 520 kcal under "Under 400". An idea with no estimate cannot show it fits.
   const fits = made
@@ -164,6 +169,8 @@ export async function ideas(
   // Ideas that use up what goes off soonest come first; otherwise as given.
   fits.sort((a, b) => Number(b.soon) - Number(a.soon));
   const note = fits.length ? ""
+    : choices.useFood && shaped.length
+    ? `No ideas use ${choices.useFood} this time. Try again, or turn off some filters.`
     : made.length && (range || choices.highProtein)
     ? "No ideas fit your goals this time. Try again, or a wider calorie range."
     : shaped.length && choices.kitchenOnly
@@ -176,4 +183,12 @@ export async function ideas(
 function sane(v: unknown, min: number, max: number): number {
   const n = Math.round(Number(v));
   return Number.isFinite(n) && n >= min && n <= max ? n : 0;
+}
+
+/** The same food, loosely: "Baby spinach" matches "spinach", "Tomatoes" matches "tomato". */
+function sameFood(a: string, b: string): boolean {
+  const key = (v: string) => v.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/(es|s)\b/g, "").replace(/\s+/g, " ").trim();
+  const x = key(a);
+  const y = key(b);
+  return !!x && !!y && (x.includes(y) || y.includes(x));
 }

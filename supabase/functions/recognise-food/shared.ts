@@ -68,13 +68,14 @@ export type Choices = {
   kitchenOnly: boolean; // "Use my food": nothing beyond the kitchen and the basics
   calories: string; // a CALORIES key, or "" for any
   highProtein: boolean;
+  useFood: string; // "Find a meal that uses this": every idea uses it; "" for any
 };
 
 // Which copy of this file is deployed. Every reply carries it, the signed-out
 // one included, so a single unauthenticated call says whether a paste landed:
 //   curl -s -X POST <project>/functions/v1/recognise-food
 // Raise it with every change: date, then a count for that day.
-export const VERSION = "2026-09-14.3";
+export const VERSION = "2026-09-15.1";
 
 export function reply(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify({ ...body, version: VERSION }), {
@@ -137,5 +138,6 @@ export function readChoices(input: Record<string, unknown>): Choices {
   const kitchenOnly = input.kitchenOnly === true;
   const calories = String(input.calories ?? "") in CALORIES ? String(input.calories) : "";
   const highProtein = input.highProtein === true;
-  return { meal, minutes, servings, leaveOut, kitchenOnly, calories, highProtein };
+  const useFood = String(input.useFood ?? "").replace(/\s+/g, " ").trim().slice(0, 60);
+  return { meal, minutes, servings, leaveOut, kitchenOnly, calories, highProtein, useFood };
 }

@@ -8,7 +8,8 @@
 //             instead and the answer carries receipt: true
 //   "ideas"   meal ideas from the household's own food, no photo
 //             → { ideas: [{ title, uses, extras, steps, minutes, servings, soon }], note }
-//             optional choices: meal, minutes, servings, leaveOut, kitchenOnly
+//             optional choices: meal, minutes, servings, leaveOut, kitchenOnly,
+//             useFood (every idea uses that food)
 //
 // Deploy with "Verify JWT with legacy secret" OFF. This project signs user
 // sessions with the new ES256 keys, which that legacy check rejects, while it
