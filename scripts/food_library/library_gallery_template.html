@@ -1,0 +1,143 @@
+<title>Use It Fresh Food Pictures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ground:#F6F4EA; --surface:#FFFDF4; --line:#DCE3D2; --sage:#E6EDDF;
+  --forest:#07533A; --ink:#1E2A22; --muted:#5B685E; --amber:#8A5A12; --amber-bg:#F7EBD3;
+  --hit:#07533A; --shadow:0 1px 0 #D6DFCC;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#121812; --surface:#1A221B; --line:#2C382E; --sage:#223026;
+    --forest:#8FD1AE; --ink:#E8EEE6; --muted:#A3B1A6; --amber:#F0C27A; --amber-bg:#3A2E18;
+    --hit:#8FD1AE; --shadow:0 1px 0 #0B100C;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121812; --surface:#1A221B; --line:#2C382E; --sage:#223026;
+  --forest:#8FD1AE; --ink:#E8EEE6; --muted:#A3B1A6; --amber:#F0C27A; --amber-bg:#3A2E18;
+  --hit:#8FD1AE; --shadow:0 1px 0 #0B100C;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.5 Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+h1{font:800 clamp(28px,4vw,40px)/1.1 "Bricolage Grotesque",Figtree,system-ui,sans-serif;color:var(--forest);margin:0 0 8px;text-wrap:balance}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 22px}
+.tester{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-bottom:22px}
+.tester label{font-weight:700;display:block;margin-bottom:6px}
+.tester input{width:100%;font:inherit;font-size:17px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--ground);color:var(--ink)}
+.tester input:focus-visible{outline:3px solid var(--forest);outline-offset:1px}
+.result{display:flex;gap:12px;align-items:center;min-width:0}
+.result img{width:112px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.result .none{width:112px;height:84px;border-radius:10px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:6px}
+.result b{display:block}
+.result small{color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.chip{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--forest);border-color:var(--forest);color:var(--surface)}
+.chip:focus-visible{outline:3px solid var(--forest);outline-offset:2px}
+section h2{font:600 20px/1.2 "Bricolage Grotesque",Figtree,system-ui,sans-serif;margin:26px 0 12px;text-transform:capitalize}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card.hit{outline:3px solid var(--hit);outline-offset:2px}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--sage)}
+.card .body{padding:10px 12px 12px;display:grid;gap:6px}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.card .id{font-weight:700;font-size:14px}
+.kind{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--sage);color:var(--forest);white-space:nowrap}
+.kind.pack{background:var(--amber-bg);color:var(--amber)}
+.words{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.words i{font-style:normal;font-weight:700;color:var(--ink)}
+.foot{color:var(--muted);font-size:13px;margin-top:34px;max-width:70ch}
+@media (max-width:640px){.tester{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <h1>Food pictures</h1>
+  <p class="lede">The {{COUNT}} photos the app can show instead of a scan when "Fresh photos first" is on. Type a food as it appears in the app to see which photo it gets. Tinned, frozen and jarred foods only get a photo of that form.</p>
+
+  <div class="tester">
+    <div>
+      <label for="q">Try a food name</label>
+      <input id="q" value="Chopped tomatoes 400g" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </div>
+
+  <div class="bar" id="bar" role="group" aria-label="Show"></div>
+  <div id="sections"></div>
+  <p class="foot">Photos are generated illustrations, not brand products. The app downloads the matching rules from design/library/index.json each time it runs, so photos added there show on phones without a new build.</p>
+</div>
+
+<script>
+const DATA = /*DATA*/null;
+const norm = s => ' ' + s.toLowerCase().replace(/[^a-z]+/g, ' ').trim() + ' ';
+function match(name){
+  const n = norm(name), has = w => n.includes(' ' + w + ' ');
+  const processed = DATA.processed.filter(has);
+  let best = null, score = -1;
+  for (const it of DATA.items){
+    const needs = it.needs || [], allow = it.allow || [];
+    if ((it.not || []).some(has)) continue;
+    if (needs.length && !needs.some(has)) continue;
+    if (processed.some(w => !needs.includes(w) && !allow.includes(w))) continue;
+    for (const m of it.match){
+      if (!has(m)) continue;
+      const s = m.length + (needs.length ? 100 : 0);
+      if (s > score){ score = s; best = {it, m}; }
+    }
+  }
+  return best;
+}
+const label = id => id.replace(/-/g, ' ');
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const bySection = {};
+for (const it of DATA.items) (bySection[it.section] ||= []).push(it);
+const names = Object.keys(bySection);
+let showing = 'all';
+
+function renderBar(){
+  const bar = document.getElementById('bar');
+  bar.innerHTML = ['all', ...names].map(s =>
+    `<button class="chip" data-s="${esc(s)}" aria-pressed="${s === showing}">${s === 'all' ? 'All ' + DATA.items.length : esc(s) + ' ' + bySection[s].length}</button>`).join('');
+  bar.onclick = e => { const b = e.target.closest('button'); if (!b) return; showing = b.dataset.s; renderBar(); renderSections(); };
+}
+function card(it){
+  const extra = [];
+  if (it.needs) extra.push(`<div class="words"><i>Only with:</i> ${esc(it.needs.join(', '))}</div>`);
+  if (it.not) extra.push(`<div class="words"><i>Never with:</i> ${esc(it.not.join(', '))}</div>`);
+  // plurals are in the index too; list only the singular forms
+  const isPlural = m => it.match.some(x => x !== m && (m === x + 's' || m === x + 'es' || m === x.slice(0, -1) + 'ies'));
+  const short = it.match.filter(m => !isPlural(m));
+  return `<article class="card" id="c-${it.id}">
+    <img src="${it.img}" alt="${esc(label(it.id))}" loading="lazy">
+    <div class="body">
+      <div class="top"><span class="id">${esc(label(it.id))}</span><span class="kind ${it.kind}">${it.kind === 'pack' ? 'Packaged' : 'Fresh'}</span></div>
+      <div class="words"><i>Names:</i> ${esc(short.join(', '))}</div>
+      ${extra.join('')}
+    </div></article>`;
+}
+function renderSections(){
+  const list = showing === 'all' ? names : [showing];
+  document.getElementById('sections').innerHTML = list.map(s =>
+    `<section><h2>${esc(s)}</h2><div class="grid">${bySection[s].map(card).join('')}</div></section>`).join('');
+  test();
+}
+function test(){
+  const q = document.getElementById('q').value;
+  document.querySelectorAll('.card.hit').forEach(c => c.classList.remove('hit'));
+  const r = document.getElementById('result');
+  const hit = q.trim() ? match(q) : null;
+  if (!hit){
+    r.innerHTML = `<div class="none">No photo</div><div><b>${q.trim() ? 'No match' : 'Type a name'}</b><small>${q.trim() ? 'The app shows the person’s own photo or a plain tile.' : ''}</small></div>`;
+    return;
+  }
+  r.innerHTML = `<img src="${hit.it.img}" alt=""><div><b>${esc(label(hit.it.id))}</b><small>matched “${esc(hit.m)}”</small></div>`;
+  const c = document.getElementById('c-' + hit.it.id);
+  if (c) c.classList.add('hit');
+}
+document.getElementById('q').addEventListener('input', test);
+renderBar(); renderSections();
+</script>

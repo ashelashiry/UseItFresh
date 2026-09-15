@@ -1,0 +1,2784 @@
+{
+ "version": 1,
+ "about": "Use It Fresh food pictures: illustrative photos generated for the app (15 Sep 2026). A food shows a picture when a match phrase is in its name, every processed word in its name is allowed, any needs word is present and no not word is.",
+ "base": "https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@main/design/library/",
+ "processed": [
+  "bake",
+  "baked",
+  "cake",
+  "can",
+  "canned",
+  "chips",
+  "chopped",
+  "cooked",
+  "crisps",
+  "curry",
+  "diced",
+  "dip",
+  "dried",
+  "dry",
+  "flakes",
+  "fried",
+  "frozen",
+  "jam",
+  "jar",
+  "juice",
+  "ketchup",
+  "leftover",
+  "leftovers",
+  "mayo",
+  "mayonnaise",
+  "milk",
+  "noodles",
+  "oil",
+  "passata",
+  "paste",
+  "pesto",
+  "pickled",
+  "pie",
+  "powder",
+  "puree",
+  "roast",
+  "roasted",
+  "salad",
+  "sauce",
+  "smoked",
+  "soup",
+  "stew",
+  "tin",
+  "tinned"
+ ],
+ "items": [
+  {
+   "id": "apples",
+   "kind": "fresh",
+   "file": "apples.webp",
+   "match": [
+    "apple",
+    "apples",
+    "red apple",
+    "red apples"
+   ],
+   "not": [
+    "cider",
+    "green",
+    "juice",
+    "sauce"
+   ]
+  },
+  {
+   "id": "green-apples",
+   "kind": "fresh",
+   "file": "green-apples.webp",
+   "match": [
+    "granny smith",
+    "granny smiths",
+    "green apple",
+    "green apples"
+   ]
+  },
+  {
+   "id": "bananas",
+   "kind": "fresh",
+   "file": "bananas.webp",
+   "match": [
+    "banana",
+    "bananas"
+   ],
+   "not": [
+    "bread"
+   ]
+  },
+  {
+   "id": "oranges",
+   "kind": "fresh",
+   "file": "oranges.webp",
+   "match": [
+    "navel orange",
+    "navel oranges",
+    "orange",
+    "oranges"
+   ]
+  },
+  {
+   "id": "lemons",
+   "kind": "fresh",
+   "file": "lemons.webp",
+   "match": [
+    "lemon",
+    "lemons"
+   ]
+  },
+  {
+   "id": "limes",
+   "kind": "fresh",
+   "file": "limes.webp",
+   "match": [
+    "lime",
+    "limes"
+   ]
+  },
+  {
+   "id": "mandarins",
+   "kind": "fresh",
+   "file": "mandarins.webp",
+   "match": [
+    "clementine",
+    "clementines",
+    "mandarin",
+    "mandarins",
+    "satsuma",
+    "satsumas",
+    "tangerine",
+    "tangerines"
+   ]
+  },
+  {
+   "id": "grapefruit",
+   "kind": "fresh",
+   "file": "grapefruit.webp",
+   "match": [
+    "grapefruit",
+    "grapefruits"
+   ]
+  },
+  {
+   "id": "strawberries",
+   "kind": "fresh",
+   "file": "strawberries.webp",
+   "match": [
+    "strawberries",
+    "strawberry"
+   ]
+  },
+  {
+   "id": "blueberries",
+   "kind": "fresh",
+   "file": "blueberries.webp",
+   "match": [
+    "blueberries",
+    "blueberry"
+   ]
+  },
+  {
+   "id": "raspberries",
+   "kind": "fresh",
+   "file": "raspberries.webp",
+   "match": [
+    "raspberries",
+    "raspberry"
+   ]
+  },
+  {
+   "id": "blackberries",
+   "kind": "fresh",
+   "file": "blackberries.webp",
+   "match": [
+    "blackberries",
+    "blackberry"
+   ]
+  },
+  {
+   "id": "grapes",
+   "kind": "fresh",
+   "file": "grapes.webp",
+   "match": [
+    "grape",
+    "grapes",
+    "green grape",
+    "green grapes",
+    "red grape",
+    "red grapes"
+   ]
+  },
+  {
+   "id": "pears",
+   "kind": "fresh",
+   "file": "pears.webp",
+   "match": [
+    "pear",
+    "pears"
+   ]
+  },
+  {
+   "id": "peaches",
+   "kind": "fresh",
+   "file": "peaches.webp",
+   "match": [
+    "nectarine",
+    "nectarines",
+    "peach",
+    "peaches"
+   ]
+  },
+  {
+   "id": "plums",
+   "kind": "fresh",
+   "file": "plums.webp",
+   "match": [
+    "plum",
+    "plums"
+   ]
+  },
+  {
+   "id": "cherries",
+   "kind": "fresh",
+   "file": "cherries.webp",
+   "match": [
+    "cherries",
+    "cherry"
+   ],
+   "not": [
+    "tomato",
+    "tomatoes"
+   ]
+  },
+  {
+   "id": "mango",
+   "kind": "fresh",
+   "file": "mango.webp",
+   "match": [
+    "mango",
+    "mangoes",
+    "mangos"
+   ]
+  },
+  {
+   "id": "pineapple",
+   "kind": "fresh",
+   "file": "pineapple.webp",
+   "match": [
+    "pineapple",
+    "pineapples"
+   ]
+  },
+  {
+   "id": "watermelon",
+   "kind": "fresh",
+   "file": "watermelon.webp",
+   "match": [
+    "watermelon",
+    "watermelons"
+   ]
+  },
+  {
+   "id": "melon",
+   "kind": "fresh",
+   "file": "melon.webp",
+   "match": [
+    "cantaloupe",
+    "cantaloupes",
+    "honeydew",
+    "honeydews",
+    "melon",
+    "melons",
+    "rockmelon",
+    "rockmelons"
+   ]
+  },
+  {
+   "id": "kiwi",
+   "kind": "fresh",
+   "file": "kiwi.webp",
+   "match": [
+    "kiwi",
+    "kiwifruit",
+    "kiwifruits",
+    "kiwis"
+   ]
+  },
+  {
+   "id": "avocado",
+   "kind": "fresh",
+   "file": "avocado.webp",
+   "match": [
+    "avo",
+    "avocado",
+    "avocadoes",
+    "avocados",
+    "avoes",
+    "avos"
+   ]
+  },
+  {
+   "id": "pomegranate",
+   "kind": "fresh",
+   "file": "pomegranate.webp",
+   "match": [
+    "pomegranate",
+    "pomegranates"
+   ]
+  },
+  {
+   "id": "passionfruit",
+   "kind": "fresh",
+   "file": "passionfruit.webp",
+   "match": [
+    "passion fruit",
+    "passion fruits",
+    "passionfruit",
+    "passionfruits"
+   ]
+  },
+  {
+   "id": "red-onions",
+   "kind": "fresh",
+   "file": "red-onions.webp",
+   "match": [
+    "purple onion",
+    "purple onions",
+    "red onion",
+    "red onions",
+    "spanish onion",
+    "spanish onions"
+   ]
+  },
+  {
+   "id": "brown-onions",
+   "kind": "fresh",
+   "file": "brown-onions.webp",
+   "match": [
+    "brown onion",
+    "brown onions",
+    "onion",
+    "onions",
+    "white onion",
+    "white onions",
+    "yellow onion",
+    "yellow onions"
+   ],
+   "not": [
+    "green",
+    "powder",
+    "purple",
+    "red",
+    "rings",
+    "spanish",
+    "spring"
+   ]
+  },
+  {
+   "id": "spring-onions",
+   "kind": "fresh",
+   "file": "spring-onions.webp",
+   "match": [
+    "green onion",
+    "green onions",
+    "scallion",
+    "scallions",
+    "shallot",
+    "shallots",
+    "spring onion",
+    "spring onions"
+   ]
+  },
+  {
+   "id": "garlic",
+   "kind": "fresh",
+   "file": "garlic.webp",
+   "match": [
+    "garlic",
+    "garlic bulb",
+    "garlic bulbs",
+    "garlics"
+   ],
+   "not": [
+    "bread",
+    "granules",
+    "powder"
+   ]
+  },
+  {
+   "id": "ginger",
+   "kind": "fresh",
+   "file": "ginger.webp",
+   "match": [
+    "ginger",
+    "gingers"
+   ],
+   "not": [
+    "ale",
+    "beer",
+    "biscuit",
+    "nut"
+   ]
+  },
+  {
+   "id": "potatoes",
+   "kind": "fresh",
+   "file": "potatoes.webp",
+   "match": [
+    "baby potato",
+    "baby potatoes",
+    "baby potatos",
+    "potato",
+    "potatoes",
+    "potatos",
+    "white potato",
+    "white potatoes",
+    "white potatos"
+   ],
+   "not": [
+    "chips",
+    "crisps",
+    "mashed",
+    "sweet",
+    "wedges"
+   ]
+  },
+  {
+   "id": "sweet-potatoes",
+   "kind": "fresh",
+   "file": "sweet-potatoes.webp",
+   "match": [
+    "kumara",
+    "kumaras",
+    "sweet potato",
+    "sweet potatoes",
+    "sweet potatos"
+   ]
+  },
+  {
+   "id": "carrots",
+   "kind": "fresh",
+   "file": "carrots.webp",
+   "match": [
+    "baby carrot",
+    "baby carrots",
+    "carrot",
+    "carrots"
+   ],
+   "not": [
+    "cake"
+   ]
+  },
+  {
+   "id": "broccoli",
+   "kind": "fresh",
+   "file": "broccoli.webp",
+   "match": [
+    "broccoli",
+    "broccolini",
+    "broccolinis",
+    "broccolis"
+   ]
+  },
+  {
+   "id": "cauliflower",
+   "kind": "fresh",
+   "file": "cauliflower.webp",
+   "match": [
+    "cauliflower",
+    "cauliflowers"
+   ]
+  },
+  {
+   "id": "cabbage",
+   "kind": "fresh",
+   "file": "cabbage.webp",
+   "match": [
+    "cabbage",
+    "cabbages",
+    "green cabbage",
+    "green cabbages",
+    "savoy cabbage",
+    "savoy cabbages"
+   ],
+   "not": [
+    "red"
+   ]
+  },
+  {
+   "id": "red-cabbage",
+   "kind": "fresh",
+   "file": "red-cabbage.webp",
+   "match": [
+    "purple cabbage",
+    "purple cabbages",
+    "red cabbage",
+    "red cabbages"
+   ]
+  },
+  {
+   "id": "lettuce",
+   "kind": "fresh",
+   "file": "lettuce.webp",
+   "match": [
+    "cos",
+    "coses",
+    "iceberg",
+    "icebergs",
+    "lettuce",
+    "lettuces",
+    "romaine",
+    "romaines"
+   ]
+  },
+  {
+   "id": "salad-leaves",
+   "kind": "fresh",
+   "file": "salad-leaves.webp",
+   "match": [
+    "baby leaves",
+    "baby leaveses",
+    "mesclun",
+    "mescluns",
+    "mixed leaves",
+    "mixed leaveses",
+    "mixed salad",
+    "mixed salads",
+    "salad leaves",
+    "salad leaveses",
+    "salad mix",
+    "salad mixes"
+   ],
+   "allow": [
+    "salad"
+   ]
+  },
+  {
+   "id": "rocket",
+   "kind": "fresh",
+   "file": "rocket.webp",
+   "match": [
+    "arugula",
+    "arugulas",
+    "rocket",
+    "rockets"
+   ]
+  },
+  {
+   "id": "spinach",
+   "kind": "fresh",
+   "file": "spinach.webp",
+   "match": [
+    "baby spinach",
+    "baby spinaches",
+    "spinach",
+    "spinaches"
+   ]
+  },
+  {
+   "id": "kale",
+   "kind": "fresh",
+   "file": "kale.webp",
+   "match": [
+    "kale",
+    "kales"
+   ],
+   "not": [
+    "chips"
+   ]
+  },
+  {
+   "id": "bok-choy",
+   "kind": "fresh",
+   "file": "bok-choy.webp",
+   "match": [
+    "bok choi",
+    "bok chois",
+    "bok choy",
+    "bok choys",
+    "pak choi",
+    "pak chois",
+    "pak choy",
+    "pak choys"
+   ]
+  },
+  {
+   "id": "celery",
+   "kind": "fresh",
+   "file": "celery.webp",
+   "match": [
+    "celeries",
+    "celery"
+   ],
+   "not": [
+    "salt",
+    "seed"
+   ]
+  },
+  {
+   "id": "cucumber",
+   "kind": "fresh",
+   "file": "cucumber.webp",
+   "match": [
+    "continental cucumber",
+    "continental cucumbers",
+    "cucumber",
+    "cucumbers",
+    "lebanese cucumber",
+    "lebanese cucumbers"
+   ]
+  },
+  {
+   "id": "zucchini",
+   "kind": "fresh",
+   "file": "zucchini.webp",
+   "match": [
+    "courgette",
+    "courgettes",
+    "zucchini",
+    "zucchinis"
+   ]
+  },
+  {
+   "id": "eggplant",
+   "kind": "fresh",
+   "file": "eggplant.webp",
+   "match": [
+    "aubergine",
+    "aubergines",
+    "eggplant",
+    "eggplants"
+   ]
+  },
+  {
+   "id": "capsicum",
+   "kind": "fresh",
+   "file": "capsicum.webp",
+   "match": [
+    "bell pepper",
+    "bell peppers",
+    "capsicum",
+    "capsicums",
+    "green pepper",
+    "green peppers",
+    "pepper",
+    "peppers",
+    "red pepper",
+    "red peppers",
+    "yellow pepper",
+    "yellow peppers"
+   ],
+   "not": [
+    "black",
+    "chili",
+    "chilli",
+    "cracked",
+    "ground",
+    "peppercorn",
+    "salt",
+    "white"
+   ]
+  },
+  {
+   "id": "chillies",
+   "kind": "fresh",
+   "file": "chillies.webp",
+   "match": [
+    "chile",
+    "chiles",
+    "chili",
+    "chilis",
+    "chilli",
+    "chillis",
+    "green chilli",
+    "green chillis",
+    "jalapeno",
+    "jalapenoes",
+    "jalapenos",
+    "red chilli",
+    "red chillis"
+   ],
+   "not": [
+    "con carne",
+    "flakes",
+    "powder",
+    "sauce"
+   ]
+  },
+  {
+   "id": "tomatoes",
+   "kind": "fresh",
+   "file": "tomatoes.webp",
+   "match": [
+    "roma tomato",
+    "roma tomatoes",
+    "roma tomatos",
+    "tomato",
+    "tomatoes",
+    "tomatos",
+    "truss tomato",
+    "truss tomatoes",
+    "truss tomatos",
+    "vine tomato",
+    "vine tomatoes",
+    "vine tomatos"
+   ],
+   "not": [
+    "cherry",
+    "sun",
+    "sundried"
+   ]
+  },
+  {
+   "id": "cherry-tomatoes",
+   "kind": "fresh",
+   "file": "cherry-tomatoes.webp",
+   "match": [
+    "cherry tomato",
+    "cherry tomatoes",
+    "cherry tomatos",
+    "cocktail tomato",
+    "cocktail tomatoes",
+    "cocktail tomatos",
+    "grape tomato",
+    "grape tomatoes",
+    "grape tomatos"
+   ]
+  },
+  {
+   "id": "mushrooms",
+   "kind": "fresh",
+   "file": "mushrooms.webp",
+   "match": [
+    "button mushroom",
+    "button mushrooms",
+    "cup mushroom",
+    "cup mushrooms",
+    "mushroom",
+    "mushrooms",
+    "portobello",
+    "portobelloes",
+    "portobellos",
+    "swiss brown",
+    "swiss browns"
+   ]
+  },
+  {
+   "id": "corn",
+   "kind": "fresh",
+   "file": "corn.webp",
+   "match": [
+    "corn",
+    "corn cob",
+    "corn cobs",
+    "corn on the cob",
+    "corn on the cobs",
+    "corns",
+    "sweet corn",
+    "sweet corns",
+    "sweetcorn",
+    "sweetcorns"
+   ],
+   "not": [
+    "chips",
+    "cornflour",
+    "flakes",
+    "flour",
+    "starch"
+   ]
+  },
+  {
+   "id": "green-beans",
+   "kind": "fresh",
+   "file": "green-beans.webp",
+   "match": [
+    "french bean",
+    "french beans",
+    "green bean",
+    "green beans",
+    "runner bean",
+    "runner beans",
+    "string bean",
+    "string beans"
+   ]
+  },
+  {
+   "id": "peas",
+   "kind": "fresh",
+   "file": "peas.webp",
+   "match": [
+    "garden pea",
+    "garden peas",
+    "pea",
+    "peas",
+    "snap pea",
+    "snap peas",
+    "snow pea",
+    "snow peas",
+    "sugar snap",
+    "sugar snaps"
+   ],
+   "not": [
+    "chick",
+    "chickpea",
+    "split"
+   ]
+  },
+  {
+   "id": "asparagus",
+   "kind": "fresh",
+   "file": "asparagus.webp",
+   "match": [
+    "asparagus",
+    "asparaguses"
+   ]
+  },
+  {
+   "id": "beetroot",
+   "kind": "fresh",
+   "file": "beetroot.webp",
+   "match": [
+    "beet",
+    "beetroot",
+    "beetroots",
+    "beets"
+   ]
+  },
+  {
+   "id": "pumpkin",
+   "kind": "fresh",
+   "file": "pumpkin.webp",
+   "match": [
+    "butternut",
+    "butternut squash",
+    "butternut squashes",
+    "butternuts",
+    "pumpkin",
+    "pumpkins",
+    "squash",
+    "squashes"
+   ],
+   "not": [
+    "seeds",
+    "soup"
+   ]
+  },
+  {
+   "id": "leeks",
+   "kind": "fresh",
+   "file": "leeks.webp",
+   "match": [
+    "leek",
+    "leeks"
+   ]
+  },
+  {
+   "id": "radishes",
+   "kind": "fresh",
+   "file": "radishes.webp",
+   "match": [
+    "radish",
+    "radishes"
+   ]
+  },
+  {
+   "id": "brussels-sprouts",
+   "kind": "fresh",
+   "file": "brussels-sprouts.webp",
+   "match": [
+    "brussel sprout",
+    "brussel sprouts",
+    "brussels sprout",
+    "brussels sprouts",
+    "sprout",
+    "sprouts"
+   ],
+   "not": [
+    "alfalfa",
+    "bean"
+   ]
+  },
+  {
+   "id": "basil",
+   "kind": "fresh",
+   "file": "basil.webp",
+   "match": [
+    "basil",
+    "basils"
+   ],
+   "not": [
+    "pesto"
+   ]
+  },
+  {
+   "id": "coriander",
+   "kind": "fresh",
+   "file": "coriander.webp",
+   "match": [
+    "cilantro",
+    "cilantroes",
+    "cilantros",
+    "coriander",
+    "corianders"
+   ],
+   "not": [
+    "ground",
+    "seed"
+   ]
+  },
+  {
+   "id": "parsley",
+   "kind": "fresh",
+   "file": "parsley.webp",
+   "match": [
+    "parsley",
+    "parsleys"
+   ]
+  },
+  {
+   "id": "mint",
+   "kind": "fresh",
+   "file": "mint.webp",
+   "match": [
+    "mint",
+    "mints"
+   ],
+   "not": [
+    "chocolate",
+    "sauce",
+    "tea"
+   ]
+  },
+  {
+   "id": "rosemary",
+   "kind": "fresh",
+   "file": "rosemary.webp",
+   "match": [
+    "rosemaries",
+    "rosemary"
+   ]
+  },
+  {
+   "id": "thyme",
+   "kind": "fresh",
+   "file": "thyme.webp",
+   "match": [
+    "thyme",
+    "thymes"
+   ]
+  },
+  {
+   "id": "dill",
+   "kind": "fresh",
+   "file": "dill.webp",
+   "match": [
+    "dill",
+    "dills"
+   ],
+   "not": [
+    "pickle",
+    "pickles"
+   ]
+  },
+  {
+   "id": "chives",
+   "kind": "fresh",
+   "file": "chives.webp",
+   "match": [
+    "chive",
+    "chives"
+   ]
+  },
+  {
+   "id": "eggs",
+   "kind": "fresh",
+   "file": "eggs.webp",
+   "match": [
+    "egg",
+    "eggs",
+    "free range egg",
+    "free range eggs",
+    "free range eggses"
+   ],
+   "not": [
+    "chocolate",
+    "easter",
+    "noodle",
+    "noodles",
+    "plant"
+   ]
+  },
+  {
+   "id": "milk",
+   "kind": "fresh",
+   "file": "milk.webp",
+   "match": [
+    "full cream milk",
+    "full cream milks",
+    "lite milk",
+    "lite milks",
+    "milk",
+    "milks",
+    "skim milk",
+    "skim milks",
+    "whole milk",
+    "whole milks"
+   ],
+   "allow": [
+    "milk"
+   ],
+   "not": [
+    "almond",
+    "chocolate",
+    "coconut",
+    "condensed",
+    "evaporated",
+    "oat",
+    "powder",
+    "powdered",
+    "rice",
+    "soy"
+   ]
+  },
+  {
+   "id": "butter",
+   "kind": "fresh",
+   "file": "butter.webp",
+   "match": [
+    "butter",
+    "butters",
+    "salted butter",
+    "salted butters",
+    "unsalted butter",
+    "unsalted butters"
+   ],
+   "not": [
+    "almond",
+    "bean",
+    "beans",
+    "cashew",
+    "milk",
+    "nut",
+    "peanut"
+   ]
+  },
+  {
+   "id": "cheddar",
+   "kind": "fresh",
+   "file": "cheddar.webp",
+   "match": [
+    "block cheese",
+    "block cheeses",
+    "cheddar",
+    "cheddars",
+    "cheese",
+    "cheeses",
+    "grated cheese",
+    "grated cheeses",
+    "shredded cheese",
+    "shredded cheeses",
+    "sliced cheese",
+    "sliced cheeses",
+    "tasty cheese",
+    "tasty cheeses"
+   ],
+   "not": [
+    "blue",
+    "brie",
+    "cake",
+    "camembert",
+    "cottage",
+    "cream",
+    "feta",
+    "goat",
+    "halloumi",
+    "haloumi",
+    "macaroni",
+    "mozzarella",
+    "parmesan",
+    "ricotta"
+   ]
+  },
+  {
+   "id": "feta",
+   "kind": "fresh",
+   "file": "feta.webp",
+   "match": [
+    "feta",
+    "fetas"
+   ]
+  },
+  {
+   "id": "mozzarella",
+   "kind": "fresh",
+   "file": "mozzarella.webp",
+   "match": [
+    "bocconcini",
+    "bocconcinis",
+    "burrata",
+    "burratas",
+    "mozzarella",
+    "mozzarellas"
+   ]
+  },
+  {
+   "id": "parmesan",
+   "kind": "fresh",
+   "file": "parmesan.webp",
+   "match": [
+    "grana padano",
+    "grana padanoes",
+    "grana padanos",
+    "parmesan",
+    "parmesans",
+    "parmigiano",
+    "parmigianoes",
+    "parmigianos",
+    "pecorino",
+    "pecorinoes",
+    "pecorinos"
+   ]
+  },
+  {
+   "id": "brie",
+   "kind": "fresh",
+   "file": "brie.webp",
+   "match": [
+    "brie",
+    "bries",
+    "camembert",
+    "camemberts"
+   ]
+  },
+  {
+   "id": "halloumi",
+   "kind": "fresh",
+   "file": "halloumi.webp",
+   "match": [
+    "halloumi",
+    "halloumis",
+    "haloumi",
+    "haloumis"
+   ]
+  },
+  {
+   "id": "cream",
+   "kind": "fresh",
+   "file": "cream.webp",
+   "match": [
+    "cream",
+    "creams",
+    "double cream",
+    "double creams",
+    "heavy cream",
+    "heavy creams",
+    "pouring cream",
+    "pouring creams",
+    "thick cream",
+    "thick creams",
+    "thickened cream",
+    "thickened creams",
+    "whipping cream",
+    "whipping creams"
+   ],
+   "not": [
+    "biscuit",
+    "cheese",
+    "coconut",
+    "cracker",
+    "ice",
+    "sauce",
+    "sour"
+   ]
+  },
+  {
+   "id": "sour-cream",
+   "kind": "fresh",
+   "file": "sour-cream.webp",
+   "match": [
+    "cr me fra che",
+    "cr me fra ches",
+    "creme fraiche",
+    "creme fraiches",
+    "sour cream",
+    "sour creams"
+   ]
+  },
+  {
+   "id": "yogurt",
+   "kind": "fresh",
+   "file": "yogurt.webp",
+   "match": [
+    "greek yoghurt",
+    "greek yoghurts",
+    "greek yogurt",
+    "greek yogurts",
+    "natural yoghurt",
+    "natural yoghurts",
+    "yoghurt",
+    "yoghurts",
+    "yogurt",
+    "yogurts"
+   ],
+   "not": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "cream-cheese",
+   "kind": "fresh",
+   "file": "cream-cheese.webp",
+   "match": [
+    "cottage cheese",
+    "cottage cheeses",
+    "cream cheese",
+    "cream cheeses",
+    "mascarpone",
+    "mascarpones",
+    "philadelphia",
+    "philadelphias",
+    "ricotta",
+    "ricottas"
+   ]
+  },
+  {
+   "id": "chicken-breast",
+   "kind": "fresh",
+   "file": "chicken-breast.webp",
+   "match": [
+    "chicken",
+    "chicken breast",
+    "chicken breasts",
+    "chicken fillet",
+    "chicken fillets",
+    "chicken tenderloin",
+    "chicken tenderloins",
+    "chickens"
+   ],
+   "not": [
+    "drumstick",
+    "nugget",
+    "nuggets",
+    "salt",
+    "schnitzel",
+    "soup",
+    "stock",
+    "thigh",
+    "whole",
+    "wing"
+   ]
+  },
+  {
+   "id": "chicken-thighs",
+   "kind": "fresh",
+   "file": "chicken-thighs.webp",
+   "match": [
+    "chicken drumstick",
+    "chicken drumsticks",
+    "chicken thigh",
+    "chicken thighs",
+    "chicken wing",
+    "chicken wings",
+    "drumstick",
+    "drumsticks",
+    "thigh fillet",
+    "thigh fillets"
+   ]
+  },
+  {
+   "id": "whole-chicken",
+   "kind": "fresh",
+   "file": "whole-chicken.webp",
+   "match": [
+    "whole chicken",
+    "whole chickens"
+   ],
+   "not": [
+    "bbq",
+    "cooked",
+    "roast"
+   ]
+  },
+  {
+   "id": "beef-mince",
+   "kind": "fresh",
+   "file": "beef-mince.webp",
+   "match": [
+    "beef mince",
+    "beef minces",
+    "chicken mince",
+    "chicken minces",
+    "ground beef",
+    "ground beefs",
+    "lamb mince",
+    "lamb minces",
+    "mince",
+    "minced beef",
+    "minced beefs",
+    "minces",
+    "pork mince",
+    "pork minces"
+   ]
+  },
+  {
+   "id": "steak",
+   "kind": "fresh",
+   "file": "steak.webp",
+   "match": [
+    "beef",
+    "beef strips",
+    "beef stripses",
+    "beefs",
+    "diced beef",
+    "diced beefs",
+    "eye fillet",
+    "eye fillets",
+    "porterhouse",
+    "porterhouses",
+    "ribeye",
+    "ribeyes",
+    "rump",
+    "rumps",
+    "scotch fillet",
+    "scotch fillets",
+    "sirloin",
+    "sirloins",
+    "steak",
+    "steaks",
+    "stir fry beef",
+    "stir fry beefs"
+   ],
+   "allow": [
+    "diced"
+   ],
+   "not": [
+    "corned",
+    "jerky",
+    "mince",
+    "sausage",
+    "sausages",
+    "stock"
+   ]
+  },
+  {
+   "id": "lamb",
+   "kind": "fresh",
+   "file": "lamb.webp",
+   "match": [
+    "lamb",
+    "lamb chop",
+    "lamb chops",
+    "lamb cutlet",
+    "lamb cutlets",
+    "lamb leg",
+    "lamb legs",
+    "lamb shoulder",
+    "lamb shoulders",
+    "lambs"
+   ],
+   "not": [
+    "mince"
+   ]
+  },
+  {
+   "id": "pork",
+   "kind": "fresh",
+   "file": "pork.webp",
+   "match": [
+    "pork",
+    "pork bellies",
+    "pork belly",
+    "pork chop",
+    "pork chops",
+    "pork cutlet",
+    "pork cutlets",
+    "pork fillet",
+    "pork fillets",
+    "pork loin",
+    "pork loins",
+    "porks"
+   ],
+   "not": [
+    "bacon",
+    "crackling",
+    "ham",
+    "mince",
+    "sausage",
+    "sausages"
+   ]
+  },
+  {
+   "id": "sausages",
+   "kind": "fresh",
+   "file": "sausages.webp",
+   "match": [
+    "bratwurst",
+    "bratwursts",
+    "chipolata",
+    "chipolatas",
+    "sausage",
+    "sausages",
+    "snag",
+    "snags"
+   ],
+   "not": [
+    "roll",
+    "rolls"
+   ]
+  },
+  {
+   "id": "bacon",
+   "kind": "fresh",
+   "file": "bacon.webp",
+   "match": [
+    "bacon",
+    "bacon rasher",
+    "bacon rashers",
+    "bacons",
+    "pancetta",
+    "pancettas",
+    "prosciutto",
+    "prosciuttoes",
+    "prosciuttos",
+    "rasher",
+    "rashers",
+    "streaky bacon",
+    "streaky bacons"
+   ],
+   "allow": [
+    "smoked"
+   ]
+  },
+  {
+   "id": "ham",
+   "kind": "fresh",
+   "file": "ham.webp",
+   "match": [
+    "deli meat",
+    "deli meats",
+    "ham",
+    "hams",
+    "leg ham",
+    "leg hams",
+    "salami",
+    "salamis",
+    "shaved ham",
+    "shaved hams",
+    "sliced ham",
+    "sliced hams"
+   ],
+   "allow": [
+    "smoked"
+   ]
+  },
+  {
+   "id": "salmon",
+   "kind": "fresh",
+   "file": "salmon.webp",
+   "match": [
+    "ocean trout",
+    "ocean trouts",
+    "salmon",
+    "salmon fillet",
+    "salmon fillets",
+    "salmons",
+    "trout",
+    "trouts"
+   ],
+   "not": [
+    "canned",
+    "smoked",
+    "tin"
+   ]
+  },
+  {
+   "id": "smoked-salmon",
+   "kind": "fresh",
+   "file": "smoked-salmon.webp",
+   "match": [
+    "lox",
+    "loxes",
+    "smoked salmon",
+    "smoked salmons"
+   ],
+   "needs": [
+    "lox",
+    "smoked"
+   ]
+  },
+  {
+   "id": "white-fish",
+   "kind": "fresh",
+   "file": "white-fish.webp",
+   "match": [
+    "barramundi",
+    "barramundis",
+    "basa",
+    "basas",
+    "cod",
+    "cods",
+    "dories",
+    "dory",
+    "fish",
+    "fish fillet",
+    "fish fillets",
+    "fishes",
+    "flathead",
+    "flatheads",
+    "hake",
+    "hakes",
+    "snapper",
+    "snappers",
+    "tilapia",
+    "tilapias",
+    "white fish",
+    "white fishes",
+    "whiting",
+    "whitings"
+   ],
+   "not": [
+    "cake",
+    "cakes",
+    "finger",
+    "fingers",
+    "salmon",
+    "sauce",
+    "smoked",
+    "tuna"
+   ]
+  },
+  {
+   "id": "prawns",
+   "kind": "fresh",
+   "file": "prawns.webp",
+   "match": [
+    "king prawn",
+    "king prawns",
+    "prawn",
+    "prawns",
+    "shrimp",
+    "shrimps",
+    "tiger prawn",
+    "tiger prawns"
+   ]
+  },
+  {
+   "id": "tofu",
+   "kind": "fresh",
+   "file": "tofu.webp",
+   "match": [
+    "bean curd",
+    "bean curds",
+    "tofu",
+    "tofus"
+   ]
+  },
+  {
+   "id": "sourdough",
+   "kind": "fresh",
+   "file": "sourdough.webp",
+   "match": [
+    "baguette",
+    "baguettes",
+    "ciabatta",
+    "ciabattas",
+    "crusty bread",
+    "crusty breads",
+    "loaf",
+    "loafs",
+    "sourdough",
+    "sourdough loaf",
+    "sourdough loafs",
+    "sourdoughs"
+   ],
+   "not": [
+    "tin"
+   ]
+  },
+  {
+   "id": "sliced-bread",
+   "kind": "fresh",
+   "file": "sliced-bread.webp",
+   "match": [
+    "bread",
+    "breads",
+    "multigrain bread",
+    "multigrain breads",
+    "sandwich bread",
+    "sandwich breads",
+    "sliced bread",
+    "sliced breads",
+    "toast",
+    "toast bread",
+    "toast breads",
+    "toasts",
+    "white bread",
+    "white breads",
+    "wholemeal bread",
+    "wholemeal breads"
+   ],
+   "not": [
+    "banana",
+    "breadcrumbs",
+    "crumbs",
+    "flat",
+    "garlic",
+    "gluten",
+    "naan",
+    "pita",
+    "roll",
+    "rolls",
+    "sourdough"
+   ]
+  },
+  {
+   "id": "bread-rolls",
+   "kind": "fresh",
+   "file": "bread-rolls.webp",
+   "match": [
+    "bread roll",
+    "bread rolls",
+    "bun",
+    "buns",
+    "burger bun",
+    "burger buns",
+    "dinner roll",
+    "dinner rolls",
+    "hot dog roll",
+    "hot dog rolls",
+    "roll",
+    "rolls"
+   ],
+   "not": [
+    "cinnamon",
+    "egg",
+    "sausage",
+    "spring",
+    "sushi"
+   ]
+  },
+  {
+   "id": "wraps",
+   "kind": "fresh",
+   "file": "wraps.webp",
+   "match": [
+    "flatbread",
+    "flatbreads",
+    "lavash",
+    "lavashes",
+    "mountain bread",
+    "mountain breads",
+    "naan",
+    "naans",
+    "pita",
+    "pita bread",
+    "pita breads",
+    "pitas",
+    "tortilla",
+    "tortillas",
+    "wrap",
+    "wraps"
+   ],
+   "not": [
+    "chips",
+    "cling",
+    "plastic"
+   ]
+  },
+  {
+   "id": "croissants",
+   "kind": "fresh",
+   "file": "croissants.webp",
+   "match": [
+    "croissant",
+    "croissants",
+    "danish",
+    "danishes",
+    "pastries",
+    "pastry"
+   ]
+  },
+  {
+   "id": "bagels",
+   "kind": "fresh",
+   "file": "bagels.webp",
+   "match": [
+    "bagel",
+    "bagels"
+   ]
+  },
+  {
+   "id": "english-muffins",
+   "kind": "fresh",
+   "file": "english-muffins.webp",
+   "match": [
+    "crumpet",
+    "crumpets",
+    "english muffin",
+    "english muffins"
+   ]
+  },
+  {
+   "id": "dry-pasta",
+   "kind": "pack",
+   "file": "dry-pasta.webp",
+   "match": [
+    "farfalle",
+    "farfalles",
+    "fettuccine",
+    "fettuccines",
+    "fusilli",
+    "fusillis",
+    "lasagna sheets",
+    "lasagna sheetses",
+    "lasagne sheets",
+    "lasagne sheetses",
+    "linguine",
+    "linguines",
+    "macaroni",
+    "macaronis",
+    "orzo",
+    "orzoes",
+    "orzos",
+    "pasta",
+    "pastas",
+    "penne",
+    "pennes",
+    "rigatoni",
+    "rigatonis",
+    "spaghetti",
+    "spaghettis",
+    "spirals",
+    "spiralses",
+    "tagliatelle",
+    "tagliatelles"
+   ],
+   "allow": [
+    "dried",
+    "dry"
+   ],
+   "not": [
+    "bake",
+    "cooked",
+    "fresh",
+    "salad",
+    "sauce"
+   ]
+  },
+  {
+   "id": "rice",
+   "kind": "pack",
+   "file": "rice.webp",
+   "match": [
+    "arborio",
+    "arborioes",
+    "arborios",
+    "basmati",
+    "basmatis",
+    "brown rice",
+    "brown rices",
+    "jasmine rice",
+    "jasmine rices",
+    "long grain",
+    "long grains",
+    "rice",
+    "rices",
+    "sushi rice",
+    "sushi rices",
+    "white rice",
+    "white rices"
+   ],
+   "allow": [
+    "dry"
+   ],
+   "not": [
+    "cake",
+    "cakes",
+    "cooked",
+    "crackers",
+    "fried",
+    "microwave",
+    "milk",
+    "noodles",
+    "paper",
+    "vinegar",
+    "wine"
+   ]
+  },
+  {
+   "id": "oats",
+   "kind": "pack",
+   "file": "oats.webp",
+   "match": [
+    "granola",
+    "granolas",
+    "muesli",
+    "mueslis",
+    "oat",
+    "oats",
+    "oatses",
+    "porridge",
+    "porridge oats",
+    "porridge oatses",
+    "porridges",
+    "quick oats",
+    "quick oatses",
+    "rolled oats",
+    "rolled oatses"
+   ],
+   "allow": [
+    "dry"
+   ],
+   "not": [
+    "bar",
+    "bars",
+    "milk"
+   ]
+  },
+  {
+   "id": "flour",
+   "kind": "pack",
+   "file": "flour.webp",
+   "match": [
+    "bread flour",
+    "bread flours",
+    "cornflour",
+    "cornflours",
+    "flour",
+    "flours",
+    "plain flour",
+    "plain flours",
+    "self raising flour",
+    "self raising flours",
+    "wholemeal flour",
+    "wholemeal flours"
+   ],
+   "not": [
+    "tortilla",
+    "tortillas",
+    "wraps"
+   ]
+  },
+  {
+   "id": "sugar",
+   "kind": "pack",
+   "file": "sugar.webp",
+   "match": [
+    "brown sugar",
+    "brown sugars",
+    "caster sugar",
+    "caster sugars",
+    "icing sugar",
+    "icing sugars",
+    "raw sugar",
+    "raw sugars",
+    "sugar",
+    "sugars",
+    "white sugar",
+    "white sugars"
+   ],
+   "allow": [
+    "jar"
+   ],
+   "not": [
+    "free",
+    "snap",
+    "snaps"
+   ]
+  },
+  {
+   "id": "lentils",
+   "kind": "pack",
+   "file": "lentils.webp",
+   "match": [
+    "green lentil",
+    "green lentils",
+    "lentil",
+    "lentils",
+    "red lentil",
+    "red lentils",
+    "split pea",
+    "split peas",
+    "split peases"
+   ],
+   "allow": [
+    "dried",
+    "dry"
+   ]
+  },
+  {
+   "id": "quinoa",
+   "kind": "pack",
+   "file": "quinoa.webp",
+   "match": [
+    "quinoa",
+    "quinoas"
+   ],
+   "allow": [
+    "dry"
+   ]
+  },
+  {
+   "id": "couscous",
+   "kind": "pack",
+   "file": "couscous.webp",
+   "match": [
+    "bulgur",
+    "bulgurs",
+    "burghul",
+    "burghuls",
+    "cous cous",
+    "cous couses",
+    "couscous",
+    "couscouses"
+   ],
+   "allow": [
+    "dry"
+   ]
+  },
+  {
+   "id": "noodles",
+   "kind": "pack",
+   "file": "noodles.webp",
+   "match": [
+    "egg noodle",
+    "egg noodles",
+    "hokkien noodle",
+    "hokkien noodles",
+    "noodle",
+    "noodles",
+    "ramen",
+    "ramens",
+    "rice noodle",
+    "rice noodles",
+    "soba",
+    "sobas",
+    "udon",
+    "udons",
+    "vermicelli",
+    "vermicellis"
+   ],
+   "allow": [
+    "dried",
+    "dry",
+    "noodles"
+   ],
+   "not": [
+    "cooked",
+    "instant cup",
+    "soup"
+   ]
+  },
+  {
+   "id": "nuts",
+   "kind": "pack",
+   "file": "nuts.webp",
+   "match": [
+    "almond",
+    "almonds",
+    "cashew",
+    "cashews",
+    "hazelnut",
+    "hazelnuts",
+    "macadamia",
+    "macadamias",
+    "mixed nuts",
+    "mixed nutses",
+    "nuts",
+    "nutses",
+    "peanut",
+    "peanuts",
+    "pecan",
+    "pecans",
+    "pistachio",
+    "pistachioes",
+    "pistachios",
+    "walnut",
+    "walnuts"
+   ],
+   "not": [
+    "bar",
+    "butter",
+    "flour",
+    "meal",
+    "milk",
+    "oil"
+   ]
+  },
+  {
+   "id": "peanut-butter",
+   "kind": "pack",
+   "file": "peanut-butter.webp",
+   "match": [
+    "almond butter",
+    "almond butters",
+    "cashew butter",
+    "cashew butters",
+    "nut butter",
+    "nut butters",
+    "peanut butter",
+    "peanut butters"
+   ],
+   "allow": [
+    "jar"
+   ]
+  },
+  {
+   "id": "honey",
+   "kind": "pack",
+   "file": "honey.webp",
+   "match": [
+    "golden syrup",
+    "golden syrups",
+    "honey",
+    "honeys",
+    "maple syrup",
+    "maple syrups"
+   ],
+   "allow": [
+    "jar"
+   ],
+   "not": [
+    "chicken",
+    "mustard",
+    "soy"
+   ]
+  },
+  {
+   "id": "olive-oil",
+   "kind": "pack",
+   "file": "olive-oil.webp",
+   "match": [
+    "canola oil",
+    "canola oils",
+    "cooking oil",
+    "cooking oils",
+    "extra virgin olive oil",
+    "extra virgin olive oils",
+    "oil",
+    "oils",
+    "olive oil",
+    "olive oils",
+    "sunflower oil",
+    "sunflower oils",
+    "vegetable oil",
+    "vegetable oils"
+   ],
+   "allow": [
+    "oil"
+   ],
+   "not": [
+    "coconut",
+    "fish",
+    "sesame",
+    "spray",
+    "tuna"
+   ]
+  },
+  {
+   "id": "breakfast-cereal",
+   "kind": "pack",
+   "file": "breakfast-cereal.webp",
+   "match": [
+    "bran flakes",
+    "bran flakeses",
+    "cereal",
+    "cereals",
+    "corn flakes",
+    "corn flakeses",
+    "cornflakes",
+    "cornflakeses",
+    "rice bubbles",
+    "rice bubbleses",
+    "weet bix",
+    "weet bixes",
+    "weetbix",
+    "weetbixes"
+   ],
+   "allow": [
+    "flakes"
+   ]
+  },
+  {
+   "id": "crackers",
+   "kind": "pack",
+   "file": "crackers.webp",
+   "match": [
+    "cracker",
+    "crackers",
+    "crispbread",
+    "crispbreads",
+    "rice cake",
+    "rice cakes",
+    "rice cracker",
+    "rice crackers",
+    "water cracker",
+    "water crackers"
+   ],
+   "allow": [
+    "cake"
+   ]
+  },
+  {
+   "id": "coffee",
+   "kind": "pack",
+   "file": "coffee.webp",
+   "match": [
+    "coffee",
+    "coffee beans",
+    "coffee beanses",
+    "coffees",
+    "ground coffee",
+    "ground coffees",
+    "instant coffee",
+    "instant coffees"
+   ],
+   "allow": [
+    "roasted"
+   ],
+   "not": [
+    "capsule",
+    "capsules",
+    "pod",
+    "pods"
+   ]
+  },
+  {
+   "id": "tea",
+   "kind": "pack",
+   "file": "tea.webp",
+   "match": [
+    "black tea",
+    "black teas",
+    "green tea",
+    "green teas",
+    "herbal tea",
+    "herbal teas",
+    "tea",
+    "tea bags",
+    "tea bagses",
+    "teas"
+   ],
+   "not": [
+    "iced",
+    "towel"
+   ]
+  },
+  {
+   "id": "dark-chocolate",
+   "kind": "pack",
+   "file": "dark-chocolate.webp",
+   "match": [
+    "choc chips",
+    "choc chipses",
+    "chocolate",
+    "chocolate chips",
+    "chocolate chipses",
+    "chocolates",
+    "cooking chocolate",
+    "cooking chocolates",
+    "dark chocolate",
+    "dark chocolates",
+    "milk chocolate",
+    "milk chocolates"
+   ],
+   "allow": [
+    "milk"
+   ],
+   "not": [
+    "biscuit",
+    "cake",
+    "ice",
+    "milk drink",
+    "spread"
+   ]
+  },
+  {
+   "id": "canned-tomatoes",
+   "kind": "pack",
+   "file": "canned-tomatoes.webp",
+   "match": [
+    "chopped tomato",
+    "chopped tomatoes",
+    "chopped tomatos",
+    "crushed tomato",
+    "crushed tomatoes",
+    "crushed tomatos",
+    "diced tomato",
+    "diced tomatoes",
+    "diced tomatos",
+    "tomato",
+    "tomatoes",
+    "tomatos",
+    "whole peeled tomato",
+    "whole peeled tomatoes",
+    "whole peeled tomatos"
+   ],
+   "needs": [
+    "can",
+    "canned",
+    "chopped",
+    "crushed",
+    "diced",
+    "tin",
+    "tinned"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "chopped",
+    "diced",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "canned-tuna",
+   "kind": "pack",
+   "file": "canned-tuna.webp",
+   "match": [
+    "canned salmon",
+    "canned salmons",
+    "sardines",
+    "sardineses",
+    "tuna",
+    "tuna chunks",
+    "tuna chunkses",
+    "tuna in oil",
+    "tuna in oils",
+    "tuna in springwater",
+    "tuna in springwaters",
+    "tunas"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "oil",
+    "tin",
+    "tinned"
+   ],
+   "not": [
+    "fresh",
+    "sashimi",
+    "steak"
+   ]
+  },
+  {
+   "id": "canned-chickpeas",
+   "kind": "pack",
+   "file": "canned-chickpeas.webp",
+   "match": [
+    "chick pea",
+    "chick peas",
+    "chickpea",
+    "chickpeas",
+    "garbanzo",
+    "garbanzoes",
+    "garbanzos"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "dried",
+    "dry",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "canned-beans",
+   "kind": "pack",
+   "file": "canned-beans.webp",
+   "match": [
+    "bean",
+    "beans",
+    "black bean",
+    "black beans",
+    "butter bean",
+    "butter beans",
+    "cannellini bean",
+    "cannellini beans",
+    "four bean mix",
+    "four bean mixes",
+    "kidney bean",
+    "kidney beans",
+    "mixed beans",
+    "mixed beanses",
+    "red kidney bean",
+    "red kidney beans"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "dried",
+    "dry",
+    "tin",
+    "tinned"
+   ],
+   "not": [
+    "baked",
+    "broad",
+    "coffee",
+    "edamame",
+    "french",
+    "green",
+    "jelly",
+    "runner",
+    "sprout",
+    "sprouts",
+    "string"
+   ]
+  },
+  {
+   "id": "baked-beans",
+   "kind": "pack",
+   "file": "baked-beans.webp",
+   "match": [
+    "baked bean",
+    "baked beans",
+    "baked beanses"
+   ],
+   "allow": [
+    "baked",
+    "can",
+    "canned",
+    "sauce",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "coconut-milk",
+   "kind": "pack",
+   "file": "coconut-milk.webp",
+   "match": [
+    "coconut cream",
+    "coconut creams",
+    "coconut milk",
+    "coconut milks"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "milk",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "canned-corn",
+   "kind": "pack",
+   "file": "canned-corn.webp",
+   "match": [
+    "corn",
+    "corn kernels",
+    "corn kernelses",
+    "corns",
+    "creamed corn",
+    "creamed corns",
+    "sweet corn",
+    "sweet corns",
+    "sweetcorn",
+    "sweetcorns"
+   ],
+   "needs": [
+    "can",
+    "canned",
+    "creamed",
+    "kernels",
+    "tin",
+    "tinned"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "canned-soup",
+   "kind": "pack",
+   "file": "canned-soup.webp",
+   "match": [
+    "chicken soup",
+    "chicken soups",
+    "pumpkin soup",
+    "pumpkin soups",
+    "soup",
+    "soups",
+    "tomato soup",
+    "tomato soups",
+    "vegetable soup",
+    "vegetable soups"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "soup",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "canned-fruit",
+   "kind": "pack",
+   "file": "canned-fruit.webp",
+   "match": [
+    "apricot",
+    "apricots",
+    "fruit",
+    "fruit salad",
+    "fruit salads",
+    "fruits",
+    "peach",
+    "peaches",
+    "pear",
+    "pears",
+    "pineapple",
+    "pineapples"
+   ],
+   "needs": [
+    "can",
+    "canned",
+    "tin",
+    "tinned"
+   ],
+   "allow": [
+    "can",
+    "canned",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "pasta-sauce",
+   "kind": "pack",
+   "file": "pasta-sauce.webp",
+   "match": [
+    "arrabbiata",
+    "arrabbiatas",
+    "bolognese sauce",
+    "bolognese sauces",
+    "marinara",
+    "marinaras",
+    "napoletana",
+    "napoletanas",
+    "passata",
+    "passatas",
+    "pasta sauce",
+    "pasta sauces",
+    "tomato passata",
+    "tomato passatas",
+    "tomato pasta sauce",
+    "tomato pasta sauces"
+   ],
+   "allow": [
+    "jar",
+    "passata",
+    "sauce"
+   ]
+  },
+  {
+   "id": "tomato-paste",
+   "kind": "pack",
+   "file": "tomato-paste.webp",
+   "match": [
+    "concentrated tomato",
+    "concentrated tomatoes",
+    "concentrated tomatos",
+    "tomato paste",
+    "tomato pastes",
+    "tomato puree",
+    "tomato purees"
+   ],
+   "allow": [
+    "can",
+    "jar",
+    "paste",
+    "puree",
+    "tin"
+   ]
+  },
+  {
+   "id": "pesto",
+   "kind": "pack",
+   "file": "pesto.webp",
+   "match": [
+    "basil pesto",
+    "basil pestoes",
+    "basil pestos",
+    "pesto",
+    "pestoes",
+    "pestos"
+   ],
+   "allow": [
+    "jar",
+    "pesto"
+   ]
+  },
+  {
+   "id": "mayonnaise",
+   "kind": "pack",
+   "file": "mayonnaise.webp",
+   "match": [
+    "aioli",
+    "aiolis",
+    "mayo",
+    "mayoes",
+    "mayonnaise",
+    "mayonnaises",
+    "mayos",
+    "whole egg mayonnaise",
+    "whole egg mayonnaises"
+   ],
+   "allow": [
+    "jar",
+    "mayo",
+    "mayonnaise"
+   ]
+  },
+  {
+   "id": "ketchup",
+   "kind": "pack",
+   "file": "ketchup.webp",
+   "match": [
+    "barbecue sauce",
+    "barbecue sauces",
+    "bbq sauce",
+    "bbq sauces",
+    "ketchup",
+    "ketchups",
+    "tomato ketchup",
+    "tomato ketchups",
+    "tomato sauce",
+    "tomato sauces"
+   ],
+   "allow": [
+    "ketchup",
+    "sauce"
+   ]
+  },
+  {
+   "id": "mustard",
+   "kind": "pack",
+   "file": "mustard.webp",
+   "match": [
+    "dijon",
+    "dijons",
+    "hot english mustard",
+    "hot english mustards",
+    "mustard",
+    "mustards",
+    "wholegrain mustard",
+    "wholegrain mustards"
+   ],
+   "allow": [
+    "jar"
+   ]
+  },
+  {
+   "id": "soy-sauce",
+   "kind": "pack",
+   "file": "soy-sauce.webp",
+   "match": [
+    "fish sauce",
+    "fish sauces",
+    "oyster sauce",
+    "oyster sauces",
+    "soy sauce",
+    "soy sauces",
+    "soya sauce",
+    "soya sauces",
+    "tamari",
+    "tamaris",
+    "worcestershire",
+    "worcestershires"
+   ],
+   "allow": [
+    "sauce"
+   ]
+  },
+  {
+   "id": "jam",
+   "kind": "pack",
+   "file": "jam.webp",
+   "match": [
+    "apricot jam",
+    "apricot jams",
+    "conserve",
+    "conserves",
+    "jam",
+    "jams",
+    "jellies",
+    "jelly",
+    "marmalade",
+    "marmalades",
+    "raspberry jam",
+    "raspberry jams",
+    "strawberry jam",
+    "strawberry jams"
+   ],
+   "allow": [
+    "jam",
+    "jar"
+   ]
+  },
+  {
+   "id": "olives",
+   "kind": "pack",
+   "file": "olives.webp",
+   "match": [
+    "black olive",
+    "black olives",
+    "green olive",
+    "green olives",
+    "kalamata",
+    "kalamatas",
+    "olive",
+    "olives"
+   ],
+   "allow": [
+    "can",
+    "jar",
+    "pickled",
+    "tin"
+   ],
+   "not": [
+    "oil"
+   ]
+  },
+  {
+   "id": "pickles",
+   "kind": "pack",
+   "file": "pickles.webp",
+   "match": [
+    "cornichon",
+    "cornichons",
+    "dill pickle",
+    "dill pickles",
+    "gherkin",
+    "gherkins",
+    "kimchi",
+    "kimchis",
+    "pickle",
+    "pickled onion",
+    "pickled onions",
+    "pickles",
+    "sauerkraut",
+    "sauerkrauts"
+   ],
+   "allow": [
+    "jar",
+    "pickled"
+   ]
+  },
+  {
+   "id": "hummus",
+   "kind": "pack",
+   "file": "hummus.webp",
+   "match": [
+    "baba ganoush",
+    "baba ganoushes",
+    "dip",
+    "dips",
+    "houmous",
+    "houmouses",
+    "hummus",
+    "hummuses",
+    "tzatziki",
+    "tzatzikis"
+   ],
+   "allow": [
+    "dip"
+   ]
+  },
+  {
+   "id": "salsa",
+   "kind": "pack",
+   "file": "salsa.webp",
+   "match": [
+    "salsa",
+    "salsas",
+    "tomato salsa",
+    "tomato salsas"
+   ],
+   "allow": [
+    "dip",
+    "jar",
+    "sauce"
+   ]
+  },
+  {
+   "id": "stock",
+   "kind": "pack",
+   "file": "stock.webp",
+   "match": [
+    "beef stock",
+    "beef stocks",
+    "bone broth",
+    "bone broths",
+    "broth",
+    "broths",
+    "chicken stock",
+    "chicken stocks",
+    "stock",
+    "stocks",
+    "vegetable stock",
+    "vegetable stocks"
+   ],
+   "allow": [
+    "cube",
+    "powder"
+   ],
+   "not": [
+    "pot"
+   ]
+  },
+  {
+   "id": "vinegar",
+   "kind": "pack",
+   "file": "vinegar.webp",
+   "match": [
+    "apple cider vinegar",
+    "apple cider vinegars",
+    "balsamic",
+    "balsamics",
+    "red wine vinegar",
+    "red wine vinegars",
+    "vinegar",
+    "vinegars",
+    "white vinegar",
+    "white vinegars"
+   ]
+  },
+  {
+   "id": "frozen-peas",
+   "kind": "pack",
+   "file": "frozen-peas.webp",
+   "match": [
+    "baby pea",
+    "baby peas",
+    "garden pea",
+    "garden peas",
+    "pea",
+    "peas"
+   ],
+   "needs": [
+    "frozen"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "frozen-berries",
+   "kind": "pack",
+   "file": "frozen-berries.webp",
+   "match": [
+    "berries",
+    "berry",
+    "blueberries",
+    "blueberry",
+    "mango",
+    "mangoes",
+    "mangos",
+    "mixed berries",
+    "mixed berry",
+    "raspberries",
+    "raspberry",
+    "strawberries",
+    "strawberry"
+   ],
+   "needs": [
+    "frozen"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  }
+ ]
+}
