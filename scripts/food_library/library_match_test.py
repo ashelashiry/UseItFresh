@@ -111,6 +111,15 @@ CASES = {
     "Vodka": "spirits", "Cola": "soft-drink", "Kombucha": "iced-tea", "Water": "sparkling-water",
     "Nori": "dried-seaweed", "Seaweed snacks": "rice-crackers", "Cheese platter": "cheese-platter",
     "Ham and cheese sandwich": "sandwich", "Ice cream": "ice-cream", "Icy poles": "ice-blocks",
+    # wave 3
+    "Mirin": "mirin", "Tamarind paste": "tamarind", "Palm sugar": "palm-sugar", "Pickled ginger": "pickled-ginger",
+    "Galangal": "galangal", "Lotus root": "lotus-root", "Besan flour": "chickpea-flour", "Poppadoms": "poppadoms",
+    "Char siu pork": "char-siu", "Bao buns": "bao-buns", "Pizza cheese": "pizza-cheese", "Cheese sticks": "cheese-sticks",
+    "Chicken liver pate": "pate", "Beef jerky": "beef-jerky", "Rice pudding": "rice-pudding", "Fruit cups": "fruit-cups",
+    "Coconut yoghurt": "plant-yogurt", "Starfruit": "starfruit", "Custard apple": "custard-apple",
+    "Frozen chicken breast": "frozen-meat", "Frozen mince": "frozen-meat", "Chicken breast": "chicken-breast",
+    "Frozen chicken nuggets": "chicken-nuggets", "Frozen pizza": "frozen-pizza", "Mozzarella": "mozzarella",
+    "Roast pork": "char-siu", "Jackfruit": "jackfruit", "Fruit roll ups": "fruit-snacks",
 }
 bad = 0
 for name, want in CASES.items():

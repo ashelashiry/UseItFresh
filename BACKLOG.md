@@ -21,7 +21,7 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 - **Food picture library (owner, 15 Sep)**, snapshot `feat-food-library-15sep`.
   - **Setting:** "Fresh photos first" is the default; "My photos first" is in
     Profile → Food pictures.
-  - **Library:** 443 generated photos in `design/library`, covering fruit,
+  - **Library:** 475 generated photos in `design/library`, covering fruit,
     veg, herbs, dairy, meat and fish, bakery, pantry, tins, jars, frozen and
     drinks.
   - **Index:** `index.json` holds the matching rules. A tin, jar or frozen

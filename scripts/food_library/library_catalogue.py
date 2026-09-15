@@ -204,7 +204,9 @@ C = [
 
 from library_catalogue_more import C2, MORE_PROCESSED  # noqa: E402
 
-C = C + C2
+from library_catalogue_wave3 import C3  # noqa: E402
+
+C = C + C2 + C3
 PROCESSED = PROCESSED + MORE_PROCESSED
 
 TRIAL = {  # already generated on 15 Sep (4-photo trial)

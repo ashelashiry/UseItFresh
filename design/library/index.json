@@ -7079,8 +7079,6 @@
    "match": [
     "black bean sauce",
     "black bean sauces",
-    "char siu",
-    "char sius",
     "hoisin",
     "hoisin sauce",
     "hoisin sauces",
@@ -8748,6 +8746,586 @@
     "salad",
     "snack",
     "snacks"
+   ]
+  },
+  {
+   "id": "mirin",
+   "kind": "pack",
+   "file": "mirin.webp",
+   "match": [
+    "cooking sake",
+    "cooking sakes",
+    "mirin",
+    "mirins",
+    "rice wine",
+    "rice wines",
+    "sake",
+    "sakes",
+    "shaoxing",
+    "shaoxings"
+   ],
+   "allow": [
+    "jar"
+   ]
+  },
+  {
+   "id": "tamarind",
+   "kind": "pack",
+   "file": "tamarind.webp",
+   "match": [
+    "tamarind",
+    "tamarind paste",
+    "tamarind pastes",
+    "tamarind puree",
+    "tamarind purees",
+    "tamarinds"
+   ],
+   "allow": [
+    "jar",
+    "paste",
+    "puree"
+   ]
+  },
+  {
+   "id": "palm-sugar",
+   "kind": "pack",
+   "file": "palm-sugar.webp",
+   "match": [
+    "gula melaka",
+    "gula melakas",
+    "jaggeries",
+    "jaggery",
+    "palm sugar",
+    "palm sugars"
+   ]
+  },
+  {
+   "id": "pickled-ginger",
+   "kind": "pack",
+   "file": "pickled-ginger.webp",
+   "match": [
+    "gari",
+    "garis",
+    "pickled ginger",
+    "pickled gingers",
+    "sushi ginger",
+    "sushi gingers",
+    "wasabi",
+    "wasabis"
+   ],
+   "allow": [
+    "jar",
+    "paste",
+    "pickled"
+   ]
+  },
+  {
+   "id": "galangal",
+   "kind": "fresh",
+   "file": "galangal.webp",
+   "match": [
+    "fresh turmeric",
+    "fresh turmerics",
+    "galangal",
+    "galangals",
+    "turmeric root",
+    "turmeric roots"
+   ]
+  },
+  {
+   "id": "lotus-root",
+   "kind": "fresh",
+   "file": "lotus-root.webp",
+   "match": [
+    "lotus",
+    "lotus root",
+    "lotus roots",
+    "lotuses"
+   ]
+  },
+  {
+   "id": "bitter-melon",
+   "kind": "fresh",
+   "file": "bitter-melon.webp",
+   "match": [
+    "bitter gourd",
+    "bitter gourds",
+    "bitter melon",
+    "bitter melons",
+    "karela",
+    "karelas"
+   ]
+  },
+  {
+   "id": "pandan",
+   "kind": "fresh",
+   "file": "pandan.webp",
+   "match": [
+    "pandan",
+    "pandan leaves",
+    "pandan leaveses",
+    "pandans",
+    "screwpine",
+    "screwpines"
+   ]
+  },
+  {
+   "id": "chickpea-flour",
+   "kind": "pack",
+   "file": "chickpea-flour.webp",
+   "match": [
+    "besan",
+    "besan flour",
+    "besan flours",
+    "besans",
+    "chickpea flour",
+    "chickpea flours",
+    "gram flour",
+    "gram flours",
+    "rice flour",
+    "rice flours",
+    "tapioca flour",
+    "tapioca flours"
+   ]
+  },
+  {
+   "id": "poppadoms",
+   "kind": "pack",
+   "file": "poppadoms.webp",
+   "match": [
+    "papadum",
+    "papadums",
+    "pappadam",
+    "pappadams",
+    "poppadom",
+    "poppadoms",
+    "prawn crackers",
+    "prawn crackerses"
+   ],
+   "allow": [
+    "chips",
+    "crisps",
+    "fried"
+   ]
+  },
+  {
+   "id": "preserved-lemons",
+   "kind": "pack",
+   "file": "preserved-lemons.webp",
+   "match": [
+    "preserved lemon",
+    "preserved lemons",
+    "preserved lemonses"
+   ],
+   "allow": [
+    "jar",
+    "pickled"
+   ]
+  },
+  {
+   "id": "pomegranate-molasses",
+   "kind": "pack",
+   "file": "pomegranate-molasses.webp",
+   "match": [
+    "date syrup",
+    "date syrups",
+    "grape molasses",
+    "grape molasseses",
+    "pomegranate molasses",
+    "pomegranate molasseses"
+   ]
+  },
+  {
+   "id": "chinese-sausage",
+   "kind": "pack",
+   "file": "chinese-sausage.webp",
+   "match": [
+    "chinese sausage",
+    "chinese sausages",
+    "lap cheong",
+    "lap cheongs",
+    "lap chong",
+    "lap chongs"
+   ],
+   "allow": [
+    "dried"
+   ]
+  },
+  {
+   "id": "char-siu",
+   "kind": "pack",
+   "file": "char-siu.webp",
+   "match": [
+    "bbq pork",
+    "bbq porks",
+    "char siu",
+    "char sius",
+    "chinese roast pork",
+    "chinese roast porks",
+    "peking duck",
+    "peking ducks",
+    "roast duck",
+    "roast ducks",
+    "roast pork",
+    "roast porks"
+   ],
+   "allow": [
+    "cooked",
+    "roast",
+    "roasted"
+   ]
+  },
+  {
+   "id": "bao-buns",
+   "kind": "pack",
+   "file": "bao-buns.webp",
+   "match": [
+    "bao",
+    "bao buns",
+    "bao bunses",
+    "baoes",
+    "baos",
+    "bun bao",
+    "bun baoes",
+    "bun baos",
+    "pork buns",
+    "pork bunses",
+    "steamed buns",
+    "steamed bunses"
+   ],
+   "allow": [
+    "frozen"
+   ]
+  },
+  {
+   "id": "fish-balls",
+   "kind": "pack",
+   "file": "fish-balls.webp",
+   "match": [
+    "fish ball",
+    "fish balls",
+    "fish ballses",
+    "fish tofu",
+    "fish tofus",
+    "kamaboko",
+    "kamabokoes",
+    "kamabokos"
+   ],
+   "allow": [
+    "cake",
+    "frozen"
+   ]
+  },
+  {
+   "id": "rice-cakes-tteok",
+   "kind": "pack",
+   "file": "rice-cakes-tteok.webp",
+   "match": [
+    "korean rice cakes",
+    "korean rice cakeses",
+    "mochi",
+    "mochis",
+    "rice cake sticks",
+    "rice cake stickses",
+    "tteok",
+    "tteoks"
+   ],
+   "allow": [
+    "cake",
+    "frozen"
+   ]
+  },
+  {
+   "id": "pizza-cheese",
+   "kind": "fresh",
+   "file": "pizza-cheese.webp",
+   "match": [
+    "grated mozzarella",
+    "grated mozzarellas",
+    "mixed grated cheese",
+    "mixed grated cheeses",
+    "pizza blend",
+    "pizza blends",
+    "pizza cheese",
+    "pizza cheeses",
+    "shredded mozzarella",
+    "shredded mozzarellas"
+   ]
+  },
+  {
+   "id": "cheese-sticks",
+   "kind": "fresh",
+   "file": "cheese-sticks.webp",
+   "match": [
+    "babybel",
+    "babybels",
+    "cheese snacks",
+    "cheese snackses",
+    "cheese stick",
+    "cheese sticks",
+    "cheese stickses",
+    "cheestring",
+    "cheestrings",
+    "string cheese",
+    "string cheeses"
+   ]
+  },
+  {
+   "id": "cheese-spread",
+   "kind": "fresh",
+   "file": "cheese-spread.webp",
+   "match": [
+    "cheese spread",
+    "cheese spreads",
+    "cheese triangles",
+    "cheese triangleses",
+    "cream cheese spread",
+    "cream cheese spreads",
+    "laughing cow",
+    "laughing cows",
+    "spreadable cheese",
+    "spreadable cheeses"
+   ],
+   "allow": [
+    "spread"
+   ]
+  },
+  {
+   "id": "pate",
+   "kind": "pack",
+   "file": "pate.webp",
+   "match": [
+    "chicken liver pate",
+    "chicken liver pates",
+    "liver pate",
+    "liver pates",
+    "liverwurst",
+    "liverwursts",
+    "p t",
+    "p ts",
+    "pat",
+    "pate",
+    "pates",
+    "pats",
+    "rillettes",
+    "rilletteses",
+    "terrine",
+    "terrines"
+   ]
+  },
+  {
+   "id": "beef-jerky",
+   "kind": "pack",
+   "file": "beef-jerky.webp",
+   "match": [
+    "beef jerkies",
+    "beef jerky",
+    "biltong",
+    "biltongs",
+    "jerkies",
+    "jerky",
+    "meat sticks",
+    "meat stickses"
+   ],
+   "allow": [
+    "dried",
+    "smoked"
+   ]
+  },
+  {
+   "id": "rice-pudding",
+   "kind": "pack",
+   "file": "rice-pudding.webp",
+   "match": [
+    "creamed rice",
+    "creamed rices",
+    "rice pudding",
+    "rice puddings",
+    "sago pudding",
+    "sago puddings",
+    "tapioca pudding",
+    "tapioca puddings"
+   ]
+  },
+  {
+   "id": "fruit-cups",
+   "kind": "pack",
+   "file": "fruit-cups.webp",
+   "match": [
+    "diced fruit",
+    "diced fruits",
+    "fruit cup",
+    "fruit cups",
+    "fruit cupses",
+    "fruit in jellies",
+    "fruit in jelly",
+    "fruit snack cup",
+    "fruit snack cups"
+   ],
+   "allow": [
+    "jelly",
+    "juice"
+   ]
+  },
+  {
+   "id": "fruit-snacks",
+   "kind": "pack",
+   "file": "fruit-snacks.webp",
+   "match": [
+    "fruit bars",
+    "fruit barses",
+    "fruit leather",
+    "fruit leathers",
+    "fruit roll",
+    "fruit rolls",
+    "fruit snacks",
+    "fruit snackses",
+    "fruit strap",
+    "fruit straps",
+    "fruit twists",
+    "fruit twistses",
+    "roll ups",
+    "roll upses"
+   ]
+  },
+  {
+   "id": "plant-yogurt",
+   "kind": "fresh",
+   "file": "plant-yogurt.webp",
+   "match": [
+    "almond yoghurt",
+    "almond yoghurts",
+    "coconut yoghurt",
+    "coconut yoghurts",
+    "coconut yogurt",
+    "coconut yogurts",
+    "dairy free yoghurt",
+    "dairy free yoghurts",
+    "oat yoghurt",
+    "oat yoghurts",
+    "oat yogurt",
+    "oat yogurts",
+    "plant yoghurt",
+    "plant yoghurts",
+    "soy yoghurt",
+    "soy yoghurts",
+    "soy yogurt",
+    "soy yogurts"
+   ]
+  },
+  {
+   "id": "starfruit",
+   "kind": "fresh",
+   "file": "starfruit.webp",
+   "match": [
+    "carambola",
+    "carambolas",
+    "star fruit",
+    "star fruits",
+    "starfruit",
+    "starfruits"
+   ]
+  },
+  {
+   "id": "custard-apple",
+   "kind": "fresh",
+   "file": "custard-apple.webp",
+   "match": [
+    "cherimoya",
+    "cherimoyas",
+    "custard apple",
+    "custard apples",
+    "soursop",
+    "soursops",
+    "sugar apple",
+    "sugar apples"
+   ]
+  },
+  {
+   "id": "feijoa",
+   "kind": "fresh",
+   "file": "feijoa.webp",
+   "match": [
+    "feijoa",
+    "feijoas",
+    "pineapple guava",
+    "pineapple guavas"
+   ]
+  },
+  {
+   "id": "jackfruit",
+   "kind": "fresh",
+   "file": "jackfruit.webp",
+   "match": [
+    "durian",
+    "durians",
+    "jackfruit",
+    "jackfruits"
+   ],
+   "not": [
+    "can",
+    "canned",
+    "tin",
+    "tinned"
+   ]
+  },
+  {
+   "id": "tamarillo",
+   "kind": "fresh",
+   "file": "tamarillo.webp",
+   "match": [
+    "tamarillo",
+    "tamarilloes",
+    "tamarillos",
+    "tree tomato",
+    "tree tomatoes",
+    "tree tomatos"
+   ]
+  },
+  {
+   "id": "frozen-meat",
+   "kind": "pack",
+   "file": "frozen-meat.webp",
+   "match": [
+    "beef",
+    "beefs",
+    "chicken",
+    "chicken breast",
+    "chicken breasts",
+    "chicken thighs",
+    "chicken thighses",
+    "chickens",
+    "drumsticks",
+    "drumstickses",
+    "lamb",
+    "lambs",
+    "meat",
+    "meats",
+    "mince",
+    "minces",
+    "pork",
+    "porks",
+    "sausages",
+    "sausageses",
+    "steak",
+    "steaks",
+    "wings",
+    "wingses"
+   ],
+   "needs": [
+    "frozen"
+   ],
+   "allow": [
+    "frozen"
+   ],
+   "not": [
+    "kiev",
+    "meal",
+    "nuggets",
+    "pie",
+    "pies",
+    "pizza",
+    "schnitzel"
    ]
   }
  ]
