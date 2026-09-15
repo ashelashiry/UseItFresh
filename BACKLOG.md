@@ -5,6 +5,21 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 
 ## In flight
 
+- **Food picture library (owner, 15 Sep)**, snapshot `feat-food-library-15sep`.
+  - **Setting:** "Fresh photos first" is the default; "My photos first" is in
+    Profile → Food pictures.
+  - **Library:** 161 generated photos in `design/library`, covering fruit,
+    veg, herbs, dairy, meat and fish, bakery, pantry, tins, jars, frozen and
+    drinks.
+  - **Index:** `index.json` holds the matching rules. A tin, jar or frozen
+    pack only gets a photo of that form, and meal cards use fresh photos only.
+  - **How phones get it:** Home downloads the index on each run, so new photos
+    arrive without a build. The wiring itself needs build 15.
+  - **Cost:** 1 Higgsfield credit per photo, 163 used.
+  - **To grow it:** `scripts/food_library` (see `design/library/README.md`).
+  - **Next candidates:** more cheeses and deli, Asian pantry items, baby food,
+    snacks and drinks.
+
 - **Hybrid design (owner's brief, 15 Sep; `design/hybrid/`).** Done on main,
   snapshot `hybrid-main-screens-15sep`:
   - Trust: date badges always say their basis (use-by, best-before, opened,
