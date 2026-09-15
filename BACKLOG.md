@@ -5,6 +5,19 @@ Kept by the agent; the owner sets the order. Last updated 14 Sep 2026.
 
 ## In flight
 
+- **Free and Plus (owner, 15 Sep)**, snapshot `feat-plus-15sep` (before:
+  `before-plus-15sep`). Migration 10 (`20260915150000_plans_free_plus.sql`)
+  adds `profiles.plan` (free/plus), `plan_source`, `plan_expires_at`; a trigger
+  stops the app changing them. Plus: Plan my week (and Your day, budget,
+  household planning), Fits my goals, Add to my week, shelf and receipt
+  scanning, Receipts, Your recipes. Free: inventory, reminders, Use soon,
+  allergies, meal ideas, barcode, single-food photo, manual add. Lock screens
+  on Plus pages, a Plus sheet on Plus actions, gold PLUS tags on Shelf and
+  Receipt, Profile → Your plan. Until migration 10 runs nothing is locked.
+  Next: RevenueCat + App Store products set the same columns.
+- **Also 15 Sep:** imperial units shown on food amounts; Profile header with
+  photo and name; test round journeys 28–32.
+
 - **Food picture library (owner, 15 Sep)**, snapshot `feat-food-library-15sep`.
   - **Setting:** "Fresh photos first" is the default; "My photos first" is in
     Profile → Food pictures.
