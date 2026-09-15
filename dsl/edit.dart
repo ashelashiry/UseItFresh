@@ -157,726 +157,597 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Build 17 Home: "Good evening, Ash" above the headline, and a This month
-/// card - share of food used up rather than thrown out in the last 30 days -
-/// opening What you used.
+/// Build 17 Shopping list: what to buy is grouped by aisle in shop order
+/// (Fruit & veg, Meat & fish, Dairy & eggs, Bakery, Pantry, Frozen, Drinks &
+/// snacks, Other), and Copy the list puts it on the clipboard to share.
 void buildStarterEditFlow(App app) {
   app.raw((project) {
-    updateCustomWidget(project, name: 'HomeKitchen', code: _wHomeKitchen);
+    updateCustomWidget(project, name: 'ShoppingListLive', code: _wShoppingListLive);
   });
 }
 
-const _wHomeKitchen = r'''
-import 'dart:convert';
-
+const _wShoppingListLive = r'''
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Home, in the hybrid design (brief, 15 Sep).
-///
-/// "Good food. Great possibilities." Then one photographic meal — what the
-/// household planned for today, or an idea from its own food — with one
-/// clear action; a small, calm note when foods need using soon; the next foods
-/// to use as a two-column grid with honest date badges; and Shopping list and
-/// Add food within reach.
-///
-/// Reads the household's food itself and stays silent when there is no
-/// household or no signal: the page already has a card for each of those.
-class HomeKitchen extends StatefulWidget {
-  const HomeKitchen({super.key, this.width, this.height});
+/// The shopping list, shared and live.
+class ShoppingListLive extends StatefulWidget {
+  const ShoppingListLive({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<HomeKitchen> createState() => _HomeKitchenState();
+  State<ShoppingListLive> createState() => _ShoppingListLiveState();
 }
 
-class _HomeKitchenState extends State<HomeKitchen> {
-  String _for = '';
-  bool _loading = true;
-  bool _failed = false;
-  bool _busy = false;
-  // The last 30 days: foods used up and thrown out (build 17).
-  int _usedMonth = 0;
-  int _binnedMonth = 0;
-  List<Map<String, dynamic>> _items = const [];
-  int _soon = 0;
-  Map<String, dynamic>? _kept;
-  Map<String, dynamic>? _planned;
-  bool _saved = false;
+class _ShoppingListLiveState extends State<ShoppingListLive> {
+  static const _forest = Color(0xFF07533A);
+  static const _ink = Color(0xFF202C24);
+  static const _muted = Color(0xFF59665D);
+  static const _sage = Color(0xFFEDF2E8);
+  static const _border = Color(0xFFDCE3D7);
 
-  // The food picture library's index is checked once each time the app runs.
-  static bool _libraryChecked = false;
+  String _for = '';
+  String _listId = '';
+  bool _loading = true;
+  bool _offline = false;
+  bool _adding = false;
+  bool _basketBusy = false;
+  List<Map<String, dynamic>> _items = const [];
+  List<String> _again = const [];
+  final Set<String> _busy = {};
+  final _field = TextEditingController();
+  RealtimeChannel? _channel;
 
   @override
-  void initState() {
-    super.initState();
-    _refreshLibrary();
+  void dispose() {
+    _field.dispose();
+    _unsubscribe();
+    super.dispose();
   }
 
-  /// Downloads the food picture library's index and keeps it on the phone,
-  /// so pictures added to the library show without a new build and still
-  /// show offline.
-  Future<void> _refreshLibrary() async {
-    if (_libraryChecked) return;
-    _libraryChecked = true;
-    _uLoadProfile();
-    try {
-      final r = await http
-          .get(Uri.parse(
-              'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@main/design/library/index.json'))
-          .timeout(const Duration(seconds: 20));
-      if (r.statusCode != 200) return;
-      final body = utf8.decode(r.bodyBytes);
-      final j = jsonDecode(body);
-      if (j is! Map || j['items'] is! List) return;
-      if (body != FFAppState().foodLibrary) {
-        FFAppState().update(() => FFAppState().foodLibrary = body);
-      }
-    } catch (_) {
-      _libraryChecked = false;
-    }
+  void _unsubscribe() {
+    final c = _channel;
+    _channel = null;
+    if (c != null) SupaFlow.client.removeChannel(c);
   }
 
-  Future<void> _loadMonth(String household) async {
-    try {
-      final since = DateTime.now()
-          .toUtc()
-          .subtract(const Duration(days: 30))
-          .toIso8601String();
-      final rows = await SupaFlow.client
-          .from('food_item_events')
-          .select('event_type, food_item_id, food_items!inner(household_id, archived_at)')
-          .eq('food_items.household_id', household)
-          .inFilter('event_type', ['consumed', 'discarded'])
-          .gte('created_at', since)
-          .limit(1000);
-      // One outcome per food, and none for food that was put back.
-      final last = <String, String>{};
-      for (final r in rows as List) {
-        final food = r['food_items'];
-        if (food is Map && food['archived_at'] == null) continue;
-        last['${r['food_item_id']}'] = '${r['event_type']}';
-      }
-      if (!mounted || household != _for) return;
-      setState(() {
-        _usedMonth = last.values.where((v) => v == 'consumed').length;
-        _binnedMonth = last.values.where((v) => v == 'discarded').length;
-      });
-    } catch (_) {
-      // Quietly: the card simply does not show.
-    }
-  }
-
-  static String _greeting() {
-    final h = DateTime.now().hour;
-    return h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
-  }
-
-  Widget _monthCard(FlutterFlowTheme t) {
-    final total = _usedMonth + _binnedMonth;
-    final pct = total == 0 ? 0 : (_usedMonth * 100 / total).round();
-    return Semantics(
-      button: true,
-      label: 'What you used this month',
-      child: _USurface(
-        radius: 18,
-        onTap: () => context.pushNamed('WasteHistoryPage'),
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-        child: Row(children: [
-          SizedBox(
-            width: 46,
-            height: 46,
-            child: Stack(alignment: Alignment.center, children: [
-              CircularProgressIndicator(
-                value: pct / 100,
-                strokeWidth: 5,
-                backgroundColor: const Color(0xFFF0D9D3),
-                color: _uForest,
-              ),
-              Text('$pct%',
-                  style: t.bodySmall.copyWith(
-                      fontSize: 11, fontWeight: FontWeight.w800, color: _uInk)),
-            ]),
+  void _subscribe(String listId) {
+    _unsubscribe();
+    _channel = SupaFlow.client
+        .channel('shopping-$listId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'shopping_list_items',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'shopping_list_id',
+            value: listId,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                    pct >= 80
-                        ? 'Great going this month'
-                        : (pct >= 50 ? 'Most of it used this month' : 'This month so far'),
-                    style: t.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w800, color: _uInk, fontSize: 16)),
-                Text(
-                    '${_usedMonth == 1 ? '1 food' : '$_usedMonth foods'} used up · $_binnedMonth thrown out',
-                    style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: _uMuted),
-        ]),
-      ),
-    );
+          callback: (_) {
+            if (mounted) _load(quiet: true);
+          },
+        )
+        .subscribe();
   }
 
-  Future<void> _load(String household) async {
-    _loadMonth(household);
-    _uLoadProfile();
-    if (mounted) {
+  Future<void> _load({bool quiet = false}) async {
+    final household = _for;
+    if (household.isEmpty) return;
+    if (!quiet && mounted) {
       setState(() {
         _loading = true;
-        _failed = false;
+        _offline = false;
       });
     }
     try {
-      final client = SupaFlow.client;
-      final rows = await client
-          .from('food_items_status')
-          .select(
-              'id, name, quantity, unit, image_url, computed_status, days_left, printed_date, printed_date_type, status_basis, urgency_rank')
-          .eq('household_id', household)
-          .order('urgency_rank', ascending: true)
-          .order('days_left', ascending: true)
-          .limit(300);
-      final all = [
-        for (final r in rows as List)
-          if (!const ['consumed', 'discarded']
-              .contains('${(r as Map)['computed_status']}'))
-            Map<String, dynamic>.from(r)
-      ];
-      Map<String, dynamic>? kept;
-      try {
-        final ideas = await client
-            .from('saved_recipes')
-            .select('title, recipe_data')
+      if (_listId.isEmpty) {
+        // Creating a household seeds exactly one list, so the oldest is the one.
+        final lists = await SupaFlow.client
+            .from('shopping_lists')
+            .select('id')
             .eq('household_id', household)
-            .order('created_at', ascending: false)
+            .order('created_at')
             .limit(1);
-        if ((ideas as List).isNotEmpty) {
-          kept = Map<String, dynamic>.from(ideas.first as Map);
+        if ((lists as List).isNotEmpty) {
+          _listId = lists.first['id'].toString();
+          _subscribe(_listId);
         }
-      } catch (_) {}
-      Map<String, dynamic>? planned;
+      }
+      var items = <Map<String, dynamic>>[];
+      if (_listId.isNotEmpty) {
+        final rows = await SupaFlow.client
+            .from('shopping_list_items')
+            .select('id, name, is_purchased, created_at')
+            .eq('shopping_list_id', _listId)
+            .order('is_purchased', ascending: true)
+            .order('created_at', ascending: true);
+        items = List<Map<String, dynamic>>.from(rows as List);
+      }
+      // What ran out lately and is not on the list already.
+      var again = <String>[];
       try {
-        final n = DateTime.now();
-        final today =
-            '${n.year.toString().padLeft(4, '0')}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
-        final meals = await client
-            .from('meal_plan_entries')
-            .select('id, meal, title, recipe_data, servings')
+        final since = DateTime.now()
+            .toUtc()
+            .subtract(const Duration(days: 21))
+            .toIso8601String();
+        final gone = await SupaFlow.client
+            .from('food_items')
+            .select('name, archived_at')
             .eq('household_id', household)
-            .eq('plan_date', today)
-            .eq('status', 'planned');
-        const order = ['dinner', 'lunch', 'snack', 'breakfast'];
-        final list = [
-          for (final m in meals as List) Map<String, dynamic>.from(m as Map)
-        ]..sort((a, b) => order
-            .indexOf('${a['meal']}')
-            .compareTo(order.indexOf('${b['meal']}')));
-        if (list.isNotEmpty) planned = list.first;
-      } catch (_) {}
+            .inFilter('status', ['consumed', 'discarded'])
+            .gte('archived_at', since)
+            .order('archived_at', ascending: false)
+            .limit(60);
+        final onList = items
+            .map((i) => (i['name'] ?? '').toString().trim().toLowerCase())
+            .toSet();
+        final seen = <String>{};
+        for (final g in gone as List) {
+          final name = (g['name'] ?? '').toString().trim();
+          final key = name.toLowerCase();
+          if (name.isEmpty || onList.contains(key) || !seen.add(key)) continue;
+          again.add(name);
+          if (again.length >= 8) break;
+        }
+      } catch (_) {
+        // Suggestions are a nicety; the list still works without them.
+      }
       if (!mounted || household != _for) return;
       setState(() {
-        _items = all;
-        _soon = all.where(_uSoon).length;
-        _kept = kept;
-        _planned = planned;
+        _items = items;
+        _again = again;
         _loading = false;
+        _offline = false;
       });
-      // Keep the daily reminder notes in step with the kitchen.
-      scheduleExpiryReminders();
     } catch (_) {
       if (!mounted) return;
+      if (quiet && _items.isNotEmpty) return;
       setState(() {
-        _failed = true;
         _loading = false;
+        _offline = true;
       });
     }
   }
 
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
+  void _say(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  Future<void> _add([String? name]) async {
+    final text = (name ?? _field.text).trim();
+    if (text.isEmpty) {
+      _say('Type something to add first.');
+      return;
+    }
+    if (_adding) return;
+    setState(() => _adding = true);
+    final said = await addNameToShoppingList(text);
+    if (!mounted) return;
+    setState(() => _adding = false);
+    if (said.isNotEmpty) {
+      _say(said);
+      return;
+    }
+    if (name == null) _field.clear();
+    _load(quiet: true);
+  }
+
+  Future<void> _tick(Map<String, dynamic> item) async {
+    final id = item['id'].toString();
+    if (_busy.contains(id)) return;
+    final now = item['is_purchased'] == true;
+    setState(() {
+      _busy.add(id);
+      item['is_purchased'] = !now;
+    });
     try {
-      await go();
+      await SupaFlow.client
+          .from('shopping_list_items')
+          .update({'is_purchased': !now}).eq('id', id);
+    } catch (_) {
+      if (mounted) {
+        setState(() => item['is_purchased'] = now);
+        _say('Could not update the list. Check your signal and try again.');
+      }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _busy.remove(id));
+      _load(quiet: true);
     }
   }
 
-  Future<void> _addFood() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'shelf'});
-    if (mounted && _for.isNotEmpty) _load(_for);
+  Future<void> _remove(Map<String, dynamic> item) async {
+    final id = item['id'].toString();
+    if (_busy.contains(id)) return;
+    setState(() => _busy.add(id));
+    try {
+      await SupaFlow.client.from('shopping_list_items').delete().eq('id', id);
+      if (mounted) {
+        setState(() =>
+            _items = _items.where((i) => i['id'].toString() != id).toList());
+      }
+    } catch (_) {
+      if (mounted)
+        _say('Could not remove it. Check your signal and try again.');
+    } finally {
+      if (mounted) setState(() => _busy.remove(id));
+      _load(quiet: true);
+    }
   }
 
-  Future<void> _open(String route, {Map<String, String>? query}) async {
-    await context.pushNamed(route, queryParameters: query ?? const {});
-    if (mounted && _for.isNotEmpty) _load(_for);
+  Future<void> _basket() async {
+    if (_basketBusy) return;
+    setState(() => _basketBusy = true);
+    final said = await addBasketToKitchen();
+    if (!mounted) return;
+    setState(() => _basketBusy = false);
+    _say(said.isEmpty ? 'Added to your kitchen.' : said);
+    _load(quiet: true);
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
-
-    // A reminder was tapped: open Use soon.
-    if (FFAppState().openUseSoon) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !FFAppState().openUseSoon) return;
-        FFAppState().openUseSoon = false;
-        context.pushNamed('UseSoonPage');
-      });
-    }
-    final household = FFAppState().currentHouseholdId;
-    // No household: the page's own prompt says what to do.
-    if (household.isEmpty) return const SizedBox.shrink();
-    if (household != _for) {
-      _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
-    }
-    // No signal: the page's own card says so, with Try again.
-    if (_failed) return const SizedBox.shrink();
-
     final t = FlutterFlowTheme.of(context);
-    final title = t.headlineLarge.copyWith(
-        fontSize: 32,
-        fontWeight: FontWeight.w800,
-        color: _uForest,
-        height: 1.08,
-        letterSpacing: -0.8);
+    final household = FFAppState().currentHouseholdId;
+    if (household.isNotEmpty && household != _for) {
+      _for = household;
+      _listId = '';
+      _unsubscribe();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    }
+
+    final toBuy = _items.where((i) => i['is_purchased'] != true).toList();
+    final inBasket = _items.where((i) => i['is_purchased'] == true).toList();
 
     return SizedBox(
       width: widget.width,
-      child: _loading
-          ? _skeleton()
-          : AnimatedSwitcher(
-              duration: _uStill(context)
-                  ? Duration.zero
-                  : const Duration(milliseconds: 200),
-              child: _items.isEmpty ? _empty(t, title) : _populated(t, title),
-            ),
-    );
-  }
-
-  Widget _skeleton() {
-    Widget block(double h) => Container(
-          height: h,
-          decoration: BoxDecoration(
-            color: const Color(0xAAE6EDDF),
-            borderRadius: BorderRadius.circular(22),
-          ),
-        );
-    return Semantics(
-      label: 'Loading your kitchen',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(width: 260, child: block(70)),
-          const SizedBox(height: 20),
-          block(360),
-          const SizedBox(height: 20),
-          Row(children: [
-            Expanded(child: block(200)),
-            const SizedBox(width: 12),
-            Expanded(child: block(200)),
-          ]),
-        ],
-      ),
-    );
-  }
-
-  // ---- empty kitchen -------------------------------------------------------
-
-  Widget _empty(FlutterFlowTheme t, TextStyle title) {
-    const base =
-        'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
-    return Column(
-      key: const ValueKey('empty'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Fresh starts here.', style: title),
-        const SizedBox(height: 20),
-        _USurface(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          if (!_loading && !_offline)
+            Text(
+              toBuy.isEmpty
+                  ? (inBasket.isEmpty
+                      ? 'Nothing on it yet'
+                      : 'Everything is in the basket')
+                  : '${toBuy.length} to buy${inBasket.isEmpty ? '' : ' · ${inBasket.length} in the basket'}',
+              style: t.bodyLarge.copyWith(color: _muted, fontSize: 16),
+            ),
+          if (!_loading && !_offline && toBuy.isNotEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                    foregroundColor: _forest,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(48, 40)),
+                onPressed: () async {
+                  final text = [
+                    'Shopping list',
+                    for (final aisle in _aisles(toBuy)) ...[
+                      '',
+                      aisle.$1,
+                      for (final i in aisle.$3) '- ${i['name']}',
+                    ],
+                  ].join('\n');
+                  await Clipboard.setData(ClipboardData(text: text));
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(const SnackBar(
+                        content: Text(
+                            'List copied. Paste it into a message to share it.')));
+                },
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                label: const Text('Copy the list',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ),
+          const SizedBox(height: 16),
+          // Add a line.
+          Row(
             children: [
-              SizedBox(
-                height: 190,
-                child: Image.network('$base/tomatoes.webp',
-                    fit: BoxFit.cover,
-                    semanticLabel: '',
-                    errorBuilder: (_, __, ___) =>
-                        Container(color: const Color(0xFFE4E9D9))),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Let’s stock your kitchen',
-                        style: t.headlineSmall.copyWith(
-                            fontSize: 23,
-                            fontWeight: FontWeight.w800,
-                            color: _uInk,
-                            height: 1.15)),
-                    const SizedBox(height: 6),
-                    Text('Photograph a shelf, scan a receipt, or type it in.',
-                        style: t.bodyMedium
-                            .copyWith(color: _uMuted, fontSize: 14)),
-                    const SizedBox(height: 14),
-                    _UButton('Add food',
-                        icon: Icons.add,
-                        busy: _busy,
-                        onTap: () => _run(_addFood)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: _UButton('Scan a receipt',
-                  kind: 'secondary',
-                  icon: Icons.receipt_long_outlined,
-                  onTap: _busy
-                      ? null
-                      : () => _open('CameraPage', query: {'mode': 'receipt'})),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _UButton('Shopping list',
-                  kind: 'secondary',
-                  icon: Icons.shopping_cart_outlined,
-                  onTap: () => _open('ShoppingListPage')),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // ---- food in the kitchen -------------------------------------------------
-
-  Widget _populated(FlutterFlowTheme t, TextStyle title) {
-    final next = _items.take(4).toList();
-    return Column(
-      key: const ValueKey('populated'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (FFAppState().profileName.trim().isNotEmpty) ...[
-          Text('${_greeting()}, ${FFAppState().profileName.trim().split(' ').first}',
-              style: t.bodyLarge.copyWith(
-                  color: _uMuted, fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-        ],
-        Text('Good food.\nGreat possibilities.', style: title),
-        const SizedBox(height: 20),
-        _meal(t),
-        if (_usedMonth + _binnedMonth > 0) ...[
-          const SizedBox(height: 14),
-          _monthCard(t),
-        ],
-        if (_soon > 0) ...[
-          const SizedBox(height: 14),
-          _soonNote(t),
-        ],
-        const SizedBox(height: 22),
-        Row(
-          children: [
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text('Use these next',
-                    style: t.titleLarge.copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: _uInk)),
-              ),
-            ),
-            TextButton(
-              onPressed: () => _open('InventoryPage'),
-              style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 44), foregroundColor: _uForest),
-              child: Text('View all ${_items.length}',
-                  style: t.bodyMedium
-                      .copyWith(color: _uForest, fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        LayoutBuilder(builder: (context, box) {
-          final w = (box.maxWidth - 12) / 2;
-          return Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              for (final item in next)
-                SizedBox(
-                  width: w,
-                  child: _uFoodCard(context, item,
-                      onTap: () => _open('FoodItemPage',
-                          query: {'itemId': '${item['id']}'})),
-                ),
-            ],
-          );
-        }),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _UButton('Shopping list',
-                  kind: 'secondary',
-                  icon: Icons.shopping_cart_outlined,
-                  onTap: () => _open('ShoppingListPage')),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _UButton('Add food',
-                  kind: 'secondary',
-                  icon: Icons.add,
-                  onTap: _busy ? null : () => _run(_addFood)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _soonNote(FlutterFlowTheme t) {
-    final n = _soon;
-    return _USurface(
-      radius: 18,
-      onTap: () => _open('UseSoonPage'),
-      label:
-          '$n ${n == 1 ? 'food needs' : 'foods need'} using soon. View foods.',
-      tint: const [Color(0xFFFFF6EA), Color(0xFFFBEBD8)],
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-      child: Row(
-        children: [
-          const Icon(Icons.schedule, color: Color(0xFF884311), size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-                n == 1 ? '1 food needs using soon' : '$n foods need using soon',
-                style: t.bodyMedium.copyWith(
-                    color: const Color(0xFF5C2A04),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700)),
-          ),
-          Text('View foods',
-              style: t.bodyMedium
-                  .copyWith(color: _uForest, fontWeight: FontWeight.w700)),
-          const Icon(Icons.chevron_right, color: _uForest, size: 20),
-        ],
-      ),
-    );
-  }
-
-  /// The one meal Home leads with: today's plan, a fresh idea, or a kept one.
-  Widget _meal(FlutterFlowTheme t) {
-    String label;
-    String name = '';
-    String meta = '';
-    List<String> uses = const [];
-    String action;
-    VoidCallback go;
-    Map? keep;
-    final plan = _planned;
-    if (plan != null) {
-      final d =
-          plan['recipe_data'] is Map ? plan['recipe_data'] as Map : const {};
-      final mins = d['minutes'] is num ? (d['minutes'] as num).round() : 0;
-      final buy = d['extras'] is List ? (d['extras'] as List).length : 0;
-      uses = d['uses'] is List
-          ? [for (final u in d['uses'] as List) '$u']
-          : const [];
-      label = 'PLANNED FOR TODAY';
-      name = '${plan['title']}';
-      meta = [
-        if (mins > 0) '$mins min',
-        buy == 0
-            ? 'Everything in your kitchen'
-            : (buy == 1 ? '1 thing to buy' : '$buy things to buy'),
-      ].join(' · ');
-      action = 'Let’s cook';
-      go = () => _open('PlanWeekPage');
-    } else if (FFAppState().mealIdeas.isNotEmpty) {
-      final idea = FFAppState().mealIdeas.first;
-      label = 'TONIGHT, SORTED';
-      name = idea.title;
-      uses = idea.uses;
-      meta = [
-        if (idea.minutes > 0) '${idea.minutes} min',
-        if (idea.uses.isNotEmpty)
-          idea.uses.length == 1
-              ? 'Uses 1 food in your kitchen'
-              : 'Uses ${idea.uses.length} foods in your kitchen',
-      ].join(' · ');
-      action = 'Let’s cook';
-      go = () => _open('RecipesPage');
-      keep = {
-        'title': idea.title,
-        'recipe_data': {
-          'uses': idea.uses,
-          'extras': idea.extras,
-          'steps': idea.steps,
-          'minutes': idea.minutes,
-          'servings': idea.servings,
-          if (idea.calories > 0) 'calories': idea.calories,
-          if (idea.protein > 0) 'protein': idea.protein,
-        },
-      };
-    } else if (_kept != null) {
-      final d = _kept!['recipe_data'] is Map
-          ? _kept!['recipe_data'] as Map
-          : const {};
-      final mins = d['minutes'] is num ? (d['minutes'] as num).round() : 0;
-      uses = d['uses'] is List
-          ? [for (final u in d['uses'] as List) '$u']
-          : const [];
-      label = 'ONE OF YOUR RECIPES';
-      name = '${_kept!['title']}';
-      meta = [if (mins > 0) '$mins min', 'Kept by your household'].join(' · ');
-      action = 'Let’s cook';
-      go = () => _open('RecipeCollectionPage');
-    } else {
-      label = 'TONIGHT';
-      name = 'What can you make tonight?';
-      meta = 'Ideas from the food you already have';
-      action = 'Find meals';
-      go = () => _open('RecipesPage');
-    }
-
-    // An illustrative photo of a real ingredient of this meal, when one fits.
-    var photo = '';
-    for (final u in uses) {
-      photo = _uFresh(u, freshOnly: true);
-      if (photo.isNotEmpty) break;
-    }
-    final lower = name.toLowerCase();
-    if (photo.isEmpty &&
-        (lower.contains('pasta') ||
-            lower.contains('spaghetti') ||
-            lower.contains('linguine'))) {
-      photo =
-          'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food/pasta.webp';
-    }
-
-    Widget chip(String text) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-              color: const Color(0xF0FFFFFF),
-              borderRadius: BorderRadius.circular(10)),
-          child: Text(text,
-              style: t.bodySmall.copyWith(
-                  color: _uForest,
-                  fontSize: 11,
-                  letterSpacing: 0.9,
-                  fontWeight: FontWeight.w800)),
-        );
-
-    return _USurface(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: photo.isEmpty ? 64 : 200,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (photo.isEmpty)
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFFE4E9D9), Color(0xFFD9E6D1)],
-                      ),
+              Expanded(
+                child: TextField(
+                  controller: _field,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _add(),
+                  style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
+                  decoration: InputDecoration(
+                    labelText: 'Add something',
+                    hintText: 'Milk, bin bags, coffee…',
+                    filled: true,
+                    fillColor: const Color(0xFFFFFDF7),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _border),
                     ),
-                  )
-                else
-                  Image.network(photo,
-                      fit: BoxFit.cover,
-                      cacheWidth: 900,
-                      semanticLabel: '',
-                      errorBuilder: (_, __, ___) =>
-                          Container(color: const Color(0xFFE4E9D9))),
-                Positioned(left: 14, top: 14, child: chip(label)),
-                if (keep != null)
-                  Positioned(
-                    right: 14,
-                    top: 10,
-                    child: _UPress(
-                      label: _saved ? 'Saved' : 'Save this idea',
-                      onTap: () async {
-                        if (_saved) return;
-                        try {
-                          await SupaFlow.client.from('saved_recipes').insert({
-                            ...keep!,
-                            'household_id': _for,
-                            'profile_id': SupaFlow.client.auth.currentUser?.id,
-                          });
-                          if (mounted) setState(() => _saved = true);
-                        } catch (_) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Could not save it. Check your signal.')));
-                          }
-                        }
-                      },
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _forest, width: 1.5),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 52,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                elevation: 3,
+                shadowColor: const Color(0x99033C29),
+                backgroundColor: _forest,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: _adding ? null : () => _add(),
+              icon: const Icon(Icons.add, size: 20),
+              label: Text('Add to the list',
+                  style: t.bodyLarge.copyWith(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          if (_again.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text('Buy again?',
+                style: t.titleLarge.copyWith(
+                    fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
+            const SizedBox(height: 4),
+            Text('Used up or thrown out lately. Tap to add.',
+                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final name in _again)
+                  Semantics(
+                    button: true,
+                    label: 'Add $name to the list',
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(999),
+                      onTap: _adding ? null : () => _add(name),
                       child: Container(
-                        constraints:
-                            const BoxConstraints(minHeight: 44, minWidth: 56),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        constraints: const BoxConstraints(minHeight: 44),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFFDF5),
-                          borderRadius: BorderRadius.circular(12),
+                          color: _sage,
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        child: Text(_saved ? 'Saved' : 'Save',
-                            style: t.bodySmall.copyWith(
-                                color: _uForest,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.add, size: 16, color: _forest),
+                            const SizedBox(width: 4),
+                            Text(name,
+                                style: t.bodyMedium.copyWith(
+                                    color: _forest,
+                                    fontWeight: FontWeight.w700)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          ],
+          const SizedBox(height: 24),
+          if (_loading)
+            Column(children: [
+              for (var i = 0; i < 3; i++) ...[
+                Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                      color: _sage, borderRadius: BorderRadius.circular(14)),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ])
+          else if (_offline)
+            _note(t, Icons.cloud_off_outlined, 'Can’t reach your list.',
+                'No signal, or the connection dropped. It will show again when you are back online.')
+          else if (_items.isEmpty)
+            _note(t, Icons.shopping_basket_outlined, 'Nothing to buy yet.',
+                'Add what you have run out of, and it will be here when you are at the shops.')
+          else ...[
+            if (toBuy.isNotEmpty)
+              for (final aisle in _aisles(toBuy)) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+                  child: Row(children: [
+                    Icon(aisle.$2, size: 18, color: _forest),
+                    const SizedBox(width: 8),
+                    Text(aisle.$1,
+                        style: t.titleMedium.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: _forest)),
+                    const SizedBox(width: 6),
+                    Text('${aisle.$3.length}',
+                        style: t.bodySmall.copyWith(color: _muted)),
+                  ]),
+                ),
+                _group(t, aisle.$3),
+              ],
+            if (inBasket.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text('In the basket',
+                  style: t.titleMedium.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: _muted)),
+              const SizedBox(height: 8),
+              _group(t, inBasket),
+            ],
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 52,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _forest,
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(color: _forest),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: _basketBusy ? null : _basket,
+                icon: const Icon(Icons.kitchen_outlined, size: 20),
+                label: Text('Put the basket in my kitchen',
+                    style: t.bodyLarge
+                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ---- aisles (build 17) ------------------------------------------------------
+  // In shop order; an item goes in the first aisle whose words it contains.
+  static const _aisleOrder = <(String, IconData, List<String>)>[
+    ('Frozen', Icons.ac_unit, ['frozen', 'ice cream', 'gelato', 'ice block', 'icy pole']),
+    ('Fruit & veg', Icons.eco_outlined, ['apple', 'banana', 'orange', 'lemon', 'lime', 'berr', 'strawberr', 'blueberr', 'raspberr', 'grape', 'pear', 'peach', 'plum', 'mango', 'melon', 'kiwi', 'avocado', 'lettuce', 'spinach', 'kale', 'rocket', 'salad', 'tomato', 'cucumber', 'capsicum', 'carrot', 'onion', 'garlic', 'potato', 'pumpkin', 'broccoli', 'cauliflower', 'cabbage', 'zucchini', 'eggplant', 'mushroom', 'celery', 'corn', 'herb', 'basil', 'coriander', 'parsley', 'mint', 'ginger', 'chilli', 'fruit', 'veg']),
+    ('Meat & fish', Icons.set_meal_outlined, ['beef', 'steak', 'mince', 'chicken', 'pork', 'lamb', 'sausage', 'bacon', 'ham ', 'salami', 'turkey', 'fish', 'salmon', 'prawn', 'seafood', 'meat']),
+    ('Dairy & eggs', Icons.egg_outlined, ['milk', 'cheese', 'yoghurt', 'yogurt', 'butter', 'cream', 'egg ', 'eggs']),
+    ('Bakery', Icons.bakery_dining_outlined, ['bread', 'loaf', 'roll', 'bun', 'wrap', 'tortilla', 'pita', 'bagel', 'croissant', 'muffin', 'crumpet']),
+    ('Pantry', Icons.kitchen_outlined, ['rice', 'pasta', 'noodle', 'flour', 'sugar', 'oil', 'vinegar', 'sauce', 'tin', 'can ', 'canned', 'beans', 'lentil', 'chickpea', 'oats', 'cereal', 'honey', 'jam', 'peanut butter', 'spice', 'salt', 'pepper', 'stock', 'coffee', 'tea ', 'tea', 'nuts', 'baking']),
+    ('Drinks & snacks', Icons.local_cafe_outlined, ['juice', 'water', 'soda', 'cola', 'lemonade', 'drink', 'wine', 'beer', 'chips', 'crisps', 'chocolate', 'biscuit', 'cookie', 'snack', 'lollies']),
+  ];
+
+  List<(String, IconData, List<Map<String, dynamic>>)> _aisles(
+      List<Map<String, dynamic>> items) {
+    final byAisle = <String, List<Map<String, dynamic>>>{};
+    for (final i in items) {
+      final text = ' ${'${i['name'] ?? ''}'.toLowerCase()} ';
+      var aisle = 'Other';
+      for (final a in _aisleOrder) {
+        if (a.$3.any((w) => text.contains(' $w'))) {
+          aisle = a.$1;
+          break;
+        }
+      }
+      byAisle.putIfAbsent(aisle, () => []).add(i);
+    }
+    // Shown in walking order: frozen near the end, whatever order they are checked in.
+    const shopOrder = ['Fruit & veg', 'Meat & fish', 'Dairy & eggs', 'Bakery', 'Pantry', 'Frozen', 'Drinks & snacks'];
+    return [
+      for (final name in shopOrder)
+        for (final a in _aisleOrder)
+          if (a.$1 == name && byAisle[name] != null) (name, a.$2, byAisle[name]!),
+      if (byAisle['Other'] != null)
+        ('Other', Icons.shopping_basket_outlined, byAisle['Other']!),
+    ];
+  }
+
+  Widget _group(FlutterFlowTheme t, List<Map<String, dynamic>> items) {
+    return Container(
+      decoration: _uCard(20),
+      child: Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0)
+              const Divider(
+                  height: 1, thickness: 1, indent: 56, color: _border),
+            _line(t, items[i]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _line(FlutterFlowTheme t, Map<String, dynamic> item) {
+    final done = item['is_purchased'] == true;
+    final name = (item['name'] ?? '').toString();
+    return Semantics(
+      checked: done,
+      label: name,
+      child: InkWell(
+        onTap: () => _tick(item),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+            child: Row(
               children: [
-                Text(name,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.headlineSmall.copyWith(
-                        fontSize: 23,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  child: Icon(
+                    done ? Icons.check_circle : Icons.radio_button_unchecked,
+                    key: ValueKey(done),
+                    color: done ? _forest : _muted,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(name,
+                      style: t.bodyLarge.copyWith(
+                        fontSize: 16,
+                        color: done ? _muted : _ink,
+                        fontWeight: done ? FontWeight.w400 : FontWeight.w600,
+                        decoration: done ? TextDecoration.lineThrough : null,
+                      )),
+                ),
+                IconButton(
+                  tooltip: 'Remove $name',
+                  constraints:
+                      const BoxConstraints(minWidth: 48, minHeight: 48),
+                  onPressed: () => _remove(item),
+                  icon: const Icon(Icons.close, color: _muted, size: 20),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _note(FlutterFlowTheme t, IconData icon, String title, String text) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _uCard(20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                color: _sage, borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, color: _forest),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: t.titleMedium.copyWith(
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: _uInk,
-                        height: 1.15)),
-                if (meta.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(meta,
-                      style:
-                          t.bodyMedium.copyWith(color: _uMuted, fontSize: 14)),
-                ],
-                const SizedBox(height: 14),
-                _UButton(action,
-                    icon: Icons.arrow_forward, trailing: true, onTap: go),
+                        color: _ink)),
+                const SizedBox(height: 4),
+                Text(text,
+                    style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
               ],
             ),
           ),
