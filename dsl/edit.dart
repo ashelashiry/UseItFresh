@@ -157,2315 +157,103 @@ Options:
 // wrong there costs more trust than the panel buys in polish.
 // ---------------------------------------------------------------------------
 
-/// Hybrid design, batch 1 (brief 15 Sep): Add food tiles in soft tones with
-/// purposes; the camera's four modes across one bar with Type as its own
-/// button; Use soon as compact rows with date badges, Find meals, and actions
-/// in a sheet; Receipts' empty screen with Scan a receipt; and the sculpted
-/// cards, buttons and back controls on Shopping list, Storage, Reminders, Diet
-/// & allergies, Profile, the receipt review, line editor, chart and pickers.
+/// Hybrid design, batch 2 (brief 15 Sep): the theme's surfaces become warm
+/// cream with sage lines, so every FlutterFlow-built page and theme-coloured
+/// widget follows; sculpted cards, buttons and back controls on Plan my week,
+/// Your recipes, Household, What you used, the photo map and the edit form.
 void buildStarterEditFlow(App app) {
+  // Warm cream surfaces, sage lines and wash (hybrid material).
+  app.themeColor('secondaryBackground', 0xFFFFFEF9);
+  app.themeColor('alternate', 0xFFCDD4C3);
+  app.themeColor('accent1', 0xFFE6EDDF);
   app.raw((project) {
-    updateCustomWidget(project, name: 'AddOptions', code: _wAddOptions);
-    updateCustomWidget(project, name: 'UseSoonList', code: _wUseSoonList);
-    updateCustomWidget(project, name: 'SmartCamera', code: _wSmartCamera);
-    updateCustomWidget(project, name: 'ReceiptHistory', code: _wReceiptHistory);
-    updateCustomWidget(project, name: 'ShoppingListLive', code: _wShoppingListLive);
-    updateCustomWidget(project, name: 'StorageLocationsLive', code: _wStorageLocationsLive);
-    updateCustomWidget(project, name: 'RemindersSettings', code: _wRemindersSettings);
-    updateCustomWidget(project, name: 'FoodPreferences', code: _wFoodPreferences);
-    updateCustomWidget(project, name: 'ProfileMenu', code: _wProfileMenu);
-    updateCustomWidget(project, name: 'ReceiptHeader', code: _wReceiptHeader);
-    updateCustomWidget(project, name: 'ScanLineEditor', code: _wScanLineEditor);
-    updateCustomWidget(project, name: 'WasteChart', code: _wWasteChart);
-    updateCustomWidget(project, name: 'ReviewSummary', code: _wReviewSummary);
-    updateCustomWidget(project, name: 'ProductPhotoPicker', code: _wProductPhotoPicker);
+    updateCustomWidget(project, name: 'WeekPlan', code: _wWeekPlan);
+    updateCustomWidget(project, name: 'RecipeCollection', code: _wRecipeCollection);
+    updateCustomWidget(project, name: 'ItemEditFields', code: _wItemEditFields);
+    updateCustomWidget(project, name: 'HouseholdMembers', code: _wHouseholdMembers);
+    updateCustomWidget(project, name: 'HouseholdSwitcher', code: _wHouseholdSwitcher);
+    updateCustomWidget(project, name: 'LeaveHouseholdButton', code: _wLeaveHouseholdButton);
+    updateCustomWidget(project, name: 'PutItBack', code: _wPutItBack);
+    updateCustomWidget(project, name: 'ShelfReview', code: _wShelfReview);
   });
 }
 
-const _wAddOptions = r'''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-/// The four ways to add food (hybrid design, brief 15 Sep): large sculpted
-/// tiles in soft tones, each with its icon, name and one line saying what it
-/// is for, then "Enter manually" and a reassurance that nothing is added
-/// before it is reviewed.
-///
-///   Photo    -> the Add food screen, which takes a single-item photo
-///   Barcode  -> the barcode screen
-///   Receipt  -> the camera set to Receipt
-///   Shelf    -> the camera set to Shelf, on a fresh photo map
-class AddOptions extends StatefulWidget {
-  const AddOptions({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<AddOptions> createState() => _AddOptionsState();
-}
-
-class _AddOptionsState extends State<AddOptions> {
-  // The supplied v3 line icons (24px grid, 1.8 stroke), drawn in forest.
-  static const _camera =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h5l2-3h4l2 3h5v15H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>';
-  static const _barcode =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v16m4-16v16m3-16v16m4-16v16m3-16v16m4-16v16"/></svg>';
-  static const _receipt =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#07533A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 4 2 4-2 3 2V2l-3 2-4-2-4 2zM8 8h8m-8 4h8m-8 4h5"/></svg>';
-
-  // A camera is already opening: a second tap must not open another.
-  bool _busy = false;
-
-  Future<void> _run(Future<void> Function() go) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await go();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _shelf() async {
-    await clearShelfScan();
-    if (!mounted) return;
-    await context.pushNamed('CameraPage', queryParameters: {'mode': 'shelf'});
-  }
-
-  static Widget _svg(String source) =>
-      SvgPicture.string(source, width: 40, height: 40);
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    Widget tile(String name, String purpose, Widget icon, List<Color> tone,
-            Future<void> Function() go) =>
-        _USurface(
-          tint: tone,
-          onTap: _busy ? null : () => _run(go),
-          label: '$name. $purpose',
-          padding: const EdgeInsets.all(18),
-          child: SizedBox(
-            height: 150,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                icon,
-                const Spacer(),
-                Text(name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.titleMedium.copyWith(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
-                        color: _uForest)),
-                const SizedBox(height: 4),
-                Text(purpose,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.bodySmall.copyWith(
-                        color: _uMuted, fontSize: 13, height: 1.3)),
-              ],
-            ),
-          ),
-        );
-
-    return SizedBox(
-      width: widget.width,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: tile('Photo', 'One food or package', _svg(_camera),
-                    const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)], () async {
-                  await context.pushNamed('AddFoodItemPage');
-                }),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: tile('Barcode', 'Find a packaged food', _svg(_barcode),
-                    const [Color(0xFFFCFAF0), Color(0xFFE2E8CF)], () async {
-                  await context.pushNamed('BarcodeScanPage');
-                }),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: tile('Receipt', 'Review a whole shop', _svg(_receipt),
-                    const [Color(0xFFFFFDF6), Color(0xFFF0E4D0)], () async {
-                  await context.pushNamed('CameraPage',
-                      queryParameters: {'mode': 'receipt'});
-                }),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: tile(
-                    'Shelf',
-                    'A shelf at a time',
-                    const Icon(Icons.kitchen_outlined,
-                        size: 40, color: _uForest),
-                    const [Color(0xFFFCFFF7), Color(0xFFD9E6D1)],
-                    _shelf),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Center(
-            child: TextButton(
-              onPressed:
-                  _busy ? null : () => context.pushNamed('AddFoodItemPage'),
-              style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 48), foregroundColor: _uForest),
-              child: Text('Enter manually',
-                  style: t.bodyLarge
-                      .copyWith(color: _uForest, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text('You review the suggestions before adding anything.',
-              style: t.bodyMedium.copyWith(color: _uMuted, fontSize: 14)),
-        ],
-      ),
-    );
-  }
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wUseSoonList = r'''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-
-/// Use soon: what is close to its date, to deal with in a few taps.
-class UseSoonList extends StatefulWidget {
-  const UseSoonList({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<UseSoonList> createState() => _UseSoonListState();
-}
-
-class _UseSoonListState extends State<UseSoonList> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  static const _food =
-      'https://cdn.jsdelivr.net/gh/ashelashiry/UseItFresh@b50424f12bd372d81c9cd44d895b62c25d1329e7/design/v3/food';
-
-  String _for = '';
-  bool _loading = true;
-  bool _offline = false;
-  List<Map<String, dynamic>> _items = const [];
-  final Set<String> _busy = {};
-
-  /// Close to its date: past it, today, "use soon", or three days or fewer.
-  /// Frozen food is not counting down, so it is never here.
-  static bool isSoon(Map<String, dynamic> i) {
-    final status = (i['computed_status'] ?? '').toString();
-    if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-      return false;
-    }
-    if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-        .contains(status)) {
-      return true;
-    }
-    final d = i['days_left'];
-    return d is num && d <= 3;
-  }
-
-  Future<void> _load(String household, {bool quiet = false}) async {
-    if (!quiet && mounted) {
-      setState(() {
-        _loading = true;
-        _offline = false;
-      });
-    }
-    try {
-      final rows = await SupaFlow.client
-          .from('food_items_status')
-          .select(
-              'id, name, quantity, unit, image_url, location_name, computed_status, status_detail, days_left, printed_date, printed_date_type, status_basis')
-          .eq('household_id', household)
-          .order('urgency_rank', ascending: true)
-          .order('days_left', ascending: true);
-      if (!mounted || household != _for) return;
-      setState(() {
-        _items = List<Map<String, dynamic>>.from(rows as List)
-            .where(isSoon)
-            .toList();
-        _loading = false;
-        _offline = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      if (quiet && _items.isNotEmpty) return;
-      setState(() {
-        _loading = false;
-        _offline = true;
-      });
-    }
-  }
-
-  Future<void> _settle(Map<String, dynamic> item, String outcome) async {
-    final id = item['id'].toString();
-    if (_busy.contains(id)) return;
-    setState(() => _busy.add(id));
-    final messenger = ScaffoldMessenger.of(context);
-    final name = (item['name'] ?? '').toString();
-    final said = await settleFoodItem(id, outcome);
-    if (!mounted) return;
-    setState(() => _busy.remove(id));
-    if (said.isNotEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(said)));
-      return;
-    }
-    setState(
-        () => _items = _items.where((i) => i['id'].toString() != id).toList());
-    messenger.showSnackBar(SnackBar(
-      duration: const Duration(seconds: 6),
-      content: Text(outcome == 'consumed'
-          ? 'Good. Nothing wasted.'
-          : 'Thrown out and recorded.'),
-      action: SnackBarAction(
-        label: 'Undo',
-        textColor: const Color(0xFFB9E08F),
-        onPressed: () async {
-          final back = await unsettleFoodItem(id);
-          messenger.showSnackBar(SnackBar(
-              content: Text(back.isEmpty
-                  ? '${name.isEmpty ? 'It' : name} is back in your kitchen.'
-                  : back)));
-          if (mounted && back.isEmpty) _load(_for, quiet: true);
-        },
-      ),
-    ));
-  }
-
-  void _back() {
-    final router = GoRouter.of(context);
-    if (router.canPop()) {
-      router.pop();
-    } else {
-      router.goNamed('HomePage');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-    final t = FlutterFlowTheme.of(context);
-    final household = FFAppState().currentHouseholdId;
-    if (household.isNotEmpty && household != _for) {
-      _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
-    }
-
-    final count = _items.length;
-    Widget content;
-    if (_loading) {
-      content = Column(children: [
-        for (var i = 0; i < 3; i++) ...[
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(20)),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ]);
-    } else if (_offline) {
-      content = _message(
-          t,
-          Icons.cloud_off_outlined,
-          'Can’t reach your kitchen.',
-          'No signal, or the connection dropped. Try again when you are back online.',
-          'Try again',
-          () => _load(_for));
-    } else if (_items.isEmpty) {
-      content = _message(
-          t,
-          Icons.check_circle_outline,
-          'Nothing needs using right now.',
-          'When food gets close to its date, it shows here with a quick way to mark it used.',
-          'Back to your kitchen',
-          () => GoRouter.of(context).goNamed('InventoryPage'));
-    } else {
-      content = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final item in _items) ...[
-            _row(t, item),
-            const SizedBox(height: 12),
-          ],
-        ],
-      );
-    }
-
-    return SizedBox(
-      width: widget.width,
-      height: widget.height,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Semantics(
-                button: true,
-                label: 'Back',
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _back,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: _uBackDeco(),
-                    child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Use soon.',
-                style: t.headlineMedium.copyWith(
-                    fontSize: 32, fontWeight: FontWeight.w800, color: _uForest)),
-            if (!_loading && !_offline && count > 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                  count == 1
-                      ? '1 food close to its date'
-                      : '$count foods close to their dates',
-                  style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
-              const SizedBox(height: 14),
-              _UButton('Find meals that use them',
-                  icon: Icons.restaurant_menu,
-                  onTap: () => context.pushNamed('RecipesPage')),
-            ],
-            const SizedBox(height: 20),
-            AnimatedSize(
-              duration: MediaQuery.of(context).disableAnimations
-                  ? Duration.zero
-                  : const Duration(milliseconds: 200),
-              alignment: Alignment.topCenter,
-              child: content,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// One compact row: picture, name, amount and place, and the date badge.
-  /// Tapping opens the food; the actions sit in a sheet, so the page is not a
-  /// wall of equal Used / Throw out buttons (hybrid brief, 15 Sep).
-  Widget _row(FlutterFlowTheme t, Map<String, dynamic> item) {
-    final id = item['id'].toString();
-    final name = (item['name'] ?? '').toString();
-    final qty =
-        item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-    final amount = quantityLabel(qty, (item['unit'] ?? '').toString()) ?? '';
-    final where = (item['location_name'] ?? '').toString();
-    final photo = foodPhoto(name, (item['image_url'] ?? '').toString()) ?? '';
-    final badge = dateBadge(
-          (item['computed_status'] ?? '').toString(),
-          item['days_left'] is num ? (item['days_left'] as num).round() : null,
-          DateTime.tryParse('${item['printed_date'] ?? ''}'),
-          '${item['printed_date_type'] ?? ''}',
-          '${item['status_basis'] ?? ''}',
-        ) ??
-        '';
-    final busy = _busy.contains(id);
-    return _USurface(
-      radius: 20,
-      label: '$name. ${badge.split('|').first}',
-      onTap: () async {
-        await context.pushNamed('FoodItemPage', queryParameters: {'itemId': id});
-        if (mounted) _load(_for, quiet: true);
-      },
-      padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              width: 64,
-              height: 64,
-              child: photo.isEmpty
-                  ? _uFallback(context, name.isEmpty ? '' : name[0], height: 64)
-                  : Image.network(photo,
-                      fit: BoxFit.cover,
-                      cacheWidth: 200,
-                      errorBuilder: (_, __, ___) => _uFallback(
-                          context, name.isEmpty ? '' : name[0],
-                          height: 64)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.titleMedium.copyWith(
-                        fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
-                const SizedBox(height: 2),
-                Text([if (amount.isNotEmpty) amount, if (where.isNotEmpty) where].join(' · '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
-                const SizedBox(height: 6),
-                _uBadge(context, badge),
-              ],
-            ),
-          ),
-          busy
-              ? const Padding(
-                  padding: EdgeInsets.all(14),
-                  child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: _uForest)),
-                )
-              : IconButton(
-                  tooltip: 'Actions for $name',
-                  icon: const Icon(Icons.more_horiz, color: _uForest),
-                  onPressed: () => _actions(t, item),
-                ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _actions(FlutterFlowTheme t, Map<String, dynamic> item) async {
-    final name = (item['name'] ?? '').toString();
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: _uCream,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(name,
-                  style: t.headlineSmall.copyWith(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: _uInk)),
-              const SizedBox(height: 16),
-              _UButton('Used all of it',
-                  icon: Icons.check,
-                  onTap: () => Navigator.of(sheet).pop('consumed')),
-              const SizedBox(height: 10),
-              _UButton('Use some, or change details',
-                  kind: 'secondary',
-                  icon: Icons.tune,
-                  onTap: () => Navigator.of(sheet).pop('open')),
-              const SizedBox(height: 18),
-              Center(
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      foregroundColor: const Color(0xFFB42318)),
-                  onPressed: () => Navigator.of(sheet).pop('discarded'),
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  label: Text('Throw it out',
-                      style: t.bodyLarge.copyWith(
-                          color: const Color(0xFFB42318),
-                          fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (!mounted || choice == null) return;
-    if (choice == 'open') {
-      await context.pushNamed('FoodItemPage',
-          queryParameters: {'itemId': item['id'].toString()});
-      if (mounted) _load(_for, quiet: true);
-      return;
-    }
-    if (choice == 'discarded') {
-      final sure = await showDialog<bool>(
-        context: context,
-        builder: (d) => AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text('Throw out $name?'),
-          content: const Text('It is recorded in What you used. You can undo straight after.'),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.of(d).pop(false),
-                child: const Text('Keep it')),
-            TextButton(
-                onPressed: () => Navigator.of(d).pop(true),
-                child: const Text('Throw out',
-                    style: TextStyle(color: Color(0xFFB42318)))),
-          ],
-        ),
-      );
-      if (sure != true || !mounted) return;
-    }
-    await _settle(item, choice);
-  }
-
-  Widget _message(FlutterFlowTheme t, IconData icon, String title, String text,
-      String action, VoidCallback onAction) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-      decoration: _uCard(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: _forest, size: 28),
-          ),
-          const SizedBox(height: 16),
-          Text(title,
-              style: t.titleLarge.copyWith(
-                  fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
-          const SizedBox(height: 6),
-          Text(text,
-              style: t.bodyLarge
-                  .copyWith(fontSize: 16, color: _muted, height: 1.4)),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: onAction,
-              child: Text(action,
-                  style: t.bodyLarge.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wSmartCamera = r'''
-import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-
-/// The app's own camera, with what to photograph chosen on it.
-///
-/// Shelf: one shelf, read into the photo map (a receipt is recognised and goes
-/// to the receipt review instead). Receipt: read into the receipt review.
-/// Barcode and Type it hand over to their screens. A photo already on the
-/// phone can be chosen instead. If the camera cannot start — no camera, or
-/// access turned off — it says so and offers the gallery or typing.
-class SmartCamera extends StatefulWidget {
-  const SmartCamera({super.key, this.width, this.height, this.mode});
-
-  final double? width;
-  final double? height;
-  final String? mode;
-
-  @override
-  State<SmartCamera> createState() => _SmartCameraState();
-}
-
-class _SmartCameraState extends State<SmartCamera> with WidgetsBindingObserver {
-  static const _forest = Color(0xFF07533A);
-  static const _leaf = Color(0xFF83BD43);
-
-  // Four modes across one bar, none cut off; typing is its own button.
-  static const _modes = <(String, String, IconData)>[
-    ('photo', 'Photo', Icons.photo_camera_outlined),
-    ('shelf', 'Shelf', Icons.kitchen_outlined),
-    ('receipt', 'Receipt', Icons.receipt_long_outlined),
-    ('barcode', 'Barcode', Icons.qr_code_scanner),
-  ];
-
-  CameraController? _controller;
-  bool _starting = true;
-  String _problem = '';
-  bool _reading = false;
-  bool _flash = false;
-  bool _pressed = false;
-  late String _mode;
-
-  @override
-  void initState() {
-    super.initState();
-    _mode = widget.mode == 'receipt' ? 'receipt' : 'shelf';
-    WidgetsBinding.instance.addObserver(this);
-    _start();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final c = _controller;
-    if (state == AppLifecycleState.inactive) {
-      if (c != null && c.value.isInitialized) {
-        _controller = null;
-        c.dispose();
-        if (mounted) setState(() {});
-      }
-    } else if (state == AppLifecycleState.resumed && _controller == null) {
-      _start();
-    }
-  }
-
-  Future<void> _start() async {
-    if (mounted) setState(() => _starting = true);
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        _problem = 'There is no camera on this device.';
-        return;
-      }
-      final back = cameras.firstWhere(
-          (c) => c.lensDirection == CameraLensDirection.back,
-          orElse: () => cameras.first);
-      final c = CameraController(back, ResolutionPreset.veryHigh,
-          enableAudio: false, imageFormatGroup: ImageFormatGroup.jpeg);
-      await c.initialize();
-      try {
-        await c.setFlashMode(FlashMode.off);
-      } catch (_) {}
-      if (!mounted) {
-        await c.dispose();
-        return;
-      }
-      _controller = c;
-      _problem = '';
-    } on CameraException catch (e) {
-      _problem = e.code.contains('Denied') || e.code.contains('denied')
-          ? 'Camera access is turned off for Use It Fresh. Turn it on in Settings, or choose a photo instead.'
-          : 'The camera could not start. Choose a photo instead, or try again.';
-    } catch (_) {
-      _problem =
-          'The camera could not start. Choose a photo instead, or try again.';
-    } finally {
-      if (mounted) setState(() => _starting = false);
-    }
-  }
-
-  // ---- actions ---------------------------------------------------------------
-
-  void _close() {
-    final router = GoRouter.of(context);
-    if (router.canPop()) {
-      router.pop();
-    } else {
-      router.goNamed('HomePage');
-    }
-  }
-
-  void _choose(String mode) {
-    if (_reading) return;
-    final router = GoRouter.of(context);
-    if (mode == 'barcode') {
-      router.pushReplacementNamed('BarcodeScanPage');
-    } else if (mode == 'type' || mode == 'photo') {
-      router.pushReplacementNamed('AddFoodItemPage');
-    } else {
-      setState(() => _mode = mode);
-    }
-  }
-
-  Future<void> _toggleFlash() async {
-    final c = _controller;
-    if (c == null || !c.value.isInitialized) return;
-    final next = !_flash;
-    try {
-      await c.setFlashMode(next ? FlashMode.always : FlashMode.off);
-      setState(() => _flash = next);
-    } catch (_) {}
-  }
-
-  Future<void> _shoot() async {
-    final c = _controller;
-    if (_reading ||
-        c == null ||
-        !c.value.isInitialized ||
-        c.value.isTakingPicture) {
-      return;
-    }
-    try {
-      final picture = await c.takePicture();
-      await _read(await picture.readAsBytes());
-    } catch (_) {
-      if (mounted) _say('The photo was not taken. Try again.');
-    }
-  }
-
-  Future<void> _gallery() async {
-    if (_reading) return;
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 2000,
-      maxHeight: 3200,
-      imageQuality: 85,
-    );
-    if (picked == null) return;
-    await _read(await picked.readAsBytes());
-  }
-
-  Future<void> _read(Uint8List bytes) async {
-    if (_reading) return;
-    setState(() => _reading = true);
-    // Taken now: after the read this widget may be gone.
-    final router = GoRouter.of(context);
-    final root = Navigator.of(context, rootNavigator: true);
-    final file = FFUploadedFile(name: 'camera.jpg', bytes: bytes);
-    var left = false;
-    try {
-      if (_mode == 'receipt') {
-        final said = await readReceiptShot(file);
-        if (said == 'ok') {
-          left = true;
-          router.pushReplacementNamed('ScanReviewPage');
-        } else if (said.isNotEmpty && root.mounted) {
-          await _explain(root.context, 'Receipt not added', said);
-        }
-      } else {
-        await clearShelfScan();
-        final said = await readShelfShot(file);
-        if (said == 'ok') {
-          left = true;
-          if (FFAppState().receiptFromCamera) {
-            FFAppState().receiptFromCamera = false;
-            router.pushReplacementNamed('ScanReviewPage');
-          } else {
-            router.pushReplacementNamed('MapReviewPage');
-          }
-        } else if (said.isNotEmpty && root.mounted) {
-          await _explain(root.context, 'Nothing added', said);
-        }
-      }
-    } finally {
-      if (!left && mounted) setState(() => _reading = false);
-    }
-  }
-
-  void _say(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-
-  static Future<void> _explain(BuildContext host, String title, String said) {
-    return showDialog<void>(
-      context: host,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title),
-        content: Text(said),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---- screen ----------------------------------------------------------------
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final c = _controller;
-    final ready = c != null && c.value.isInitialized;
-    final receipt = _mode == 'receipt';
-    return ColoredBox(
-      color: Colors.black,
-      child: SizedBox.expand(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (ready)
-              ClipRect(
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: c.value.previewSize?.height ?? 1080,
-                    height: c.value.previewSize?.width ?? 1920,
-                    child: CameraPreview(c),
-                  ),
-                ),
-              ),
-            if (ready && !_reading) _frame(t, receipt),
-            if (!ready && !_starting) _unavailable(t),
-            if (_starting)
-              const Center(
-                  child: CircularProgressIndicator(color: Colors.white)),
-            // Top: close and flash.
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: Row(
-                    children: [
-                      _roundButton(Icons.close, 'Close', _close, filled: true),
-                      const Spacer(),
-                      if (ready)
-                        _roundButton(_flash ? Icons.flash_on : Icons.flash_off,
-                            _flash ? 'Flash on' : 'Flash off', _toggleFlash),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Bottom: modes, then gallery and shutter.
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x00000000), Color(0xCC000000)],
-                  ),
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xA0142E24),
-                            borderRadius: BorderRadius.circular(40),
-                            border: Border.all(color: const Color(0x50FFFFFF)),
-                          ),
-                          child: Row(
-                            children: [
-                              for (final m in _modes)
-                                Expanded(child: _modeChip(t, m)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _roundButton(Icons.photo_library_outlined,
-                                'Choose a photo', _gallery),
-                            _shutter(ready),
-                            _roundButton(Icons.edit_outlined, 'Type it in',
-                                () => _choose('type')),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            if (_reading) _readingOverlay(t),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _frame(FlutterFlowTheme t, bool receipt) {
-    return LayoutBuilder(builder: (context, box) {
-      final w = box.maxWidth * (receipt ? 0.62 : 0.86);
-      final h = receipt ? box.maxHeight * 0.52 : box.maxHeight * 0.32;
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-                receipt
-                    ? 'Lay the receipt flat, all of it in the frame'
-                    : 'Fit one shelf in the frame',
-                textAlign: TextAlign.center,
-                style: t.bodyLarge.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    shadows: const [
-                      Shadow(color: Colors.black54, blurRadius: 6)
-                    ])),
-            const SizedBox(height: 12),
-            AnimatedContainer(
-              duration: MediaQuery.of(context).disableAnimations
-                  ? Duration.zero
-                  : const Duration(milliseconds: 220),
-              width: w,
-              height: h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-            ),
-          ],
-        ),
-      );
-    });
-  }
-
-  Widget _modeChip(FlutterFlowTheme t, (String, String, IconData) m) {
-    final on = _mode == m.$1;
-    return Semantics(
-      button: true,
-      selected: on,
-      label: m.$2,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _choose(m.$1),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          constraints: const BoxConstraints(minHeight: 44),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: on ? const Color(0xFFFFFDF4) : Colors.transparent,
-            borderRadius: BorderRadius.circular(40),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Text(m.$2,
-                  style: t.bodyMedium.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: on ? _forest : Colors.white)),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _roundButton(IconData icon, String label, VoidCallback onTap,
-          {bool filled = false}) =>
-      Semantics(
-        button: true,
-        label: label,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: filled ? _forest : const Color(0x4D000000),
-              border:
-                  filled ? null : Border.all(color: const Color(0x80FFFFFF)),
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
-          ),
-        ),
-      );
-
-  Widget _shutter(bool ready) {
-    final still = MediaQuery.of(context).disableAnimations;
-    return Semantics(
-      button: true,
-      enabled: ready && !_reading,
-      label: _mode == 'receipt'
-          ? 'Take the receipt photo'
-          : 'Take the shelf photo',
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTap: ready ? _shoot : null,
-        child: AnimatedScale(
-          scale: (_pressed && !still) ? 0.92 : 1,
-          duration: const Duration(milliseconds: 120),
-          child: Opacity(
-            opacity: ready ? 1 : 0.4,
-            child: Container(
-              width: 76,
-              height: 76,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-              ),
-              padding: const EdgeInsets.all(5),
-              child: const DecoratedBox(
-                decoration:
-                    BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _readingOverlay(FlutterFlowTheme t) => Positioned.fill(
-        child: ColoredBox(
-          color: const Color(0xB3000000),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(
-                  width: 44,
-                  height: 44,
-                  child:
-                      CircularProgressIndicator(color: _leaf, strokeWidth: 4),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                    _mode == 'receipt'
-                        ? 'Reading your receipt…'
-                        : 'Reading your photo…',
-                    style: t.titleMedium.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
-                Text('This takes a few seconds.',
-                    style: t.bodyMedium.copyWith(color: Colors.white70)),
-              ],
-            ),
-          ),
-        ),
-      );
-
-  Widget _unavailable(FlutterFlowTheme t) => Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.no_photography_outlined,
-                  color: Colors.white, size: 48),
-              const SizedBox(height: 16),
-              Text(_problem,
-                  textAlign: TextAlign.center,
-                  style:
-                      t.bodyLarge.copyWith(color: Colors.white, height: 1.4)),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                    backgroundColor: _forest,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: _gallery,
-                  icon: const Icon(Icons.photo_library_outlined),
-                  label: const Text('Choose a photo'),
-                ),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(48, 48)),
-                onPressed: _start,
-                child: const Text('Try the camera again'),
-              ),
-            ],
-          ),
-        ),
-      );
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wReceiptHistory = r'''
+const _wWeekPlan = r'''
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Receipts (owner, 14 Sep: "summary of how many items, scanned date, purchase
-/// date/time and location of the receipt").
+/// Plan my week (owner, 14 Sep; a Plus feature).
 ///
-/// Every receipt the household has added, newest first: the shop, where it
-/// is, when it was bought, how many items, the total, and when it was scanned.
-/// A receipt opens to its lines with what was paid and what became of each
-/// food. Deleting a receipt keeps the food; only the record goes. No photo of
-/// a receipt is ever kept.
-class ReceiptHistory extends StatefulWidget {
-  const ReceiptHistory({super.key, this.width, this.height});
+/// The next seven days, one card each. Meals come from ideas already on
+/// Recipes or kept ideas, so every plan starts from the food in the kitchen.
+/// A planned meal can be swapped, moved, cooked with extra portions for
+/// another day, or removed. One button puts everything the week still needs
+/// on the shopping list.
+///
+/// "I ate this" is where planned becomes eaten: portions are confirmed, the
+/// meal is logged for this person only, and the foods it used up leave the
+/// kitchen — each one can be unticked first, and all of it can be undone.
+/// Planned and eaten are kept in separate tables and never mixed.
+///
+/// Household planning (a Plus feature): who eats at home — everyone in the
+/// household, and people without the app such as children — each with a
+/// portion size and their allergies. Each planned meal says who is eating, its
+/// servings add up from their portions, and a meal that mentions something one
+/// of them avoids says so. Ideas found here leave out everyone's allergies.
+///
+/// Budget (a Plus feature): a weekly amount for the household, what the
+/// week's shopping should cost from the last prices paid (receipts, or typed),
+/// what receipts say was spent in the last seven days, and a price on each
+/// idea when adding a meal. Always "about", and honest about missing prices.
+///
+/// Your day (with "Fits my goals" on): today's estimated calories and
+/// protein from the meals this person marked as eaten, against targets
+/// they choose. Private to them, and never shown to anyone who has not
+/// turned goals on.
+class WeekPlan extends StatefulWidget {
+  const WeekPlan({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<ReceiptHistory> createState() => _ReceiptHistoryState();
+  State<WeekPlan> createState() => _WeekPlanState();
 }
 
-class _ReceiptHistoryState extends State<ReceiptHistory> {
+class _Entry {
+  _Entry(Map m)
+      : id = m['id'].toString(),
+        date = DateTime.parse(m['plan_date'].toString()),
+        meal = (m['meal'] ?? 'dinner').toString(),
+        title = (m['title'] ?? '').toString(),
+        data = m['recipe_data'] is Map ? m['recipe_data'] as Map : const {},
+        servings = m['servings'] is num ? (m['servings'] as num).round() : 2,
+        extra = m['extra_portions'] is num
+            ? (m['extra_portions'] as num).round()
+            : 0,
+        status = (m['status'] ?? 'planned').toString();
+
+  final String id;
+  final DateTime date;
+  final String meal;
+  final String title;
+  final Map data;
+  final int servings;
+  final int extra;
+  final String status;
+
+  List<String> list(String key) => data[key] is List
+      ? [
+          for (final w in data[key] as List)
+            if ('$w'.trim().isNotEmpty) '$w'.trim()
+        ]
+      : <String>[];
+  int number(String key) => data[key] is num ? (data[key] as num).round() : 0;
+}
+
+class _WeekPlanState extends State<WeekPlan> {
   static const _forest = Color(0xFF07533A);
   static const _ink = Color(0xFF202C24);
   static const _muted = Color(0xFF59665D);
@@ -2474,6 +262,13 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
   static const _cream = Color(0xFFF7F7F0);
   static const _red = Color(0xFFB42318);
 
+  static const _meals = <String, String>{
+    'breakfast': 'Breakfast',
+    'lunch': 'Lunch',
+    'dinner': 'Dinner',
+    'snack': 'Snack',
+  };
+  static const _mealOrder = ['breakfast', 'lunch', 'dinner', 'snack'];
   static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   static const _months = [
     'Jan',
@@ -2494,7 +289,64 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
   bool _loading = true;
   bool _offline = false;
   bool _notReady = false;
-  List<Map> _receipts = const [];
+  bool _busy = false;
+  List<_Entry> _entries = const [];
+  List<MealIdeaStruct> _kept = const [];
+  // Your day: what this person ate today, and their own targets.
+  List<Map> _eaten = const [];
+  int? _kcalTarget;
+  int? _proteinTarget;
+  bool _targetsReady = true;
+  // Budget: the household's weekly amount, known prices, recent spending.
+  double? _budget;
+  String _currency = 'AUD';
+  final Map<String, double> _prices = {};
+  double _spent = 0;
+  bool _budgetReady = true;
+  // Household planning: who eats at home, and who eats each planned meal.
+  List<Map> _diners = const [];
+  final Map<String, Map<String, double>> _plates = {};
+  bool _dinersReady = true;
+
+  static DateTime get _today {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  static String _iso(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  /// "today", "tomorrow" or "Wed 17 Sep", for the middle of a sentence.
+  static String _onDay(DateTime d) {
+    final name = _dayName(d);
+    return name == 'Today' || name == 'Tomorrow' ? name.toLowerCase() : name;
+  }
+
+  static DateTime _dayAt(int i) =>
+      DateTime(_today.year, _today.month, _today.day + i);
+
+  /// Whole-word match either way ("egg" in "Free-range eggs"), so "egg" is
+  /// never "eggplant" and "milk" never "coconut milk" alone.
+  static bool _wordIn(String hay, String word) {
+    final w = word.trim().toLowerCase();
+    if (w.length < 2) return false;
+    return RegExp('(^|[^a-z])${RegExp.escape(w)}(es|s)?([^a-z]|\$)')
+        .hasMatch(hay.toLowerCase());
+  }
+
+  static String _dayName(DateTime d) {
+    final diff = DateTime.utc(d.year, d.month, d.day)
+        .difference(DateTime.utc(_today.year, _today.month, _today.day))
+        .inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Tomorrow';
+    return '${_days[d.weekday - 1]} ${d.day} ${_months[d.month - 1]}';
+  }
+
+  // ---- data ----------------------------------------------------------------
 
   Future<void> _load(String household, {bool quiet = false}) async {
     if (!quiet && mounted) {
@@ -2505,28 +357,56 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
     }
     try {
       final rows = await SupaFlow.client
-          .from('receipts')
+          .from('meal_plan_entries')
           .select(
-              'id, shop_name, shop_location, purchased_at, scanned_at, item_count, total_amount, currency')
+              'id, plan_date, meal, title, recipe_data, servings, extra_portions, status')
           .eq('household_id', household)
-          .order('scanned_at', ascending: false)
-          .limit(100);
+          .gte('plan_date', _iso(_today))
+          .lte('plan_date', _iso(_dayAt(6)))
+          .order('plan_date');
+      final kept = await SupaFlow.client
+          .from('saved_recipes')
+          .select('title, recipe_data')
+          .eq('household_id', household)
+          .order('created_at', ascending: false)
+          .limit(20);
+      final entries = [for (final r in rows as List) _Entry(r as Map)]
+        ..sort((a, b) {
+          final byDay = a.date.compareTo(b.date);
+          return byDay != 0
+              ? byDay
+              : _mealOrder
+                  .indexOf(a.meal)
+                  .compareTo(_mealOrder.indexOf(b.meal));
+        });
+      final ideas = <MealIdeaStruct>[];
+      for (final r in kept as List) {
+        final m = r as Map;
+        final d = m['recipe_data'] is Map ? m['recipe_data'] as Map : const {};
+        ideas.add(_idea((m['title'] ?? '').toString(), d));
+      }
       if (!mounted || household != _for) return;
       setState(() {
-        _receipts = [for (final r in rows as List) r as Map];
+        _entries = entries;
+        _kept = ideas;
         _loading = false;
         _offline = false;
         _notReady = false;
       });
+      _loadDay();
+      _loadBudget();
+      _loadDiners(seed: true);
     } on PostgrestException catch (error) {
       if (!mounted) return;
       setState(() {
         _loading = false;
+        // The table is created by a one-off database step.
         _notReady = error.code == '42P01' || error.code == 'PGRST205';
         _offline = !_notReady;
       });
     } catch (_) {
       if (!mounted) return;
+      if (quiet && _entries.isNotEmpty) return;
       setState(() {
         _loading = false;
         _offline = true;
@@ -2534,19 +414,512 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
     }
   }
 
-  static String _when(Object? iso, {bool time = true}) {
-    final d = DateTime.tryParse('${iso ?? ''}')?.toLocal();
-    if (d == null) return '';
-    final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
-    final clock =
-        '$h:${d.minute.toString().padLeft(2, '0')} ${d.hour < 12 ? 'am' : 'pm'}';
-    final day = '${_days[d.weekday - 1]} ${d.day} ${_months[d.month - 1]}'
-        '${d.year != DateTime.now().year ? ' ${d.year}' : ''}';
-    return time ? '$day, $clock' : day;
+  Future<void> _loadDay() async {
+    final uid = SupaFlow.client.auth.currentUser?.id;
+    if (uid == null) return;
+    try {
+      final log = await SupaFlow.client
+          .from('meal_log_entries')
+          .select(
+              'id, meal, title, portions, calories_per_serving, protein_per_serving, plan_entry_id, household_id')
+          .eq('profile_id', uid)
+          .eq('eaten_on', _iso(DateTime.now()))
+          .order('created_at');
+      Map? settings;
+      var ready = true;
+      try {
+        settings = await SupaFlow.client
+            .from('user_settings')
+            .select('daily_calorie_target, daily_protein_target')
+            .eq('profile_id', uid)
+            .maybeSingle();
+      } on PostgrestException {
+        ready = false;
+      }
+      if (!mounted) return;
+      int? whole(Object? v) => v is num ? v.round() : null;
+      setState(() {
+        _eaten = [for (final r in log as List) r as Map];
+        _kcalTarget = whole(settings?['daily_calorie_target']);
+        _proteinTarget = whole(settings?['daily_protein_target']);
+        _targetsReady = ready;
+      });
+    } catch (_) {
+      // Your day is extra: the plan still shows without it.
+    }
   }
 
-  static String _money(Object? amount, Object? currency) {
-    if (amount is! num || amount <= 0) return '';
+  static double _portions(Map r) =>
+      r['portions'] is num ? (r['portions'] as num).toDouble() : 1;
+
+  int get _kcalToday => _eaten
+      .fold<double>(
+          0,
+          (sum, r) =>
+              sum +
+              (r['calories_per_serving'] is num
+                      ? (r['calories_per_serving'] as num).toDouble()
+                      : 0) *
+                  _portions(r))
+      .round();
+
+  int get _proteinToday => _eaten
+      .fold<double>(
+          0,
+          (sum, r) =>
+              sum +
+              (r['protein_per_serving'] is num
+                      ? (r['protein_per_serving'] as num).toDouble()
+                      : 0) *
+                  _portions(r))
+      .round();
+
+  Future<void> _unlog(Map r) async {
+    try {
+      await SupaFlow.client
+          .from('meal_log_entries')
+          .delete()
+          .eq('id', r['id'].toString());
+      await _loadDay();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final back = Map<String, dynamic>.from(r)..remove('id');
+      messenger.showSnackBar(SnackBar(
+        content: const Text('Taken off your day. Your kitchen is unchanged.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: const Color(0xFFB9E08F),
+          onPressed: () async {
+            try {
+              await SupaFlow.client.from('meal_log_entries').insert({
+                ...back,
+                'profile_id': SupaFlow.client.auth.currentUser?.id,
+                'eaten_on': _iso(DateTime.now()),
+              });
+              if (mounted) _loadDay();
+            } catch (_) {
+              messenger.showSnackBar(const SnackBar(
+                  content: Text('Could not undo. Check your signal.')));
+            }
+          },
+        ),
+      ));
+    } catch (_) {
+      if (mounted) _say('Could not change your day. Check your signal.');
+    }
+  }
+
+  Future<void> _openTargets(FlutterFlowTheme t) async {
+    if (!_targetsReady) {
+      _say('Daily targets are almost ready. Try again soon.');
+      return;
+    }
+    var kcal = _kcalTarget ?? 2000;
+    var protein = _proteinTarget ?? 60;
+    final choice = await _sheet<String>((sheet, redraw) {
+      Widget row(String label, String value, VoidCallback less,
+              VoidCallback more, bool canLess, bool canMore) =>
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                Expanded(child: _label(t, label)),
+                _stepper(Icons.remove, canLess, less),
+                SizedBox(
+                  width: 96,
+                  child: Text(value,
+                      textAlign: TextAlign.center,
+                      style: t.titleSmall.copyWith(color: _ink)),
+                ),
+                _stepper(Icons.add, canMore, more),
+              ],
+            ),
+          );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Your daily targets',
+              style: t.headlineSmall.copyWith(
+                  fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 4),
+          Text('Your own numbers, private to you.',
+              style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
+          const SizedBox(height: 20),
+          row('Calories', '$kcal kcal', () => redraw(() => kcal -= 50),
+              () => redraw(() => kcal += 50), kcal > 1000, kcal < 4500),
+          row('Protein', '$protein g', () => redraw(() => protein -= 5),
+              () => redraw(() => protein += 5), protein > 0, protein < 300),
+          Text(
+              'Not medical or diet advice. A dietitian or doctor can suggest targets that suit you.',
+              style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 52,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                backgroundColor: _forest,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => Navigator.of(sheet).pop('save'),
+              child: Text('Save targets',
+                  style: t.bodyLarge.copyWith(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          if (_kcalTarget != null || _proteinTarget != null)
+            TextButton(
+              style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 48), foregroundColor: _forest),
+              onPressed: () => Navigator.of(sheet).pop('clear'),
+              child: Text('No targets, just totals',
+                  style: t.bodyLarge
+                      .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+            ),
+        ],
+      );
+    });
+    if (choice == null || !mounted) return;
+    final uid = SupaFlow.client.auth.currentUser?.id;
+    try {
+      await SupaFlow.client.from('user_settings').upsert({
+        'profile_id': uid,
+        'daily_calorie_target': choice == 'save' ? kcal : null,
+        'daily_protein_target': choice == 'save' ? protein : null,
+      });
+      await _loadDay();
+      if (mounted) {
+        _say(choice == 'save' ? 'Targets saved.' : 'Targets cleared.');
+      }
+    } catch (_) {
+      if (mounted) _say('Could not save your targets. Check your signal.');
+    }
+  }
+
+  static String _thousands(int n) {
+    final s = n.abs().toString();
+    final b = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
+      b.write(s[i]);
+    }
+    return n < 0 ? '-$b' : b.toString();
+  }
+
+  Widget _dayProgress(FlutterFlowTheme t) {
+    final kcal = _kcalToday;
+    final protein = _proteinToday;
+    Widget bar(String text, int value, int? target, String unit) {
+      final over = target != null && value > target;
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+                target == null
+                    ? '${_thousands(value)} $unit so far'
+                    : (over
+                        ? '${_thousands(value)} $unit · ${_thousands(value - target)} over your $text target'
+                        : '${_thousands(value)} of ${_thousands(target)} $unit'),
+                style: t.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w700, color: _ink, fontSize: 16)),
+            if (target != null && target > 0) ...[
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: (value / target).clamp(0.0, 1.0),
+                  minHeight: 10,
+                  backgroundColor: Colors.white,
+                  valueColor: AlwaysStoppedAnimation(
+                      over ? const Color(0xFFB54708) : _forest),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 14),
+      decoration: BoxDecoration(
+        color: _sage,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text('Your day',
+                    style: t.titleMedium.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _ink)),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 44), foregroundColor: _forest),
+                onPressed: () => _openTargets(t),
+                child: Text(
+                    _kcalTarget == null && _proteinTarget == null
+                        ? 'Set targets'
+                        : 'Change targets',
+                    style: t.bodyMedium
+                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                bar('calorie', kcal, _kcalTarget, 'kcal'),
+                bar('protein', protein, _proteinTarget, 'g protein'),
+                const SizedBox(height: 12),
+                if (_eaten.isEmpty)
+                  Text(
+                      'Nothing logged today. Open a planned meal and tap «I ate this».',
+                      style: t.bodyMedium.copyWith(color: _muted, fontSize: 14))
+                else
+                  for (final r in _eaten)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                              '${r['title']} · ${_portions(r) == 1 ? '1 portion' : '${_portions(r) == _portions(r).roundToDouble() ? _portions(r).round() : _portions(r)} portions'}${r['calories_per_serving'] is num ? ' · ${((r['calories_per_serving'] as num) * _portions(r)).round()} kcal' : ''}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: t.bodyMedium
+                                  .copyWith(color: _ink, fontSize: 14)),
+                        ),
+                        IconButton(
+                          tooltip: 'Take off your day',
+                          onPressed: () => _unlog(r),
+                          icon:
+                              const Icon(Icons.close, color: _muted, size: 20),
+                        ),
+                      ],
+                    ),
+                const SizedBox(height: 4),
+                Text(
+                    'Estimated from the meals you marked as eaten. A guide only, not diet or medical advice.',
+                    style: t.bodySmall.copyWith(color: _muted, fontSize: 12)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static MealIdeaStruct _idea(String title, Map d) {
+    List<String> words(Object? v) => v is List
+        ? [
+            for (final w in v)
+              if ('$w'.trim().isNotEmpty) '$w'.trim()
+          ]
+        : <String>[];
+    int n(Object? v) => v is num ? v.round() : 0;
+    return MealIdeaStruct(
+      title: title,
+      uses: words(d['uses']),
+      extras: words(d['extras']),
+      steps: words(d['steps']),
+      minutes: n(d['minutes']),
+      servings: n(d['servings']),
+      calories: n(d['calories']),
+      protein: n(d['protein']),
+    );
+  }
+
+  static Map<String, dynamic> _data(MealIdeaStruct idea) => {
+        'uses': idea.uses,
+        'extras': idea.extras,
+        'steps': idea.steps,
+        'minutes': idea.minutes,
+        if (idea.calories > 0) 'calories': idea.calories,
+        if (idea.protein > 0) 'protein': idea.protein,
+      };
+
+  void _say(String text, {SnackBarAction? action}) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(text),
+          action: action,
+          duration: Duration(seconds: action == null ? 4 : 6)));
+
+  String _why(Object error) {
+    if (error is PostgrestException && error.code == '42501') {
+      return 'Your account is not allowed to change this household’s plan.';
+    }
+    return 'Could not save that. Check your signal and try again.';
+  }
+
+  Future<bool> _write(Future<void> Function() change) async {
+    if (_busy) return false;
+    setState(() => _busy = true);
+    try {
+      await change();
+      await _load(_for, quiet: true);
+      return true;
+    } catch (error) {
+      if (mounted) _say(_why(error));
+      return false;
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _add(DateTime day, String meal, MealIdeaStruct idea) async {
+    final people = FFAppState().ideasServings;
+    final ok =
+        await _write(() => SupaFlow.client.from('meal_plan_entries').insert({
+              'household_id': _for,
+              'plan_date': _iso(day),
+              'meal': meal,
+              'title': idea.title.length > 120
+                  ? idea.title.substring(0, 120)
+                  : idea.title,
+              'recipe_data': _data(idea),
+              'servings': idea.servings > 0
+                  ? idea.servings.clamp(1, 12)
+                  : (people < 1 ? 2 : (people > 12 ? 12 : people)),
+              'created_by': SupaFlow.client.auth.currentUser?.id,
+            }));
+    if (ok && mounted) _say('${idea.title} planned for ${_onDay(day)}.');
+  }
+
+  Future<void> _swap(_Entry entry, MealIdeaStruct idea) async {
+    final ok =
+        await _write(() => SupaFlow.client.from('meal_plan_entries').update({
+              'title': idea.title.length > 120
+                  ? idea.title.substring(0, 120)
+                  : idea.title,
+              'recipe_data': _data(idea)
+            }).eq('id', entry.id));
+    if (ok && mounted) _say('Swapped for ${idea.title}.');
+  }
+
+  Future<void> _update(_Entry entry, Map<String, dynamic> change) =>
+      _write(() => SupaFlow.client
+          .from('meal_plan_entries')
+          .update(change)
+          .eq('id', entry.id));
+
+  Future<void> _remove(_Entry entry) async {
+    final ok = await _write(() =>
+        SupaFlow.client.from('meal_plan_entries').delete().eq('id', entry.id));
+    if (ok && mounted) _say('${entry.title} taken off the plan.');
+  }
+
+  /// Cook once, eat twice: the leftovers become a lunch the next day.
+  Future<void> _planLeftovers(_Entry entry) async {
+    final next =
+        DateTime(entry.date.year, entry.date.month, entry.date.day + 1);
+    final ok =
+        await _write(() => SupaFlow.client.from('meal_plan_entries').insert({
+              'household_id': _for,
+              'plan_date': _iso(next),
+              'meal': 'lunch',
+              'title': 'Leftover ${entry.title}'.length > 120
+                  ? entry.title
+                  : 'Leftover ${entry.title}',
+              'recipe_data': {
+                ...entry.data,
+                'uses': <String>[],
+                'extras': <String>[],
+                'leftoverOf': entry.id,
+                'steps': [
+                  'Reheat the extra portions from ${_dayName(entry.date)}.'
+                ],
+              },
+              'servings': entry.extra.clamp(1, 12),
+              'created_by': SupaFlow.client.auth.currentUser?.id,
+            }));
+    if (ok && mounted) _say('Leftovers planned for ${_onDay(next)}’s lunch.');
+  }
+
+  /// Everything the planned meals still need, once each.
+  List<String> get _needed {
+    final seen = <String>{};
+    final out = <String>[];
+    for (final e in _entries.where((e) => e.status == 'planned')) {
+      for (final x in e.list('extras')) {
+        if (seen.add(x.toLowerCase())) out.add(x);
+      }
+    }
+    return out;
+  }
+
+  Future<void> _loadBudget() async {
+    final household = _for;
+    if (household.isEmpty) return;
+    try {
+      final budget = await SupaFlow.client
+          .from('household_budgets')
+          .select('weekly_amount, currency')
+          .eq('household_id', household)
+          .maybeSingle();
+      final prices = await SupaFlow.client
+          .from('known_prices')
+          .select('name_key, price, currency')
+          .eq('household_id', household)
+          .limit(1000);
+      final since = DateTime.now().subtract(const Duration(days: 7));
+      final receipts = await SupaFlow.client
+          .from('receipts')
+          .select('total_amount, purchased_at, scanned_at')
+          .eq('household_id', household)
+          .gte('scanned_at', since.toUtc().toIso8601String());
+      if (!mounted || household != _for) return;
+      var spent = 0.0;
+      for (final r in receipts as List) {
+        final m = r as Map;
+        if (m['total_amount'] is num)
+          spent += (m['total_amount'] as num).toDouble();
+      }
+      setState(() {
+        _budget = budget?['weekly_amount'] is num
+            ? (budget!['weekly_amount'] as num).toDouble()
+            : null;
+        _currency = '${budget?['currency'] ?? 'AUD'}';
+        _prices
+          ..clear()
+          ..addEntries([
+            for (final p in prices as List)
+              if ((p as Map)['price'] is num)
+                MapEntry('${p['name_key']}', (p['price'] as num).toDouble()),
+          ]);
+        _spent = spent;
+        _budgetReady = true;
+      });
+    } on PostgrestException {
+      if (mounted) setState(() => _budgetReady = false);
+    } catch (_) {}
+  }
+
+  /// The last price paid for something, matched on its name.
+  double? _priceOf(String name) {
+    final key = name.trim().toLowerCase();
+    if (key.isEmpty) return null;
+    final exact = _prices[key];
+    if (exact != null) return exact;
+    for (final e in _prices.entries) {
+      if (e.key.length > 2 && (key.contains(e.key) || e.key.contains(key))) {
+        return e.value;
+      }
+    }
+    return null;
+  }
+
+  String _money(double amount) {
     const symbols = {
       'AUD': r'$',
       'NZD': r'$',
@@ -2555,20 +928,657 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
       'GBP': '£',
       'EUR': '€'
     };
-    final code = '${currency ?? ''}';
-    final symbol = symbols[code] ?? (code.isEmpty ? r'$' : '$code ');
-    return '$symbol${amount.toStringAsFixed(2)}';
+    final symbol = symbols[_currency] ?? '$_currency ';
+    return amount >= 100
+        ? '$symbol${amount.round()}'
+        : '$symbol${amount.toStringAsFixed(2)}';
   }
 
-  void _say(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  /// About what an idea's missing things cost, and how many have no price.
+  (double, int) _costOf(List<String> extras) {
+    var sum = 0.0;
+    var unknown = 0;
+    for (final x in extras) {
+      final p = _priceOf(x);
+      if (p == null) {
+        unknown++;
+      } else {
+        sum += p;
+      }
+    }
+    return (sum, unknown);
+  }
+
+  Future<void> _openBudget(FlutterFlowTheme t, List<String> needed) async {
+    if (!_budgetReady) {
+      _say('Budgets are almost ready. Try again soon.');
+      return;
+    }
+    final amount = TextEditingController(
+        text: _budget == null ? '' : _budget!.toStringAsFixed(0));
+    final unpriced = [
+      for (final n in needed)
+        if (_priceOf(n) == null) n
+    ];
+    final typed = {for (final n in unpriced) n: TextEditingController()};
+    InputDecoration look(String label) => InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: const Color(0xFFFFFDF7),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: _border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: _border),
+          ),
+        );
+    final save = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _cream,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheet) => Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(sheet).size.height * 0.88),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Weekly budget',
+                      style: t.headlineSmall.copyWith(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: _ink)),
+                  const SizedBox(height: 4),
+                  Text('For the whole household’s food shopping.',
+                      style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amount,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: look('Amount a week ($_currency)'),
+                  ),
+                  if (unpriced.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    _label(t, 'Prices we don’t know yet'),
+                    Text(
+                        'Scanning receipts fills these in. Or type what you usually pay.',
+                        style:
+                            t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    for (final n in unpriced)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: TextField(
+                          controller: typed[n],
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: look(n),
+                        ),
+                      ),
+                  ],
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 52,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                        backgroundColor: _forest,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () => Navigator.of(sheet).pop(true),
+                      child: Text('Save',
+                          style: t.bodyLarge.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    double? number(String s) =>
+        double.tryParse(s.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final weekly = number(amount.text);
+    final newPrices = <Map<String, dynamic>>[
+      for (final e in typed.entries)
+        if ((number(e.value.text) ?? 0) > 0)
+          {
+            'household_id': _for,
+            'name_key': e.key.trim().toLowerCase(),
+            'display_name': e.key.trim(),
+            'price': (number(e.value.text)! * 100).round() / 100,
+            'currency': _currency,
+            'source': 'typed',
+            'seen_at': DateTime.now().toUtc().toIso8601String(),
+          }
+    ];
+    Future.delayed(const Duration(milliseconds: 500), amount.dispose);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      for (final c in typed.values) {
+        c.dispose();
+      }
+    });
+    if (save != true || !mounted) return;
+    try {
+      await SupaFlow.client.from('household_budgets').upsert({
+        'household_id': _for,
+        'weekly_amount': weekly,
+        'currency': _currency,
+        'updated_by': SupaFlow.client.auth.currentUser?.id,
+      });
+      if (newPrices.isNotEmpty) {
+        await SupaFlow.client
+            .from('known_prices')
+            .upsert(newPrices, onConflict: 'household_id,name_key');
+      }
+      await _loadBudget();
+      if (mounted) _say('Budget saved.');
+    } catch (_) {
+      if (mounted) _say('Could not save the budget. Check your signal.');
+    }
+  }
+
+  Widget _budgetCard(FlutterFlowTheme t, List<String> needed) {
+    final (cost, unknown) = _costOf(needed);
+    final budget = _budget;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 14),
+      decoration: _uCard(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text('Budget',
+                    style: t.titleMedium.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _ink)),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 44), foregroundColor: _forest),
+                onPressed: () => _openBudget(t, needed),
+                child: Text(budget == null ? 'Set a weekly budget' : 'Change',
+                    style: t.bodyMedium
+                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                    needed.isEmpty
+                        ? 'The planned meals need nothing to buy.'
+                        : 'About ${_money(cost)} to buy for the planned meals${budget == null ? '' : ', of ${_money(budget)} a week'}.',
+                    style: t.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: _ink,
+                        fontSize: 16)),
+                if (budget != null && budget > 0) ...[
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: ((cost + _spent) / budget).clamp(0.0, 1.0),
+                      minHeight: 10,
+                      backgroundColor: _sage,
+                      valueColor: AlwaysStoppedAnimation(
+                          (cost + _spent) > budget
+                              ? const Color(0xFFB54708)
+                              : _forest),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 6),
+                Text(
+                    [
+                      if (_spent > 0)
+                        '${_money(_spent)} spent in the last 7 days, from receipts.',
+                      if (budget != null && (cost + _spent) > budget)
+                        'That is about ${_money(cost + _spent - budget)} over the budget. Swapping a meal for one that uses only your food helps.',
+                      if (unknown > 0)
+                        '${unknown == 1 ? '1 thing has' : '$unknown things have'} no price yet, so it may cost more.',
+                      'Estimated from the last prices you paid. Prices change.',
+                    ].join(' '),
+                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static List<String> _words(Object? v) => v is List
+      ? [
+          for (final x in v)
+            if ('$x'.trim().isNotEmpty) '$x'.trim()
+        ]
+      : <String>[];
+
+  static String _stem(String w) {
+    final s = w.trim().toLowerCase();
+    if (s.length > 4 && s.endsWith('es')) return s.substring(0, s.length - 2);
+    if (s.length > 3 && s.endsWith('s')) return s.substring(0, s.length - 1);
+    return s;
+  }
+
+  static double _portionOf(Object? v) => v is num ? v.toDouble() : 1;
+
+  static String _portionName(double p) =>
+      p <= 0.5 ? 'small' : (p >= 1.5 ? 'large' : 'regular');
+
+  Future<void> _loadDiners({bool seed = false}) async {
+    final household = _for;
+    if (household.isEmpty) return;
+    try {
+      if (seed) await _seedMembers(household);
+      final diners = await SupaFlow.client
+          .from('household_diners')
+          .select('id, profile_id, name, default_portion, allergens')
+          .eq('household_id', household)
+          .order('created_at');
+      final ids = [for (final e in _entries) e.id];
+      final plates = ids.isEmpty
+          ? const []
+          : await SupaFlow.client
+              .from('meal_plan_diners')
+              .select('plan_entry_id, diner_id, portions')
+              .inFilter('plan_entry_id', ids);
+      if (!mounted || household != _for) return;
+      final list = [for (final d in diners as List) d as Map];
+      setState(() {
+        _diners = list;
+        _plates.clear();
+        for (final p in plates as List) {
+          final m = p as Map;
+          _plates.putIfAbsent(
+                  '${m['plan_entry_id']}', () => {})['${m['diner_id']}'] =
+              _portionOf(m['portions']);
+        }
+        _dinersReady = true;
+      });
+      // Ideas found for the household leave out everyone's allergies.
+      final avoid = <String>{
+        for (final d in list)
+          ..._words(d['allergens']).map((a) => a.toLowerCase())
+      }.join(', ');
+      if (FFAppState().ideasHouseholdAvoid != avoid) {
+        FFAppState().update(() => FFAppState().ideasHouseholdAvoid = avoid);
+      }
+    } on PostgrestException {
+      if (mounted) setState(() => _dinersReady = false);
+    } catch (_) {}
+  }
+
+  /// Everyone in the household with an account is someone who eats at home.
+  /// Their name and allergies follow their own profile.
+  Future<void> _seedMembers(String household) async {
+    final members = await SupaFlow.client
+        .from('household_members')
+        .select('profile_id')
+        .eq('household_id', household);
+    final ids = [
+      for (final m in members as List) '${(m as Map)['profile_id']}'
+    ];
+    if (ids.isEmpty) return;
+    final profiles = await SupaFlow.client
+        .from('profiles')
+        .select('id, display_name, allergens, dietary_preferences')
+        .inFilter('id', ids);
+    final existing = await SupaFlow.client
+        .from('household_diners')
+        .select('id, profile_id, name, allergens')
+        .eq('household_id', household)
+        .not('profile_id', 'is', null);
+    final byProfile = {
+      for (final d in existing as List) '${(d as Map)['profile_id']}': d
+    };
+    for (final p in profiles as List) {
+      final m = p as Map;
+      final id = '${m['id']}';
+      final name = '${m['display_name'] ?? ''}'.trim();
+      final allergens = _words(m['allergens']);
+      final had = byProfile[id];
+      if (had == null) {
+        await SupaFlow.client.from('household_diners').upsert({
+          'household_id': household,
+          'profile_id': id,
+          'name': name.isEmpty ? 'Someone' : name,
+          'allergens': allergens,
+          'dietary_preferences': _words(m['dietary_preferences']),
+          'created_by': SupaFlow.client.auth.currentUser?.id,
+        }, onConflict: 'household_id,profile_id', ignoreDuplicates: true);
+      } else if (_words(had['allergens']).join(',') != allergens.join(',') ||
+          (name.isNotEmpty && '${had['name']}' != name)) {
+        await SupaFlow.client.from('household_diners').update({
+          if (name.isNotEmpty) 'name': name,
+          'allergens': allergens,
+        }).eq('id', '${had['id']}');
+      }
+    }
+  }
+
+  /// Who eats this meal, by name, or '' when nobody has been chosen.
+  String _eaters(_Entry e) {
+    final plate = _plates[e.id];
+    if (plate == null || plate.isEmpty) return '';
+    return [
+      for (final d in _diners)
+        if (plate.containsKey('${d['id']}'))
+          '${d['name']}${plate['${d['id']}']! <= 0.5 ? ' (small)' : ''}'
+    ].join(', ');
+  }
+
+  /// "Mia avoids eggs" for each eater whose allergy the meal mentions.
+  List<String> _clashes(_Entry e) {
+    final plate = _plates[e.id];
+    final eaters = [
+      for (final d in _diners)
+        if (plate == null || plate.isEmpty || plate.containsKey('${d['id']}')) d
+    ];
+    final text = [e.title, ...e.list('uses'), ...e.list('extras')]
+        .join('\n')
+        .toLowerCase();
+    return [
+      for (final d in eaters)
+        for (final a in _words(d['allergens']))
+          if (_stem(a).length > 1 && text.contains(_stem(a)))
+            '${d['name']} avoids ${a.toLowerCase()}'
+    ];
+  }
+
+  Future<void> _setEater(_Entry e, Map d, bool eating) async {
+    final dinerId = '${d['id']}';
+    try {
+      if (eating) {
+        await SupaFlow.client.from('meal_plan_diners').upsert({
+          'plan_entry_id': e.id,
+          'diner_id': dinerId,
+          'household_id': _for,
+          'portions': _portionOf(d['default_portion']),
+        });
+      } else {
+        await SupaFlow.client
+            .from('meal_plan_diners')
+            .delete()
+            .eq('plan_entry_id', e.id)
+            .eq('diner_id', dinerId);
+      }
+      final plate = Map<String, double>.of(_plates[e.id] ?? {});
+      if (eating) {
+        plate[dinerId] = _portionOf(d['default_portion']);
+      } else {
+        plate.remove(dinerId);
+      }
+      if (mounted) setState(() => _plates[e.id] = plate);
+      if (plate.isNotEmpty) {
+        final total = plate.values.fold<double>(0, (a, b) => a + b);
+        await SupaFlow.client
+            .from('meal_plan_entries')
+            .update({'servings': total.ceil().clamp(1, 12)}).eq('id', e.id);
+      }
+      await _load(_for, quiet: true);
+    } catch (_) {
+      if (mounted) _say('Could not change who is eating. Check your signal.');
+    }
+  }
+
+  Future<void> _openDiners(FlutterFlowTheme t) async {
+    if (!_dinersReady) {
+      _say('Household planning is almost ready. Try again soon.');
+      return;
+    }
+    final name = TextEditingController();
+    // Allergy text typed but not yet saved, by diner id.
+    final edits = <String, String>{};
+    List<String> allergyList(String v) => [
+          for (final a in v.split(RegExp(r'[,;\n]')))
+            if (a.trim().length > 1) a.trim()
+        ];
+    await _sheet<void>((sheet, redraw) {
+      Future<void> change(Future<void> Function() write) async {
+        try {
+          await write();
+          await _loadDiners();
+        } catch (_) {
+          if (mounted) _say('Could not save that. Check your signal.');
+        }
+        try {
+          redraw(() {});
+        } catch (_) {}
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Who eats at home',
+              style: t.headlineSmall.copyWith(
+                  fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 4),
+          Text(
+              'Portions add up to a meal’s servings. Allergies are left out of ideas found for the household.',
+              style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          const SizedBox(height: 16),
+          for (final d in _diners)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+              decoration: _uCard(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('${d['name']}',
+                            style: t.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w700, color: _ink)),
+                      ),
+                      if (d['profile_id'] == null)
+                        IconButton(
+                          tooltip: 'Remove ${d['name']}',
+                          icon: const Icon(Icons.close, color: _muted),
+                          onPressed: () => change(() => SupaFlow.client
+                              .from('household_diners')
+                              .delete()
+                              .eq('id', '${d['id']}')),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    for (final p in const [0.5, 1.0, 1.5])
+                      _choice(
+                          t,
+                          p == 0.5
+                              ? 'Small portion'
+                              : (p == 1.0 ? 'Regular' : 'Large portion'),
+                          _portionName(_portionOf(d['default_portion'])) ==
+                              _portionName(p),
+                          () => change(() => SupaFlow.client
+                              .from('household_diners')
+                              .update({'default_portion': p}).eq(
+                                  'id', '${d['id']}'))),
+                  ]),
+                  const SizedBox(height: 6),
+                  if (d['profile_id'] == null)
+                    TextFormField(
+                      key: ValueKey('allergy-${d['id']}'),
+                      initialValue: _words(d['allergens']).join(', '),
+                      onChanged: (v) => edits['${d['id']}'] = v,
+                      decoration: const InputDecoration(
+                          labelText: 'Allergies or foods to avoid',
+                          hintText: 'e.g. peanuts, eggs'),
+                      onFieldSubmitted: (v) {
+                        edits.remove('${d['id']}');
+                        change(() => SupaFlow.client
+                            .from('household_diners')
+                            .update({'allergens': allergyList(v)}).eq(
+                                'id', '${d['id']}'));
+                      },
+                    )
+                  else
+                    Text(
+                        _words(d['allergens']).isEmpty
+                            ? 'No allergies saved in their profile'
+                            : 'Avoids ${_words(d['allergens']).join(', ')} (from their profile)',
+                        style:
+                            t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
+          _label(t, 'Add someone without the app'),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: name,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(hintText: 'Name, e.g. Mia'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                  backgroundColor: _forest,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(64, 48),
+                ),
+                onPressed: () {
+                  final n = name.text.trim();
+                  if (n.isEmpty) return;
+                  name.clear();
+                  change(() => SupaFlow.client.from('household_diners').insert({
+                        'household_id': _for,
+                        'name': n,
+                        'created_by': SupaFlow.client.auth.currentUser?.id,
+                      }));
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+    Future.delayed(const Duration(milliseconds: 500), name.dispose);
+    if (edits.isNotEmpty) {
+      try {
+        for (final e in edits.entries) {
+          await SupaFlow.client
+              .from('household_diners')
+              .update({'allergens': allergyList(e.value)}).eq('id', e.key);
+        }
+        await _loadDiners();
+      } catch (_) {
+        if (mounted) _say('Could not save the allergies. Check your signal.');
+      }
+    }
+  }
+
+  Widget _dinersCard(FlutterFlowTheme t) {
+    final names = [
+      for (final d in _diners)
+        '${d['name']}${_portionOf(d['default_portion']) <= 0.5 ? ' (small)' : ''}'
+    ];
+    return Semantics(
+      button: true,
+      label: 'Who eats at home',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _openDiners(t),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: _uCard(16),
+          child: Row(
+            children: [
+              const Icon(Icons.groups_outlined, color: _forest, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Who eats at home',
+                        style: t.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700, color: _ink)),
+                    Text(
+                        names.isEmpty
+                            ? 'Add the people you cook for'
+                            : names.join(', '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: _muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shop() async {
+    final needed = _needed;
+    if (needed.isEmpty || _busy) return;
+    setState(() => _busy = true);
+    var added = 0;
+    try {
+      for (final name in needed) {
+        final said = await addNameToShoppingList(name);
+        if (said.isNotEmpty) {
+          if (mounted) _say(said);
+          return;
+        }
+        added++;
+      }
+      if (mounted) {
+        _say(added == 1
+            ? '1 thing is on your shopping list.'
+            : '$added things are on your shopping list.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  // ---- page ----------------------------------------------------------------
 
   void _back() {
     final router = GoRouter.of(context);
     if (router.canPop()) {
       router.pop();
     } else {
-      router.goNamed('ProfilePage');
+      router.goNamed('RecipesPage');
     }
   }
 
@@ -2585,12 +1595,12 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
     Widget content;
     if (household.isEmpty) {
       content = _message(t, Icons.group_outlined, 'No household yet.',
-          'Create or join a household first.', null);
+          'Create or join a household first, then plan meals together.', null);
     } else if (_loading) {
       content = Column(children: [
-        for (var i = 0; i < 3; i++) ...[
+        for (var i = 0; i < 4; i++) ...[
           Container(
-            height: 92,
+            height: 96,
             decoration: BoxDecoration(
                 color: _sage, borderRadius: BorderRadius.circular(20)),
           ),
@@ -2598,44 +1608,47 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
         ],
       ]);
     } else if (_notReady) {
-      content = _message(t, Icons.construction_outlined,
-          'Receipts are almost ready.', 'Try again soon.', () => _load(_for));
+      content = _message(
+          t,
+          Icons.construction_outlined,
+          'Plan my week is almost ready.',
+          'It needs one more setup step on our side. Try again soon.',
+          () => _load(_for));
     } else if (_offline) {
       content = _message(
           t,
           Icons.cloud_off_outlined,
-          'Can’t reach your receipts.',
+          'Can’t reach your plan.',
           'No signal, or the connection dropped. Try again when you are back online.',
           () => _load(_for));
-    } else if (_receipts.isEmpty) {
-      content = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _message(
-          t,
-          Icons.receipt_long_outlined,
-          'No receipts yet.',
-          'Scan a receipt from the Scan tab. Once its food is added, it shows here with the shop, the date and what you paid.',
-          null),
-          const SizedBox(height: 14),
-          _UButton('Scan a receipt',
-              icon: Icons.receipt_long_outlined,
-              onTap: () => context.pushNamed('CameraPage',
-                  queryParameters: {'mode': 'receipt'})),
-        ],
-      );
     } else {
+      final needed = _needed;
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final r in _receipts) ...[
-            _row(t, r),
+          if (FFAppState().ideasGoals) ...[
+            _dayProgress(t),
+            const SizedBox(height: 16),
+          ],
+          if (_dinersReady) ...[
+            _dinersCard(t),
             const SizedBox(height: 12),
+          ],
+          for (var i = 0; i < 7; i++) ...[
+            _dayCard(t, _dayAt(i)),
+            const SizedBox(height: 12),
+          ],
+          const SizedBox(height: 8),
+          _shoppingCard(t, needed),
+          if (_budgetReady) ...[
+            const SizedBox(height: 12),
+            _budgetCard(t, needed),
           ],
         ],
       );
     }
 
+    final planned = _entries.where((e) => e.status == 'planned').length;
     return SizedBox(
       width: widget.width,
       height: widget.height,
@@ -2662,83 +1675,140 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Receipts.',
+            Text('Plan my week.',
                 style: t.headlineMedium.copyWith(
                     fontSize: 32, fontWeight: FontWeight.w800, color: _uForest)),
             const SizedBox(height: 4),
             Text(
-                _receipts.isEmpty
-                    ? 'What your household bought, shop by shop.'
-                    : (_receipts.length == 1
-                        ? '1 receipt, shared with your household.'
-                        : '${_receipts.length} receipts, shared with your household.'),
+                _loading || _offline || _notReady
+                    ? 'The next seven days, shared with your household.'
+                    : (planned == 0
+                        ? 'Nothing planned yet. Add a meal to any day.'
+                        : (planned == 1
+                            ? '1 meal planned, shared with your household.'
+                            : '$planned meals planned, shared with your household.')),
                 style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
             const SizedBox(height: 20),
-            content,
+            AnimatedSize(
+              duration: MediaQuery.of(context).disableAnimations
+                  ? Duration.zero
+                  : const Duration(milliseconds: 200),
+              alignment: Alignment.topCenter,
+              child: content,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _row(FlutterFlowTheme t, Map r) {
-    final shop = '${r['shop_name'] ?? ''}'.trim();
-    final place = '${r['shop_location'] ?? ''}'.trim();
-    final bought = _when(r['purchased_at']);
-    final count = r['item_count'] is num ? (r['item_count'] as num).round() : 0;
-    final total = _money(r['total_amount'], r['currency']);
+  Widget _dayCard(FlutterFlowTheme t, DateTime day) {
+    final meals = _entries.where((e) => _sameDay(e.date, day)).toList();
+    final isToday = _sameDay(day, _today);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isToday ? _forest : _border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(_dayName(day),
+                    style: t.titleMedium.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _ink)),
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 44), foregroundColor: _forest),
+                onPressed: _busy ? null : () => _openPicker(t, day: day),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text('Add a meal',
+                    style: t.bodyMedium
+                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          if (meals.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8, right: 8),
+              child: Text('Nothing planned',
+                  style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+            ),
+          for (final e in meals) _entryRow(t, e),
+        ],
+      ),
+    );
+  }
+
+  Widget _entryRow(FlutterFlowTheme t, _Entry e) {
+    final goals = FFAppState().ideasGoals;
+    final minutes = e.number('minutes');
+    final kcal = e.number('calories');
+    final meta = [
+      _meals[e.meal] ?? 'Dinner',
+      if (minutes > 0) '$minutes min',
+      'Serves ${e.servings}',
+      if (e.extra > 0) '+${e.extra} extra',
+      if (_eaters(e).isNotEmpty) 'for ${_eaters(e)}',
+      if (_clashes(e).isNotEmpty) '⚠ check allergies',
+      if (goals && kcal > 0) '$kcal kcal',
+    ].join(' · ');
+    final done = e.status != 'planned';
     return Semantics(
       button: true,
-      label: shop.isEmpty ? 'Receipt' : shop,
+      label: e.title,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _open(t, r),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: _uCard(20),
+        borderRadius: BorderRadius.circular(14),
+        onTap: _busy ? null : () => _openEntry(t, e),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    color: _sage, borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.receipt_long_outlined,
-                    color: _forest, size: 22),
+                    color: done ? _forest : _sage,
+                    borderRadius: BorderRadius.circular(14)),
+                child: Icon(
+                    e.status == 'cooked'
+                        ? Icons.check
+                        : (e.status == 'skipped'
+                            ? Icons.remove
+                            : Icons.restaurant_outlined),
+                    color: done ? Colors.white : _forest,
+                    size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(shop.isEmpty ? 'Shop not read' : shop,
-                        maxLines: 1,
+                    Text(e.title,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: t.bodyLarge.copyWith(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: _ink)),
-                    if (place.isNotEmpty)
-                      Text(place,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.bodyMedium
-                              .copyWith(color: _muted, fontSize: 14)),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: _ink,
+                            decoration:
+                                done ? TextDecoration.lineThrough : null)),
                     Text(
-                        bought.isEmpty
-                            ? 'Purchase time not read'
-                            : 'Bought $bought',
-                        style:
-                            t.bodyMedium.copyWith(color: _ink, fontSize: 14)),
-                    const SizedBox(height: 2),
-                    Text(
-                        [
-                          count == 1 ? '1 item' : '$count items',
-                          if (total.isNotEmpty) total,
-                          'scanned ${_when(r['scanned_at'], time: false)}',
-                        ].join(' · '),
+                        e.status == 'cooked'
+                            ? 'Eaten · $meta'
+                            : (e.status == 'skipped'
+                                ? 'Skipped · $meta'
+                                : meta),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style:
                             t.bodySmall.copyWith(color: _muted, fontSize: 13)),
                   ],
@@ -2752,255 +1822,731 @@ class _ReceiptHistoryState extends State<ReceiptHistory> {
     );
   }
 
-  Future<void> _open(FlutterFlowTheme t, Map r) async {
-    List<Map> lines = const [];
-    final state = <String, String>{};
-    final noPhoto = <(String, String)>[];
-    try {
-      final rows = await SupaFlow.client
-          .from('receipt_items')
-          .select('name, quantity, unit_price, line_total, food_item_id')
-          .eq('receipt_id', r['id'].toString())
-          .order('created_at');
-      lines = [for (final x in rows as List) x as Map];
-      final ids = [
-        for (final l in lines)
-          if (l['food_item_id'] != null) l['food_item_id'].toString()
-      ];
-      if (ids.isNotEmpty) {
-        final foods = await SupaFlow.client
-            .from('food_items')
-            .select('id, status, name, image_url')
-            .inFilter('id', ids);
-        for (final f in foods as List) {
-          final m = f as Map;
-          state[m['id'].toString()] = '${m['status'] ?? ''}';
-          final gone = m['status'] == 'consumed' || m['status'] == 'discarded';
-          if (!gone && '${m['image_url'] ?? ''}'.trim().isEmpty) {
-            noPhoto.add((m['id'].toString(), '${m['name'] ?? ''}'));
-          }
-        }
-      }
-    } catch (_) {
-      if (mounted) _say('Could not open this receipt. Check your signal.');
-      return;
-    }
-    if (!mounted) return;
-    final shop = '${r['shop_name'] ?? ''}'.trim();
-    final place = '${r['shop_location'] ?? ''}'.trim();
-    final total = _money(r['total_amount'], r['currency']);
-    final remove = await showModalBottomSheet<Object>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: _cream,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheet) => ConstrainedBox(
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(sheet).size.height * 0.88),
-        child: SafeArea(
-          top: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(shop.isEmpty ? 'Receipt' : shop,
-                    style: t.headlineSmall.copyWith(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: _ink)),
-                if (place.isNotEmpty)
-                  Text(place,
-                      style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
-                const SizedBox(height: 4),
-                Text(
-                    [
-                      if (_when(r['purchased_at']).isNotEmpty)
-                        'Bought ${_when(r['purchased_at'])}',
-                      'Scanned ${_when(r['scanned_at'])}',
-                    ].join(' · '),
-                    style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-                const SizedBox(height: 16),
-                Container(
-                  decoration: _uCard(16),
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < lines.length; i++) ...[
-                        if (i > 0)
-                          const Divider(
-                              height: 1, thickness: 1, color: _border),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 10),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                        '${lines[i]['quantity'] is num && (lines[i]['quantity'] as num) > 1 ? '${(lines[i]['quantity'] as num).round()} × ' : ''}${lines[i]['name']}',
-                                        style: t.bodyLarge.copyWith(
-                                            fontSize: 16, color: _ink)),
-                                    Text(
-                                        _fate(state[
-                                            '${lines[i]['food_item_id']}']),
-                                        style: t.bodySmall.copyWith(
-                                            color: _muted, fontSize: 13)),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                  _money(lines[i]['line_total'], r['currency']),
-                                  style: t.bodyLarge.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: _ink)),
-                            ],
-                          ),
-                        ),
-                      ],
-                      if (lines.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Text('No lines kept for this receipt.',
-                              style: t.bodyMedium.copyWith(color: _muted)),
-                        ),
-                    ],
-                  ),
-                ),
-                if (total.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text('Receipt total',
-                            style: t.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w700, color: _ink)),
-                      ),
-                      Text(total,
-                          style: t.titleMedium.copyWith(
-                              fontWeight: FontWeight.w800, color: _ink)),
-                    ],
-                  ),
-                  Text(
-                      'The total includes anything on the receipt that was not food.',
-                      style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
-                ],
-                if (noPhoto.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 52,
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _forest,
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: _forest),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
-                      ),
-                      onPressed: () => Navigator.of(sheet).pop('photos'),
-                      icon: const Icon(Icons.travel_explore, size: 20),
-                      label: Text(
-                          noPhoto.length == 1
-                              ? 'Find the product photo for 1 food'
-                              : 'Find product photos for ${noPhoto.length} foods',
-                          style: t.bodyLarge.copyWith(
-                              color: _forest, fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 20),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                      minimumSize: const Size(48, 48), foregroundColor: _red),
-                  onPressed: () => Navigator.of(sheet).pop(true),
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  label: Text('Delete this receipt',
-                      style: t.bodyLarge
-                          .copyWith(color: _red, fontWeight: FontWeight.w700)),
-                ),
-              ],
-            ),
-          ),
-        ),
+  Widget _shoppingCard(FlutterFlowTheme t, List<String> needed) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _sage,
+        borderRadius: BorderRadius.circular(20),
       ),
-    );
-    if (remove == 'photos' && mounted) {
-      // One food at a time; closing a sheet skips that food.
-      var added = 0;
-      for (final (id, name) in noPhoto) {
-        if (!mounted) return;
-        final used = await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: _cream,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          builder: (sheet) => ConstrainedBox(
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(sheet).size.height * 0.9),
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                    20, 20, 20, 20 + MediaQuery.of(sheet).viewInsets.bottom),
-                child: ProductPhotoPicker(itemId: id, foodName: name),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Shopping for the week',
+              style: t.titleMedium.copyWith(
+                  fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 4),
+          Text(
+              needed.isEmpty
+                  ? 'The planned meals need nothing beyond your kitchen.'
+                  : needed.join(', '),
+              style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          if (needed.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 52,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                  backgroundColor: _forest,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _busy ? null : _shop,
+                icon: const Icon(Icons.add_shopping_cart, size: 20),
+                label: Text(
+                    needed.length == 1
+                        ? 'Add 1 thing to the shopping list'
+                        : 'Add ${needed.length} things to the shopping list',
+                    style: t.bodyLarge.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
-          ),
-        );
-        if (used == true) added++;
-      }
-      if (mounted && noPhoto.length > 1) {
-        _say(added == 0
-            ? 'No photos added.'
-            : (added == 1 ? '1 photo added.' : '$added photos added.'));
-      }
-      return;
-    }
-    if (remove != true || !mounted) return;
-    final sure = await showDialog<bool>(
-      context: context,
-      builder: (d) => AlertDialog(
-        title: const Text('Delete this receipt?'),
-        content: const Text(
-            'The record of this shop goes for everyone in your household. The food stays in your kitchen.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(d).pop(false),
-              child: const Text('Keep it')),
-          TextButton(
-              onPressed: () => Navigator.of(d).pop(true),
-              child: const Text('Delete', style: TextStyle(color: _red))),
+          ],
         ],
       ),
     );
-    if (sure != true || !mounted) return;
-    try {
-      await SupaFlow.client
-          .from('receipts')
-          .delete()
-          .eq('id', r['id'].toString());
-      await _load(_for, quiet: true);
-      if (mounted) _say('Receipt deleted. The food is still in your kitchen.');
-    } catch (_) {
-      if (mounted) _say('Could not delete it. Check your signal.');
-    }
   }
 
-  static String _fate(String? status) {
-    switch (status) {
-      case null:
-        return 'Not added to the kitchen';
-      case 'consumed':
-        return 'Used';
-      case 'discarded':
-        return 'Thrown out';
-      default:
-        return 'In your kitchen';
-    }
+  // ---- sheets --------------------------------------------------------------
+
+  Future<T?> _sheet<T>(Widget Function(BuildContext, StateSetter) build) =>
+      showModalBottomSheet<T>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: _cream,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        builder: (sheet) => StatefulBuilder(
+          builder: (sheet, redraw) => Padding(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(sheet).size.height * 0.88),
+              child: SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                              color: _border,
+                              borderRadius: BorderRadius.circular(999)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      build(sheet, redraw),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+  /// Add a meal to a day, or (with [swapFor]) pick what replaces one.
+  Future<void> _openPicker(FlutterFlowTheme t,
+      {required DateTime day, _Entry? swapFor}) async {
+    var meal = swapFor?.meal ?? 'dinner';
+    var finding = false;
+    await _sheet<void>((sheet, redraw) {
+      final now = FFAppState().mealIdeas;
+      Widget ideaTile(MealIdeaStruct idea) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                Navigator.of(sheet).pop();
+                if (swapFor != null) {
+                  _swap(swapFor, idea);
+                } else {
+                  _add(day, meal, idea);
+                }
+              },
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 56),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: _uCard(14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(idea.title,
+                              style: t.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.w700, color: _ink)),
+                          Text(
+                              [
+                                if (idea.minutes > 0) '${idea.minutes} min',
+                                if (idea.extras.isEmpty)
+                                  'Only your food'
+                                else
+                                  'Needs ${idea.extras.length} more',
+                                if (idea.extras.isNotEmpty &&
+                                    _costOf(idea.extras).$2 <
+                                        idea.extras.length)
+                                  'about ${_money(_costOf(idea.extras).$1)} to buy',
+                                if (FFAppState().ideasGoals &&
+                                    idea.calories > 0)
+                                  '${idea.calories} kcal',
+                              ].join(' · '),
+                              style: t.bodySmall
+                                  .copyWith(color: _muted, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.add_circle_outline, color: _forest),
+                  ],
+                ),
+              ),
+            ),
+          );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+              swapFor != null
+                  ? 'Swap ${swapFor.title}'
+                  : 'Add to ${_onDay(day)}',
+              style: t.headlineSmall.copyWith(
+                  fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
+          if (swapFor == null) ...[
+            const SizedBox(height: 16),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final e in _meals.entries)
+                _choice(t, e.value, meal == e.key,
+                    () => redraw(() => meal = e.key)),
+            ]),
+          ],
+          const SizedBox(height: 20),
+          if (now.isNotEmpty) ...[
+            _label(t, 'Ideas from your food now'),
+            for (final idea in now) ideaTile(idea),
+            const SizedBox(height: 12),
+          ],
+          if (_kept.isNotEmpty) ...[
+            _label(t, 'Kept ideas'),
+            for (final idea in _kept) ideaTile(idea),
+            const SizedBox(height: 12),
+          ],
+          if (now.isEmpty && _kept.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                  'No ideas yet. Find some from the food in your kitchen.',
+                  style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
+            ),
+          SizedBox(
+            height: 52,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _forest,
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: _border),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: finding
+                  ? null
+                  : () async {
+                      redraw(() => finding = true);
+                      if (swapFor == null) {
+                        FFAppState()
+                            .update(() => FFAppState().ideasMeal = meal);
+                      }
+                      final said = await getMealIdeas();
+                      if (!mounted) return;
+                      if (said.isNotEmpty) _say(said);
+                      try {
+                        redraw(() => finding = false);
+                      } catch (_) {}
+                    },
+              icon: finding
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: _forest))
+                  : const Icon(Icons.auto_awesome_outlined, size: 20),
+              label: Text(
+                  finding ? 'Looking through your kitchen…' : 'Find new ideas',
+                  style: t.bodyLarge
+                      .copyWith(color: _forest, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      );
+    });
   }
+
+  Future<void> _openEntry(FlutterFlowTheme t, _Entry e) async {
+    final uses = e.list('uses');
+    final extras = e.list('extras');
+    final steps = e.list('steps');
+    await _sheet<void>((sheet, redraw) {
+      void act(VoidCallback then) {
+        Navigator.of(sheet).pop();
+        then();
+      }
+
+      Widget action(IconData icon, String label, VoidCallback onTap,
+              {Color colour = _forest}) =>
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+            minVerticalPadding: 12,
+            leading: Icon(icon, color: colour),
+            title: Text(label,
+                style: t.bodyLarge.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: colour == _forest ? _ink : colour)),
+            onTap: onTap,
+          );
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(e.title,
+              style: t.headlineSmall.copyWith(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: _ink,
+                  height: 1.15)),
+          const SizedBox(height: 4),
+          Text(
+              [
+                '${_meals[e.meal] ?? 'Dinner'}, ${_onDay(e.date)}',
+                if (e.number('minutes') > 0) '${e.number('minutes')} min',
+                'Serves ${e.servings}',
+              ].join(' · '),
+              style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          if (_clashes(e).isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDE3E0),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                  '${_clashes(e).join('. ')}. Check the ingredients before cooking; this is not a medical check.',
+                  style: t.bodyMedium.copyWith(
+                      color: const Color(0xFFB42318),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+            ),
+          ],
+          if (_diners.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _label(t, 'Who’s eating'),
+            StatefulBuilder(
+              builder: (context, again) => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final d in _diners)
+                    _choice(t, '${d['name']}',
+                        _plates[e.id]?.containsKey('${d['id']}') ?? false,
+                        () async {
+                      await _setEater(e, d,
+                          !(_plates[e.id]?.containsKey('${d['id']}') ?? false));
+                      try {
+                        again(() {});
+                      } catch (_) {}
+                    }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text('Servings follow who’s eating and their portions.',
+                style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+          ],
+          if (e.status == 'planned' || e.status == 'cooked') ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                  backgroundColor: _forest,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: () => act(() => _openAte(t, e)),
+                icon: const Icon(Icons.check, size: 20),
+                label: Text('I ate this',
+                    style: t.bodyLarge.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          // Cook once, eat twice.
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+            decoration: _uCard(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Cook extra portions',
+                              style: t.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.w700, color: _ink)),
+                          Text('Cook once, eat twice',
+                              style: t.bodySmall
+                                  .copyWith(color: _muted, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    _stepper(
+                        Icons.remove,
+                        e.extra > 0,
+                        () => act(
+                            () => _update(e, {'extra_portions': e.extra - 1}))),
+                    SizedBox(
+                      width: 36,
+                      child: Text('${e.extra}',
+                          textAlign: TextAlign.center,
+                          style: t.titleMedium.copyWith(color: _ink)),
+                    ),
+                    _stepper(
+                        Icons.add,
+                        e.extra < 6,
+                        () => act(
+                            () => _update(e, {'extra_portions': e.extra + 1}))),
+                  ],
+                ),
+                if (e.extra > 0 &&
+                    e.data['leftoverOf'] == null &&
+                    !_entries.any((x) => x.data['leftoverOf'] == e.id))
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                          minimumSize: const Size(48, 44),
+                          foregroundColor: _forest),
+                      onPressed: () => act(() => _planLeftovers(e)),
+                      icon: const Icon(Icons.event_repeat, size: 18),
+                      label: Text(
+                          'Plan the leftovers for ${_onDay(DateTime(e.date.year, e.date.month, e.date.day + 1))}’s lunch',
+                          style: t.bodyMedium.copyWith(
+                              color: _forest, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (e.status == 'planned')
+            action(Icons.swap_horiz, 'Swap for another idea',
+                () => act(() => _openPicker(t, day: e.date, swapFor: e))),
+          action(Icons.event_outlined, 'Move to another day',
+              () => act(() => _openMove(t, e))),
+          if (e.status != 'planned')
+            action(
+                Icons.undo,
+                'Mark as still to cook',
+                () => act(() async {
+                      // Your own log of this meal goes too; the kitchen
+                      // is left as it is (Undo on the message restores food).
+                      final uid = SupaFlow.client.auth.currentUser?.id;
+                      if (uid != null) {
+                        try {
+                          await SupaFlow.client
+                              .from('meal_log_entries')
+                              .delete()
+                              .eq('plan_entry_id', e.id)
+                              .eq('profile_id', uid);
+                        } catch (_) {}
+                      }
+                      await _update(
+                          e, {'status': 'planned', 'cooked_at': null});
+                    })),
+          if (e.status == 'planned')
+            action(Icons.remove_circle_outline, 'Skip it this time',
+                () => act(() => _update(e, {'status': 'skipped'}))),
+          action(Icons.delete_outline, 'Take off the plan',
+              () => act(() => _remove(e)),
+              colour: _red),
+          if (uses.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _label(t, 'From your kitchen'),
+            Text(uses.join(', '),
+                style: t.bodyLarge.copyWith(color: _ink, fontSize: 16)),
+          ],
+          if (extras.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _label(t, 'You would also need'),
+            Text(extras.join(', '),
+                style: t.bodyLarge.copyWith(color: _ink, fontSize: 16)),
+          ],
+          if (steps.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _label(t, 'Steps'),
+            for (var i = 0; i < steps.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('${i + 1}. ${steps[i]}',
+                    style: t.bodyLarge
+                        .copyWith(color: _ink, fontSize: 16, height: 1.4)),
+              ),
+          ],
+        ],
+      );
+    });
+  }
+
+  Future<void> _openMove(FlutterFlowTheme t, _Entry e) async {
+    await _sheet<void>((sheet, redraw) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Move ${e.title}',
+                style: t.headlineSmall.copyWith(
+                    fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
+            const SizedBox(height: 16),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (var i = 0; i < 7; i++)
+                _choice(t, _dayName(_dayAt(i)), _sameDay(e.date, _dayAt(i)),
+                    () {
+                  Navigator.of(sheet).pop();
+                  _update(e, {'plan_date': _iso(_dayAt(i))});
+                }),
+            ]),
+          ],
+        ));
+  }
+
+  /// Pick a meal → cook it → confirm portions → "I ate this".
+  Future<void> _openAte(FlutterFlowTheme t, _Entry e) async {
+    // The kitchen foods this meal uses, ticked to leave the kitchen.
+    var foods = <({String id, String name})>[];
+    final exact = <String>{};
+    try {
+      final rows = await SupaFlow.client
+          .from('food_items_status')
+          .select('id, name, computed_status')
+          .eq('household_id', _for)
+          .limit(200);
+      final uses = e.list('uses').map((u) => u.toLowerCase()).toList();
+      for (final r in rows as List) {
+        final m = r as Map;
+        final status = (m['computed_status'] ?? '').toString();
+        if (status == 'consumed' || status == 'discarded') continue;
+        final name = (m['name'] ?? '').toString();
+        final n = name.toLowerCase();
+        if (n.isEmpty) continue;
+        if (uses.any((u) => n == u || _wordIn(n, u) || _wordIn(u, n))) {
+          foods.add((id: m['id'].toString(), name: name));
+          if (uses.contains(n)) exact.add(m['id'].toString());
+        }
+      }
+    } catch (_) {
+      foods = [];
+    }
+    if (!mounted) return;
+    // Exact names start ticked; near matches are offered unticked. When the
+    // meal was already eaten by someone else, nothing is ticked: the food
+    // most likely left the kitchen then.
+    final ticked = e.status == 'cooked'
+        ? <String>{}
+        : {
+            for (final f in foods)
+              if (exact.contains(f.id) || foods.length <= 3) f.id
+          };
+    var portions = 1.0;
+    final kcal = e.number('calories');
+    final protein = e.number('protein');
+    final goals = FFAppState().ideasGoals;
+
+    final confirmed = await _sheet<bool>((sheet, redraw) {
+      String amount(double p) =>
+          p == p.roundToDouble() ? p.round().toString() : p.toStringAsFixed(1);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('I ate this',
+              style: t.headlineSmall.copyWith(
+                  fontSize: 26, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 4),
+          Text(e.title,
+              style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(child: _label(t, 'How much did you have?')),
+              _stepper(Icons.remove, portions > 0.5,
+                  () => redraw(() => portions -= 0.5)),
+              SizedBox(
+                width: 96,
+                child: Text(
+                    portions == 1
+                        ? '1 portion'
+                        : '${amount(portions)} portions',
+                    textAlign: TextAlign.center,
+                    style: t.titleSmall.copyWith(color: _ink)),
+              ),
+              _stepper(
+                  Icons.add, portions < 4, () => redraw(() => portions += 0.5)),
+            ],
+          ),
+          if (goals && kcal > 0) ...[
+            const SizedBox(height: 8),
+            Text(
+                'About ${(kcal * portions).round()} kcal${protein > 0 ? ' · ${(protein * portions).round()} g protein' : ''}, estimated. A guide only.',
+                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          ],
+          const SizedBox(height: 20),
+          _label(t, 'Used up in cooking'),
+          if (foods.isEmpty)
+            Text('No matching foods in your kitchen, so nothing changes there.',
+                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14))
+          else ...[
+            for (final f in foods)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: _forest,
+                value: ticked.contains(f.id),
+                title: Text(f.name,
+                    style: t.bodyLarge.copyWith(fontSize: 16, color: _ink)),
+                onChanged: (v) => redraw(
+                    () => v == true ? ticked.add(f.id) : ticked.remove(f.id)),
+              ),
+            Text('Untick anything with some left.',
+                style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
+          ],
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 52,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                backgroundColor: _forest,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => Navigator.of(sheet).pop(true),
+              child: Text('Confirm',
+                  style: t.bodyLarge.copyWith(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      );
+    });
+    if (confirmed != true || !mounted) return;
+    await _ate(e, portions, ticked.toList());
+  }
+
+  Future<void> _ate(_Entry e, double portions, List<String> used) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final uid = SupaFlow.client.auth.currentUser?.id;
+    String? logId;
+    final settled = <String>[];
+    try {
+      final row = await SupaFlow.client
+          .from('meal_log_entries')
+          .insert({
+            'profile_id': uid,
+            'household_id': _for,
+            'plan_entry_id': e.id,
+            'eaten_on': _iso(DateTime.now()),
+            'meal': e.meal,
+            'title': e.title,
+            'portions': portions,
+            if (e.number('calories') > 0)
+              'calories_per_serving': e.number('calories'),
+            if (e.number('protein') > 0)
+              'protein_per_serving': e.number('protein'),
+          })
+          .select('id')
+          .single();
+      logId = row['id'].toString();
+      await SupaFlow.client.from('meal_plan_entries').update({
+        'status': 'cooked',
+        'cooked_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', e.id);
+      for (final id in used) {
+        final said = await settleFoodItem(id, 'consumed');
+        if (said.isEmpty) settled.add(id);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() => _busy = false);
+        _say(logId == null
+            ? _why(error)
+            : 'Logged, but the kitchen could not be updated. Check your signal.');
+      }
+      if (logId == null) return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    await _load(_for, quiet: true);
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final id = logId!;
+    _say(
+        settled.isEmpty
+            ? 'Logged. Enjoy.'
+            : (settled.length == 1
+                ? 'Logged, and 1 food has left your kitchen.'
+                : 'Logged, and ${settled.length} foods have left your kitchen.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: const Color(0xFFB9E08F),
+          onPressed: () async {
+            try {
+              await SupaFlow.client
+                  .from('meal_log_entries')
+                  .delete()
+                  .eq('id', id);
+              await SupaFlow.client.from('meal_plan_entries').update(
+                  {'status': 'planned', 'cooked_at': null}).eq('id', e.id);
+              for (final f in settled) {
+                await unsettleFoodItem(f);
+              }
+              messenger.showSnackBar(
+                  const SnackBar(content: Text('Undone. Nothing changed.')));
+              if (mounted) _load(_for, quiet: true);
+            } catch (_) {
+              messenger.showSnackBar(const SnackBar(
+                  content: Text('Could not undo. Check your signal.')));
+            }
+          },
+        ));
+  }
+
+  // ---- pieces --------------------------------------------------------------
+
+  Widget _label(FlutterFlowTheme t, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text,
+            style: t.bodyMedium.copyWith(
+                color: _muted, fontWeight: FontWeight.w700, fontSize: 14)),
+      );
+
+  Widget _choice(
+          FlutterFlowTheme t, String label, bool on, VoidCallback onTap) =>
+      Semantics(
+        button: true,
+        selected: on,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: on ? _forest : Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: on ? _forest : _border),
+            ),
+            child: Text(label,
+                style: t.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: on ? Colors.white : _ink)),
+          ),
+        ),
+      );
+
+  Widget _stepper(IconData icon, bool enabled, VoidCallback onTap) => Opacity(
+        opacity: enabled ? 1 : 0.4,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: enabled ? onTap : null,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: _border),
+            ),
+            child: Icon(icon, color: _forest, size: 20),
+          ),
+        ),
+      );
 
   Widget _message(FlutterFlowTheme t, IconData icon, String title, String text,
       VoidCallback? retry) {
@@ -3428,77 +2974,72 @@ BoxDecoration _uBackDeco() => BoxDecoration(
     );
 ''';
 
-const _wShoppingListLive = r'''
+const _wRecipeCollection = r'''
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// The shopping list, shared and live.
-class ShoppingListLive extends StatefulWidget {
-  const ShoppingListLive({super.key, this.width, this.height});
+/// Recipe collection (owner, 14 Sep; a Plus feature): "save favourite recipes
+/// and connect their ingredients to inventory and shopping".
+///
+/// Kept ideas and the household's own recipes in one place. Each says how
+/// many of its ingredients are in the kitchen now; "Can cook now" shows only
+/// the ones with everything. A recipe opens to its ingredients (in the kitchen
+/// or not), one tap for the missing ones onto the shopping list, its steps,
+/// notes, a favourite star, and "Add to my week". Your own recipes can be
+/// typed in, edited and deleted.
+class RecipeCollection extends StatefulWidget {
+  const RecipeCollection({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<ShoppingListLive> createState() => _ShoppingListLiveState();
+  State<RecipeCollection> createState() => _RecipeCollectionState();
 }
 
-class _ShoppingListLiveState extends State<ShoppingListLive> {
+class _RecipeCollectionState extends State<RecipeCollection> {
   static const _forest = Color(0xFF07533A);
   static const _ink = Color(0xFF202C24);
   static const _muted = Color(0xFF59665D);
   static const _sage = Color(0xFFEDF2E8);
   static const _border = Color(0xFFDCE3D7);
+  static const _cream = Color(0xFFF7F7F0);
+  static const _red = Color(0xFFB42318);
+  static const _gold = Color(0xFFB54708);
+
+  static const _filters = <String, String>{
+    'all': 'All',
+    'favourites': 'Favourites',
+    'own': 'Your own',
+    'ready': 'Can cook now',
+  };
+  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
 
   String _for = '';
-  String _listId = '';
   bool _loading = true;
   bool _offline = false;
-  bool _adding = false;
-  bool _basketBusy = false;
-  List<Map<String, dynamic>> _items = const [];
-  List<String> _again = const [];
-  final Set<String> _busy = {};
-  final _field = TextEditingController();
-  RealtimeChannel? _channel;
+  String _filter = 'all';
+  List<Map> _recipes = const [];
+  List<String> _kitchen = const [];
+  final Set<String> _listed = {};
 
-  @override
-  void dispose() {
-    _field.dispose();
-    _unsubscribe();
-    super.dispose();
-  }
-
-  void _unsubscribe() {
-    final c = _channel;
-    _channel = null;
-    if (c != null) SupaFlow.client.removeChannel(c);
-  }
-
-  void _subscribe(String listId) {
-    _unsubscribe();
-    _channel = SupaFlow.client
-        .channel('shopping-$listId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'shopping_list_items',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'shopping_list_id',
-            value: listId,
-          ),
-          callback: (_) {
-            if (mounted) _load(quiet: true);
-          },
-        )
-        .subscribe();
-  }
-
-  Future<void> _load({bool quiet = false}) async {
-    final household = _for;
-    if (household.isEmpty) return;
+  Future<void> _load(String household, {bool quiet = false}) async {
     if (!quiet && mounted) {
       setState(() {
         _loading = true;
@@ -3506,68 +3047,44 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
       });
     }
     try {
-      if (_listId.isEmpty) {
-        // Creating a household seeds exactly one list, so the oldest is the one.
-        final lists = await SupaFlow.client
-            .from('shopping_lists')
-            .select('id')
-            .eq('household_id', household)
-            .order('created_at')
-            .limit(1);
-        if ((lists as List).isNotEmpty) {
-          _listId = lists.first['id'].toString();
-          _subscribe(_listId);
-        }
-      }
-      var items = <Map<String, dynamic>>[];
-      if (_listId.isNotEmpty) {
-        final rows = await SupaFlow.client
-            .from('shopping_list_items')
-            .select('id, name, is_purchased, created_at')
-            .eq('shopping_list_id', _listId)
-            .order('is_purchased', ascending: true)
-            .order('created_at', ascending: true);
-        items = List<Map<String, dynamic>>.from(rows as List);
-      }
-      // What ran out lately and is not on the list already.
-      var again = <String>[];
+      List rows;
       try {
-        final since = DateTime.now()
-            .toUtc()
-            .subtract(const Duration(days: 21))
-            .toIso8601String();
-        final gone = await SupaFlow.client
-            .from('food_items')
-            .select('name, archived_at')
+        rows = await SupaFlow.client
+            .from('saved_recipes')
+            .select(
+                'id, title, recipe_data, source, servings, is_favourite, notes, created_at')
             .eq('household_id', household)
-            .inFilter('status', ['consumed', 'discarded'])
-            .gte('archived_at', since)
-            .order('archived_at', ascending: false)
-            .limit(60);
-        final onList = items
-            .map((i) => (i['name'] ?? '').toString().trim().toLowerCase())
-            .toSet();
-        final seen = <String>{};
-        for (final g in gone as List) {
-          final name = (g['name'] ?? '').toString().trim();
-          final key = name.toLowerCase();
-          if (name.isEmpty || onList.contains(key) || !seen.add(key)) continue;
-          again.add(name);
-          if (again.length >= 8) break;
-        }
-      } catch (_) {
-        // Suggestions are a nicety; the list still works without them.
+            .order('created_at', ascending: false)
+            .limit(200);
+      } on PostgrestException {
+        // Before migration 8: the collection still shows kept ideas.
+        rows = await SupaFlow.client
+            .from('saved_recipes')
+            .select('id, title, recipe_data, created_at')
+            .eq('household_id', household)
+            .order('created_at', ascending: false)
+            .limit(200);
       }
+      final foods = await SupaFlow.client
+          .from('food_items_status')
+          .select('name, computed_status')
+          .eq('household_id', household)
+          .limit(300);
       if (!mounted || household != _for) return;
       setState(() {
-        _items = items;
-        _again = again;
+        _recipes = [for (final r in rows) r as Map];
+        _kitchen = [
+          for (final f in foods as List)
+            if (!const ['consumed', 'discarded', 'past_use_by']
+                .contains('${(f as Map)['computed_status']}'))
+              '${f['name'] ?? ''}'.trim().toLowerCase()
+        ];
         _loading = false;
         _offline = false;
       });
     } catch (_) {
       if (!mounted) return;
-      if (quiet && _items.isNotEmpty) return;
+      if (quiet && _recipes.isNotEmpty) return;
       setState(() {
         _loading = false;
         _offline = true;
@@ -3575,894 +3092,106 @@ class _ShoppingListLiveState extends State<ShoppingListLive> {
     }
   }
 
-  void _say(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  static List<String> _words(Object? v) => v is List
+      ? [
+          for (final x in v)
+            if ('$x'.trim().isNotEmpty) '$x'.trim()
+        ]
+      : <String>[];
 
-  Future<void> _add([String? name]) async {
-    final text = (name ?? _field.text).trim();
-    if (text.isEmpty) {
-      _say('Type something to add first.');
-      return;
-    }
-    if (_adding) return;
-    setState(() => _adding = true);
-    final said = await addNameToShoppingList(text);
-    if (!mounted) return;
-    setState(() => _adding = false);
-    if (said.isNotEmpty) {
-      _say(said);
-      return;
-    }
-    if (name == null) _field.clear();
-    _load(quiet: true);
+  static String _stem(String w) {
+    final s = w.trim().toLowerCase();
+    if (s.length > 4 && s.endsWith('es')) return s.substring(0, s.length - 2);
+    if (s.length > 3 && s.endsWith('s')) return s.substring(0, s.length - 1);
+    return s;
   }
 
-  Future<void> _tick(Map<String, dynamic> item) async {
-    final id = item['id'].toString();
-    if (_busy.contains(id)) return;
-    final now = item['is_purchased'] == true;
-    setState(() {
-      _busy.add(id);
-      item['is_purchased'] = !now;
-    });
-    try {
-      await SupaFlow.client
-          .from('shopping_list_items')
-          .update({'is_purchased': !now}).eq('id', id);
-    } catch (_) {
-      if (mounted) {
-        setState(() => item['is_purchased'] = now);
-        _say('Could not update the list. Check your signal and try again.');
+  static Map _data(Map r) =>
+      r['recipe_data'] is Map ? r['recipe_data'] as Map : const {};
+
+  /// Every ingredient: for an idea, what it used and what it needed.
+  static List<String> _ingredients(Map r) {
+    final d = _data(r);
+    final own = _words(d['ingredients']);
+    if (own.isNotEmpty) return own;
+    return [..._words(d['uses']), ..._words(d['extras'])];
+  }
+
+  /// Whole-word match either way ("egg" in "Free-range eggs"), so "egg" is
+  /// never "eggplant" and "milk" never "coconut milk" alone.
+  static bool _wordIn(String hay, String word) {
+    final w = word.trim().toLowerCase();
+    if (w.length < 2) return false;
+    return RegExp('(^|[^a-z])${RegExp.escape(w)}(es|s)?([^a-z]|\$)')
+        .hasMatch(hay.toLowerCase());
+  }
+
+  bool _inKitchen(String ingredient) {
+    final i = ingredient.toLowerCase();
+    final si = _stem(i);
+    for (final k in _kitchen) {
+      if (k.isEmpty) continue;
+      final sk = _stem(k);
+      if (k == i ||
+          (sk.length > 2 && _wordIn(i, sk)) ||
+          (si.length > 2 && _wordIn(k, si))) {
+        return true;
       }
-    } finally {
-      if (mounted) setState(() => _busy.remove(id));
-      _load(quiet: true);
     }
-  }
-
-  Future<void> _remove(Map<String, dynamic> item) async {
-    final id = item['id'].toString();
-    if (_busy.contains(id)) return;
-    setState(() => _busy.add(id));
-    try {
-      await SupaFlow.client.from('shopping_list_items').delete().eq('id', id);
-      if (mounted) {
-        setState(() =>
-            _items = _items.where((i) => i['id'].toString() != id).toList());
-      }
-    } catch (_) {
-      if (mounted)
-        _say('Could not remove it. Check your signal and try again.');
-    } finally {
-      if (mounted) setState(() => _busy.remove(id));
-      _load(quiet: true);
-    }
-  }
-
-  Future<void> _basket() async {
-    if (_basketBusy) return;
-    setState(() => _basketBusy = true);
-    final said = await addBasketToKitchen();
-    if (!mounted) return;
-    setState(() => _basketBusy = false);
-    _say(said.isEmpty ? 'Added to your kitchen.' : said);
-    _load(quiet: true);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-    final t = FlutterFlowTheme.of(context);
-    final household = FFAppState().currentHouseholdId;
-    if (household.isNotEmpty && household != _for) {
-      _for = household;
-      _listId = '';
-      _unsubscribe();
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
-    }
-
-    final toBuy = _items.where((i) => i['is_purchased'] != true).toList();
-    final inBasket = _items.where((i) => i['is_purchased'] == true).toList();
-
-    return SizedBox(
-      width: widget.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!_loading && !_offline)
-            Text(
-              toBuy.isEmpty
-                  ? (inBasket.isEmpty
-                      ? 'Nothing on it yet'
-                      : 'Everything is in the basket')
-                  : '${toBuy.length} to buy${inBasket.isEmpty ? '' : ' · ${inBasket.length} in the basket'}',
-              style: t.bodyLarge.copyWith(color: _muted, fontSize: 16),
-            ),
-          const SizedBox(height: 16),
-          // Add a line.
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _field,
-                  textCapitalization: TextCapitalization.sentences,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _add(),
-                  style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-                  decoration: InputDecoration(
-                    labelText: 'Add something',
-                    hintText: 'Milk, bin bags, coffee…',
-                    filled: true,
-                    fillColor: const Color(0xFFFFFDF7),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _forest, width: 1.5),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 52,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: _adding ? null : () => _add(),
-              icon: const Icon(Icons.add, size: 20),
-              label: Text('Add to the list',
-                  style: t.bodyLarge.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          if (_again.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text('Buy again?',
-                style: t.titleLarge.copyWith(
-                    fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
-            const SizedBox(height: 4),
-            Text('Used up or thrown out lately. Tap to add.',
-                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final name in _again)
-                  Semantics(
-                    button: true,
-                    label: 'Add $name to the list',
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(999),
-                      onTap: _adding ? null : () => _add(name),
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 44),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _sage,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.add, size: 16, color: _forest),
-                            const SizedBox(width: 4),
-                            Text(name,
-                                style: t.bodyMedium.copyWith(
-                                    color: _forest,
-                                    fontWeight: FontWeight.w700)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 24),
-          if (_loading)
-            Column(children: [
-              for (var i = 0; i < 3; i++) ...[
-                Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                      color: _sage, borderRadius: BorderRadius.circular(14)),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ])
-          else if (_offline)
-            _note(t, Icons.cloud_off_outlined, 'Can’t reach your list.',
-                'No signal, or the connection dropped. It will show again when you are back online.')
-          else if (_items.isEmpty)
-            _note(t, Icons.shopping_basket_outlined, 'Nothing to buy yet.',
-                'Add what you have run out of, and it will be here when you are at the shops.')
-          else ...[
-            if (toBuy.isNotEmpty) _group(t, toBuy),
-            if (inBasket.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Text('In the basket',
-                  style: t.titleMedium.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: _muted)),
-              const SizedBox(height: 8),
-              _group(t, inBasket),
-            ],
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 52,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _forest,
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: _forest),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: _basketBusy ? null : _basket,
-                icon: const Icon(Icons.kitchen_outlined, size: 20),
-                label: Text('Put the basket in my kitchen',
-                    style: t.bodyLarge
-                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _group(FlutterFlowTheme t, List<Map<String, dynamic>> items) {
-    return Container(
-      decoration: _uCard(20),
-      child: Column(
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0)
-              const Divider(
-                  height: 1, thickness: 1, indent: 56, color: _border),
-            _line(t, items[i]),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _line(FlutterFlowTheme t, Map<String, dynamic> item) {
-    final done = item['is_purchased'] == true;
-    final name = (item['name'] ?? '').toString();
-    return Semantics(
-      checked: done,
-      label: name,
-      child: InkWell(
-        onTap: () => _tick(item),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 56),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
-            child: Row(
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(
-                    done ? Icons.check_circle : Icons.radio_button_unchecked,
-                    key: ValueKey(done),
-                    color: done ? _forest : _muted,
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(name,
-                      style: t.bodyLarge.copyWith(
-                        fontSize: 16,
-                        color: done ? _muted : _ink,
-                        fontWeight: done ? FontWeight.w400 : FontWeight.w600,
-                        decoration: done ? TextDecoration.lineThrough : null,
-                      )),
-                ),
-                IconButton(
-                  tooltip: 'Remove $name',
-                  constraints:
-                      const BoxConstraints(minWidth: 48, minHeight: 48),
-                  onPressed: () => _remove(item),
-                  icon: const Icon(Icons.close, color: _muted, size: 20),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _note(FlutterFlowTheme t, IconData icon, String title, String text) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: _uCard(20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(14)),
-            child: Icon(icon, color: _forest),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: t.titleMedium.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: _ink)),
-                const SizedBox(height: 4),
-                Text(text,
-                    style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
     return false;
   }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
 
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wStorageLocationsLive = r'''
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-/// Where this household keeps food.
-class StorageLocationsLive extends StatefulWidget {
-  const StorageLocationsLive({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<StorageLocationsLive> createState() => _StorageLocationsLiveState();
-}
-
-class _StorageLocationsLiveState extends State<StorageLocationsLive> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  static const _types = <String, String>{
-    'fridge': 'Fridge',
-    'freezer': 'Freezer',
-    'pantry': 'Pantry',
-    'other': 'Somewhere else',
-  };
-
-  String _for = '';
-  bool _loading = true;
-  bool _offline = false;
-  bool _adding = false;
-  List<Map<String, dynamic>> _places = const [];
-  Map<String, int> _counts = const {};
-  final _name = TextEditingController();
-  String _type = 'other';
-
-  @override
-  void dispose() {
-    _name.dispose();
-    super.dispose();
+  (int, int) _have(Map r) {
+    final all = _ingredients(r);
+    return (all.where(_inKitchen).length, all.length);
   }
 
-  Future<void> _load({bool quiet = false}) async {
-    final household = _for;
-    if (household.isEmpty) return;
-    if (!quiet && mounted) {
-      setState(() {
-        _loading = true;
-        _offline = false;
-      });
-    }
-    try {
-      final rows = await SupaFlow.client
-          .from('storage_locations')
-          .select('id, name, location_type, is_default')
-          .eq('household_id', household)
-          .order('location_type')
-          .order('name');
-      final kept = await SupaFlow.client
-          .from('food_items_status')
-          .select('storage_location_id')
-          .eq('household_id', household);
-      final counts = <String, int>{};
-      for (final k in kept as List) {
-        final id = (k['storage_location_id'] ?? '').toString();
-        if (id.isNotEmpty) counts[id] = (counts[id] ?? 0) + 1;
+  List<Map> get _shown {
+    final list = _recipes.where((r) {
+      switch (_filter) {
+        case 'favourites':
+          return r['is_favourite'] == true;
+        case 'own':
+          return r['source'] == 'own';
+        case 'ready':
+          final (have, all) = _have(r);
+          return all > 0 && have == all;
       }
-      if (!mounted || household != _for) return;
-      setState(() {
-        _places = List<Map<String, dynamic>>.from(rows as List);
-        _counts = counts;
-        _loading = false;
-        _offline = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      if (quiet && _places.isNotEmpty) return;
-      setState(() {
-        _loading = false;
-        _offline = true;
-      });
-    }
+      return true;
+    }).toList();
+    list.sort((a, b) {
+      final fa = a['is_favourite'] == true ? 0 : 1;
+      final fb = b['is_favourite'] == true ? 0 : 1;
+      if (fa != fb) return fa - fb;
+      final (ha, aa) = _have(a);
+      final (hb, ab) = _have(b);
+      final ra = aa == 0 ? 0.0 : ha / aa;
+      final rb = ab == 0 ? 0.0 : hb / ab;
+      return rb.compareTo(ra);
+    });
+    return list;
   }
 
   void _say(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
-  Future<void> _add() async {
-    if (_adding) return;
-    setState(() => _adding = true);
-    final said = await addStorageLocation(_name.text, _type);
-    if (!mounted) return;
-    setState(() => _adding = false);
-    if (said.isNotEmpty) {
-      _say(said);
-      return;
+  String _why(Object error) {
+    if (error is PostgrestException && error.code == '42501') {
+      return 'Your account is not allowed to change this household’s recipes.';
     }
-    _name.clear();
-    _say('Location added.');
-    _load(quiet: true);
+    if (error is PostgrestException &&
+        (error.code == '42703' || error.code == 'PGRST204')) {
+      return 'Your own recipes are almost ready. Try again soon.';
+    }
+    return 'Could not save that. Check your signal and try again.';
   }
 
-  Future<void> _remove(Map<String, dynamic> place) async {
-    final id = place['id'].toString();
-    final name = (place['name'] ?? '').toString();
-    final n = _counts[id] ?? 0;
-    final sure = await showDialog<bool>(
-      context: context,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Remove $name?'),
-        content: Text(n == 0
-            ? 'Nothing is kept there at the moment.'
-            : (n == 1
-                ? 'The 1 food kept there stays in your kitchen, with no place recorded.'
-                : 'The $n foods kept there stay in your kitchen, with no place recorded.')),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: () => Navigator.of(dialog).pop(false),
-            child: const Text('Keep it'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                foregroundColor: const Color(0xFFB42318)),
-            onPressed: () => Navigator.of(dialog).pop(true),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-    if (sure != true || !mounted) return;
-    try {
-      await SupaFlow.client.from('storage_locations').delete().eq('id', id);
-      _say('$name removed.');
-    } catch (_) {
-      _say('Could not remove it. Check your signal and try again.');
-    }
-    _load(quiet: true);
-  }
-
-  static IconData _icon(String type) {
-    switch (type) {
-      case 'fridge':
-        return Icons.kitchen_outlined;
-      case 'freezer':
-        return Icons.ac_unit;
-      case 'pantry':
-        return Icons.inventory_2_outlined;
-      default:
-        return Icons.shelves;
+  void _back() {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.goNamed('RecipesPage');
     }
   }
 
@@ -4473,853 +3202,830 @@ class _StorageLocationsLiveState extends State<StorageLocationsLive> {
     final household = FFAppState().currentHouseholdId;
     if (household.isNotEmpty && household != _for) {
       _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
     }
+    final shown = _shown;
 
-    Widget list;
+    Widget content;
     if (_loading) {
-      list = Column(children: [
+      content = Column(children: [
         for (var i = 0; i < 3; i++) ...[
           Container(
-            height: 64,
+            height: 88,
             decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(14)),
+                color: _sage, borderRadius: BorderRadius.circular(20)),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
         ],
       ]);
     } else if (_offline) {
-      list = Text(
-          'Can’t reach your kitchen. Your places will show when you are back online.',
-          style: t.bodyLarge.copyWith(color: _muted));
-    } else if (_places.isEmpty) {
-      list = Text('No places yet. Add where you keep food below.',
-          style: t.bodyLarge.copyWith(color: _muted));
+      content = _message(
+          t,
+          Icons.cloud_off_outlined,
+          'Can’t reach your recipes.',
+          'No signal, or the connection dropped. Try again when you are back online.',
+          retry: () => _load(_for));
+    } else if (_recipes.isEmpty) {
+      content = _message(t, Icons.menu_book_outlined, 'No recipes yet.',
+          'Keep ideas you like on Recipes, or add a recipe of your own.');
+    } else if (shown.isEmpty) {
+      content = _message(
+          t,
+          Icons.filter_alt_off_outlined,
+          'Nothing here.',
+          _filter == 'ready'
+              ? 'No recipe has everything in your kitchen right now.'
+              : 'Try another filter.');
     } else {
-      list = Container(
-        decoration: _uCard(20),
-        child: Column(
-          children: [
-            for (var i = 0; i < _places.length; i++) ...[
-              if (i > 0)
-                const Divider(
-                    height: 1, thickness: 1, indent: 64, color: _border),
-              _row(t, _places[i]),
-            ],
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final r in shown) ...[
+            _card(t, r),
+            const SizedBox(height: 12),
           ],
-        ),
+        ],
       );
     }
 
     return SizedBox(
       width: widget.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 16),
-          list,
-          const SizedBox(height: 28),
-          Text('Add a location',
-              style: t.titleLarge.copyWith(
-                  fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.sentences,
-            style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-            decoration: InputDecoration(
-              labelText: 'Name',
-              hintText: 'Garage freezer, fruit bowl…',
-              filled: true,
-              fillColor: const Color(0xFFFFFDF7),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: _border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: _border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: _forest, width: 1.5),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text('Type',
-              style: t.bodyMedium.copyWith(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: _muted)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final e in _types.entries)
-                Semantics(
-                  button: true,
-                  selected: _type == e.key,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(999),
-                    onTap: () => setState(() => _type = e.key),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _type == e.key ? _forest : Colors.white,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                            color: _type == e.key ? _forest : _border),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_icon(e.key),
-                              size: 18,
-                              color: _type == e.key ? Colors.white : _forest),
-                          const SizedBox(width: 6),
-                          Text(e.value,
-                              style: t.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: _type == e.key ? Colors.white : _ink)),
-                        ],
-                      ),
-                    ),
+      height: widget.height,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Semantics(
+                button: true,
+                label: 'Back',
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _back,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: _uBackDeco(),
+                    child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 52,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('Your recipes.',
+                style: t.headlineMedium.copyWith(
+                    fontSize: 32, fontWeight: FontWeight.w800, color: _uForest)),
+            const SizedBox(height: 4),
+            Text('Kept ideas and your own, shared with your household.',
+                style: t.bodyLarge.copyWith(color: _muted, fontSize: 16)),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
   elevation: 3,
   shadowColor: const Color(0x99033C29),
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: _forest,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: () => _edit(t, null),
+                icon: const Icon(Icons.add, size: 20),
+                label: Text('Add your own recipe',
+                    style: t.bodyLarge.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.w700)),
               ),
-              onPressed: _adding ? null : _add,
-              icon: const Icon(Icons.add, size: 20),
-              label: Text('Add location',
-                  style: t.bodyLarge.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.w700)),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(FlutterFlowTheme t, Map<String, dynamic> place) {
-    final id = place['id'].toString();
-    final name = (place['name'] ?? '').toString();
-    final type = (place['location_type'] ?? '').toString();
-    final n = _counts[id] ?? 0;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 64),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: _sage, borderRadius: BorderRadius.circular(12)),
-              child: Icon(_icon(type), color: _forest, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
                 children: [
-                  Text(name,
-                      style: t.bodyLarge.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: _ink)),
-                  Text(
-                    '${_types[type] ?? 'Somewhere else'} · ${n == 1 ? '1 food' : '$n foods'}',
-                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13),
-                  ),
+                  for (final e in _filters.entries) ...[
+                    _choice(t, e.value, _filter == e.key,
+                        () => setState(() => _filter = e.key)),
+                    const SizedBox(width: 8),
+                  ],
                 ],
               ),
             ),
-            IconButton(
-              tooltip: 'Remove $name',
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              onPressed: () => _remove(place),
-              icon: const Icon(Icons.delete_outline, color: _muted),
-            ),
+            const SizedBox(height: 16),
+            content,
           ],
         ),
       ),
     );
   }
-}
 
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
+  Widget _card(FlutterFlowTheme t, Map r) {
+    final (have, all) = _have(r);
+    final minutes =
+        _data(r)['minutes'] is num ? (_data(r)['minutes'] as num).round() : 0;
+    final fav = r['is_favourite'] == true;
     return Semantics(
       button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+      label: '${r['title']}',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _open(t, r),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 6, 12),
+          decoration: _uCard(20),
+          child: Row(
             children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wRemindersSettings = r'''
-import 'package:flutter/material.dart';
-
-/// Reminder settings, as they are saved.
-class RemindersSettings extends StatefulWidget {
-  const RemindersSettings({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<RemindersSettings> createState() => _RemindersSettingsState();
-}
-
-class _RemindersSettingsState extends State<RemindersSettings> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  bool _loading = true;
-  bool _on = true;
-  int _days = 2;
-  bool _saving = false;
-  String _note = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final user = SupaFlow.client.auth.currentUser?.id;
-    try {
-      if (user != null) {
-        final row = await SupaFlow.client
-            .from('notification_preferences')
-            .select('expiry_enabled, expiry_days_before')
-            .eq('profile_id', user)
-            .maybeSingle();
-        if (row != null) {
-          _on = row['expiry_enabled'] as bool? ?? true;
-          _days = row['expiry_days_before'] as int? ?? 2;
-        }
-      }
-    } catch (_) {
-      _note =
-          'Can’t reach your settings right now. What you see are the defaults.';
-    }
-    if (mounted) setState(() => _loading = false);
-  }
-
-  Future<bool> _save({bool announce = false}) async {
-    final user = SupaFlow.client.auth.currentUser?.id;
-    if (user == null) return false;
-    setState(() => _saving = true);
-    try {
-      await SupaFlow.client.from('notification_preferences').upsert({
-        'profile_id': user,
-        'expiry_enabled': _on,
-        'expiry_days_before': _days,
-      }, onConflict: 'profile_id');
-      await scheduleExpiryReminders();
-      if (mounted && announce) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Reminders saved.')));
-      }
-      return true;
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Could not save. Check your signal and try again.')));
-      }
-      return false;
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _toggle() async {
-    if (_saving) return;
-    if (_on) {
-      setState(() {
-        _on = false;
-        _note = 'Reminders are off.';
-      });
-      await _save();
-      return;
-    }
-    final allowed = await askNotificationPermission();
-    if (!mounted) return;
-    if (!allowed) {
-      setState(() => _note =
-          'Your phone is blocking notifications for Use It Fresh. Settings > Notifications > Use It Fresh to allow them.');
-      return;
-    }
-    setState(() {
-      _on = true;
-      _note = '';
-    });
-    await _save();
-  }
-
-  Future<void> _pickDays(int d) async {
-    if (_saving || d == _days) return;
-    setState(() => _days = d);
-    await _save();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    if (_loading) {
-      Widget block(double h) => Container(
-            height: h,
-            decoration: BoxDecoration(
-                color: _sage, borderRadius: BorderRadius.circular(16)),
-          );
-      return SizedBox(
-        width: widget.width,
-        child: Column(children: [
-          const SizedBox(height: 16),
-          block(64),
-          const SizedBox(height: 20),
-          block(48),
-          const SizedBox(height: 20),
-          block(52),
-        ]),
-      );
-    }
-
-    return SizedBox(
-      width: widget.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 16),
-          Semantics(
-            toggled: _on,
-            label: 'Remind me before food goes off',
-            excludeSemantics: true,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: _toggle,
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 64),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: _uCard(20),
-                child: Row(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                        _on
-                            ? Icons.notifications_active_outlined
-                            : Icons.notifications_off_outlined,
-                        color: _forest,
-                        size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text('Remind me before food goes off',
-                          style: t.bodyLarge.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: _ink)),
+                    Text('${r['title']}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.bodyLarge.copyWith(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: _ink)),
+                    const SizedBox(height: 4),
+                    Wrap(spacing: 6, runSpacing: 4, children: [
+                      if (all > 0)
+                        _pill(
+                            t,
+                            have == all
+                                ? 'Everything in your kitchen'
+                                : 'You have $have of $all',
+                            have == all ? _forest : _muted,
+                            have == all ? const Color(0xFFDDF0E2) : _sage),
+                      if (minutes > 0) _pill(t, '$minutes min', _muted, _sage),
+                      if (r['source'] == 'own')
+                        _pill(t, 'Your own', _muted, _sage),
+                    ]),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: fav ? 'Take out of favourites' : 'Add to favourites',
+                onPressed: () => _favourite(r),
+                icon: Icon(fav ? Icons.star : Icons.star_border,
+                    color: fav ? _gold : _muted),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _favourite(Map r) async {
+    try {
+      await SupaFlow.client.from('saved_recipes').update(
+          {'is_favourite': r['is_favourite'] != true}).eq('id', '${r['id']}');
+      await _load(_for, quiet: true);
+    } catch (error) {
+      if (mounted) _say(_why(error));
+    }
+  }
+
+  Future<void> _open(FlutterFlowTheme t, Map r) async {
+    final all = _ingredients(r);
+    final missing = [
+      for (final i in all)
+        if (!_inKitchen(i)) i
+    ];
+    final d = _data(r);
+    final steps = _words(d['steps']);
+    final notes = TextEditingController(text: '${r['notes'] ?? ''}');
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _cream,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheet) => StatefulBuilder(
+        builder: (sheet, redraw) => Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(sheet).size.height * 0.9),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('${r['title']}',
+                        style: t.headlineSmall.copyWith(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: _ink,
+                            height: 1.15)),
+                    const SizedBox(height: 16),
+                    _label(t, 'Ingredients'),
+                    for (final i in all)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          children: [
+                            Icon(
+                                _inKitchen(i)
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color: _inKitchen(i) ? _forest : _muted,
+                                size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(i,
+                                  style: t.bodyLarge
+                                      .copyWith(fontSize: 16, color: _ink)),
+                            ),
+                            Text(_inKitchen(i) ? 'In your kitchen' : '',
+                                style: t.bodySmall
+                                    .copyWith(color: _muted, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    if (missing.isNotEmpty)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 48),
+                              foregroundColor: _forest),
+                          onPressed: _listed.contains('${r['id']}')
+                              ? null
+                              : () async {
+                                  for (final m in missing) {
+                                    final said = await addNameToShoppingList(m);
+                                    if (said.isNotEmpty) {
+                                      if (mounted) _say(said);
+                                      return;
+                                    }
+                                  }
+                                  _listed.add('${r['id']}');
+                                  try {
+                                    redraw(() {});
+                                  } catch (_) {}
+                                  if (mounted) {
+                                    _say(missing.length == 1
+                                        ? '1 thing added to your shopping list.'
+                                        : '${missing.length} things added to your shopping list.');
+                                  }
+                                },
+                          icon: Icon(
+                              _listed.contains('${r['id']}')
+                                  ? Icons.check
+                                  : Icons.add_shopping_cart,
+                              size: 18),
+                          label: Text(
+                              _listed.contains('${r['id']}')
+                                  ? 'On your shopping list'
+                                  : 'Add ${missing.length} missing to the shopping list',
+                              style: t.bodyLarge.copyWith(
+                                  color: _listed.contains('${r['id']}')
+                                      ? _muted
+                                      : _forest,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    if (steps.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _label(t, 'Steps'),
+                      for (var i = 0; i < steps.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text('${i + 1}. ${steps[i]}',
+                              style: t.bodyLarge.copyWith(
+                                  fontSize: 16, color: _ink, height: 1.4)),
+                        ),
+                    ],
+                    if (r.containsKey('notes')) ...[
+                      const SizedBox(height: 12),
+                      _label(t, 'Notes'),
+                      TextField(
+                        controller: notes,
+                        maxLines: 3,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. Kids like it with extra cheese',
+                          filled: true,
+                          fillColor: const Color(0xFFFFFDF7),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: _border),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                          backgroundColor: _forest,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                        ),
+                        onPressed: () => Navigator.of(sheet).pop('week'),
+                        icon:
+                            const Icon(Icons.calendar_month_outlined, size: 20),
+                        label: Text('Add to my week',
+                            style: t.bodyLarge.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700)),
+                      ),
                     ),
-                    Switch.adaptive(
-                      value: _on,
-                      activeColor: _forest,
-                      onChanged: (_) => _toggle(),
+                    if (r['source'] == 'own')
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            foregroundColor: _forest),
+                        onPressed: () => Navigator.of(sheet).pop('edit'),
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text('Edit this recipe',
+                            style: t.bodyLarge.copyWith(
+                                color: _forest, fontWeight: FontWeight.w700)),
+                      ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                          minimumSize: const Size(48, 48),
+                          foregroundColor: _red),
+                      onPressed: () => Navigator.of(sheet).pop('delete'),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: Text(
+                          r['source'] == 'own'
+                              ? 'Delete this recipe'
+                              : 'Remove from your recipes',
+                          style: t.bodyLarge.copyWith(
+                              color: _red, fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          if (_note.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(_note,
-                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
-          ],
-          AnimatedOpacity(
-            opacity: _on ? 1 : 0.45,
-            duration: const Duration(milliseconds: 150),
-            child: IgnorePointer(
-              ignoring: !_on,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  Text('How long before',
-                      style: t.bodyMedium.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _muted)),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      for (final d in const [1, 2, 3, 5]) ...[
-                        Expanded(child: _dayChip(t, d)),
-                        if (d != 5) const SizedBox(width: 8),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                        color: _sage, borderRadius: BorderRadius.circular(14)),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.info_outline,
-                            color: _forest, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                              'One note at 10am on the day, naming the foods that are $_days ${_days == 1 ? 'day' : 'days'} from their date. Tap it to mark what you used.',
-                              style: t.bodyMedium.copyWith(
-                                  color: _ink, fontSize: 14, height: 1.4)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: _saving ? null : () => _save(announce: true),
-              child: Text('Save reminders',
-                  style: t.bodyLarge.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
+        ),
       ),
     );
+    final note = notes.text.trim();
+    Future.delayed(const Duration(milliseconds: 500), notes.dispose);
+    if (!mounted) return;
+    if (r.containsKey('notes') && note != '${r['notes'] ?? ''}'.trim()) {
+      try {
+        await SupaFlow.client.from('saved_recipes').update(
+            {'notes': note.isEmpty ? null : note}).eq('id', '${r['id']}');
+        await _load(_for, quiet: true);
+      } catch (error) {
+        if (mounted) _say(_why(error));
+      }
+    }
+    if (!mounted) return;
+    switch (action) {
+      case 'week':
+        await _toWeek(t, r);
+        break;
+      case 'edit':
+        await _edit(t, r);
+        break;
+      case 'delete':
+        final sure = await showDialog<bool>(
+          context: context,
+          builder: (dlg) => AlertDialog(
+            title: Text(r['source'] == 'own'
+                ? 'Delete this recipe?'
+                : 'Remove this recipe?'),
+            content: const Text(
+                'It goes for everyone in your household. Meals already planned keep their steps.'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(dlg).pop(false),
+                  child: const Text('Keep it')),
+              TextButton(
+                  onPressed: () => Navigator.of(dlg).pop(true),
+                  child: const Text('Delete', style: TextStyle(color: _red))),
+            ],
+          ),
+        );
+        if (sure != true) return;
+        try {
+          await SupaFlow.client
+              .from('saved_recipes')
+              .delete()
+              .eq('id', '${r['id']}');
+          await _load(_for, quiet: true);
+          if (mounted) _say('Removed from your recipes.');
+        } catch (error) {
+          if (mounted) _say(_why(error));
+        }
+    }
   }
 
-  Widget _dayChip(FlutterFlowTheme t, int d) {
-    final on = _days == d;
-    return Semantics(
-      button: true,
-      selected: on,
-      label: d == 1 ? '1 day before' : '$d days before',
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => _pickDays(d),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: 48,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: on ? _forest : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: on ? _forest : _border),
+  Future<void> _toWeek(FlutterFlowTheme t, Map r) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    String name(int i) {
+      if (i == 0) return 'Today';
+      if (i == 1) return 'Tomorrow';
+      final d = DateTime(today.year, today.month, today.day + i);
+      return '${_days[d.weekday - 1]} ${d.day} ${_months[d.month - 1]}';
+    }
+
+    var day = 0;
+    var meal = 'dinner';
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: _cream,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheet) => StatefulBuilder(
+        builder: (sheet, redraw) => SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Add to my week',
+                    style: t.headlineSmall.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: _ink)),
+                const SizedBox(height: 16),
+                _label(t, 'Day'),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (var i = 0; i < 7; i++)
+                    _choice(t, name(i), day == i, () => redraw(() => day = i)),
+                ]),
+                const SizedBox(height: 16),
+                _label(t, 'Meal'),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (final m in const [
+                    'breakfast',
+                    'lunch',
+                    'dinner',
+                    'snack'
+                  ])
+                    _choice(t, m[0].toUpperCase() + m.substring(1), meal == m,
+                        () => redraw(() => meal = m)),
+                ]),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 52,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                      backgroundColor: _forest,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () => Navigator.of(sheet).pop(true),
+                    child: Text('Add',
+                        style: t.bodyLarge.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Text(d == 1 ? '1 day' : '$d days',
-              style: t.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: on ? Colors.white : _ink)),
         ),
+      ),
+    );
+    if (go != true || !mounted) return;
+    final d = DateTime(today.year, today.month, today.day + day);
+    final all = _ingredients(r);
+    final data = _data(r);
+    try {
+      await SupaFlow.client.from('meal_plan_entries').insert({
+        'household_id': _for,
+        'plan_date':
+            '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}',
+        'meal': meal,
+        'title': '${r['title']}'.length > 120
+            ? '${r['title']}'.substring(0, 120)
+            : '${r['title']}',
+        // What is in the kitchen now, and what the week's shopping needs.
+        'recipe_data': {
+          'uses': [
+            for (final i in all)
+              if (_inKitchen(i)) i
+          ],
+          'extras': [
+            for (final i in all)
+              if (!_inKitchen(i)) i
+          ],
+          'steps': _words(data['steps']),
+          'minutes': data['minutes'] is num ? data['minutes'] : 0,
+          if (data['calories'] is num) 'calories': data['calories'],
+          if (data['protein'] is num) 'protein': data['protein'],
+        },
+        'servings': r['servings'] is num
+            ? (r['servings'] as num).round().clamp(1, 12)
+            : (data['servings'] is num && (data['servings'] as num) > 0
+                ? data['servings']
+                : 2),
+        'created_by': SupaFlow.client.auth.currentUser?.id,
+      });
+      if (!mounted) return;
+      final router = GoRouter.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+            'Planned for ${day < 2 ? name(day).toLowerCase() : name(day)}.'),
+        action: SnackBarAction(
+          label: 'See the week',
+          textColor: const Color(0xFFB9E08F),
+          onPressed: () => router.pushNamed('PlanWeekPage'),
+        ),
+      ));
+    } catch (error) {
+      if (mounted) _say(_why(error));
+    }
+  }
+
+  /// Add (r == null) or edit one of your own recipes.
+  Future<void> _edit(FlutterFlowTheme t, Map? r) async {
+    final d = r == null ? const {} : _data(r);
+    final title = TextEditingController(text: r == null ? '' : '${r['title']}');
+    final ingredients =
+        TextEditingController(text: _words(d['ingredients']).join('\n'));
+    final steps = TextEditingController(text: _words(d['steps']).join('\n'));
+    var servings = r?['servings'] is num ? (r!['servings'] as num).round() : 2;
+    var minutes = d['minutes'] is num ? (d['minutes'] as num).round() : 30;
+    InputDecoration look(String label, String hint) => InputDecoration(
+          labelText: label,
+          hintText: hint,
+          alignLabelWithHint: true,
+          filled: true,
+          fillColor: const Color(0xFFFFFDF7),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: _border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: _border),
+          ),
+        );
+    final save = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _cream,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheet) => StatefulBuilder(
+        builder: (sheet, redraw) => Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(sheet).size.height * 0.92),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(r == null ? 'Your own recipe' : 'Edit recipe',
+                        style: t.headlineSmall.copyWith(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: _ink)),
+                    const SizedBox(height: 16),
+                    TextField(
+                        controller: title,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: look('Name', 'e.g. Nan’s lentil soup')),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _label(t, 'Serves')),
+                        _stepper(Icons.remove, servings > 1,
+                            () => redraw(() => servings--)),
+                        SizedBox(
+                            width: 40,
+                            child: Text('$servings',
+                                textAlign: TextAlign.center,
+                                style: t.titleMedium.copyWith(color: _ink))),
+                        _stepper(Icons.add, servings < 12,
+                            () => redraw(() => servings++)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(child: _label(t, 'Minutes')),
+                        _stepper(Icons.remove, minutes > 5,
+                            () => redraw(() => minutes -= 5)),
+                        SizedBox(
+                            width: 40,
+                            child: Text('$minutes',
+                                textAlign: TextAlign.center,
+                                style: t.titleMedium.copyWith(color: _ink))),
+                        _stepper(Icons.add, minutes < 240,
+                            () => redraw(() => minutes += 5)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                        controller: ingredients,
+                        minLines: 4,
+                        maxLines: 10,
+                        decoration: look('Ingredients, one per line',
+                            'Red lentils\nOnion\nCarrots')),
+                    const SizedBox(height: 12),
+                    TextField(
+                        controller: steps,
+                        minLines: 4,
+                        maxLines: 12,
+                        decoration: look('Steps, one per line',
+                            'Soften the onion\nAdd lentils and water')),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 52,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                          backgroundColor: _forest,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                        ),
+                        onPressed: () {
+                          if (title.text.trim().isEmpty) return;
+                          Navigator.of(sheet).pop(true);
+                        },
+                        child: Text('Save recipe',
+                            style: t.bodyLarge.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    List<String> lines(TextEditingController c) => [
+          for (final l in c.text.split('\n'))
+            if (l.trim().isNotEmpty) l.trim()
+        ];
+    final row = {
+      'title': title.text.trim().length > 120
+          ? title.text.trim().substring(0, 120)
+          : title.text.trim(),
+      'source': 'own',
+      'servings': servings,
+      'recipe_data': {
+        'ingredients': lines(ingredients),
+        'steps': lines(steps),
+        'minutes': minutes,
+        'servings': servings,
+      },
+    };
+    Future.delayed(const Duration(milliseconds: 500), () {
+      title.dispose();
+      ingredients.dispose();
+      steps.dispose();
+    });
+    if (save != true || !mounted) return;
+    try {
+      if (r == null) {
+        await SupaFlow.client.from('saved_recipes').insert({
+          ...row,
+          'household_id': _for,
+          'profile_id': SupaFlow.client.auth.currentUser?.id,
+        });
+      } else {
+        await SupaFlow.client
+            .from('saved_recipes')
+            .update(row)
+            .eq('id', '${r['id']}');
+      }
+      await _load(_for, quiet: true);
+      if (mounted) _say(r == null ? 'Recipe saved.' : 'Recipe updated.');
+    } catch (error) {
+      if (mounted) _say(_why(error));
+    }
+  }
+
+  Widget _pill(FlutterFlowTheme t, String text, Color fg, Color bg) =>
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        decoration:
+            BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+        child: Text(text,
+            style: t.bodySmall.copyWith(
+                color: fg, fontWeight: FontWeight.w700, fontSize: 12)),
+      );
+
+  Widget _label(FlutterFlowTheme t, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text,
+            style: t.bodyMedium.copyWith(
+                color: _muted, fontWeight: FontWeight.w700, fontSize: 14)),
+      );
+
+  Widget _choice(
+          FlutterFlowTheme t, String label, bool on, VoidCallback onTap) =>
+      Semantics(
+        button: true,
+        selected: on,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: on ? _forest : Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: on ? _forest : _border),
+            ),
+            child: Text(label,
+                style: t.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: on ? Colors.white : _ink)),
+          ),
+        ),
+      );
+
+  Widget _stepper(IconData icon, bool enabled, VoidCallback onTap) => Opacity(
+        opacity: enabled ? 1 : 0.4,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: enabled ? onTap : null,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: _border),
+            ),
+            child: Icon(icon, color: _forest, size: 20),
+          ),
+        ),
+      );
+
+  Widget _message(FlutterFlowTheme t, IconData icon, String title, String text,
+      {VoidCallback? retry}) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      decoration: _uCard(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                color: _sage, borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: _forest, size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text(title,
+              style: t.titleLarge.copyWith(
+                  fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
+          const SizedBox(height: 6),
+          Text(text,
+              style: t.bodyLarge
+                  .copyWith(fontSize: 16, color: _muted, height: 1.4)),
+          if (retry != null) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+  elevation: 3,
+  shadowColor: const Color(0x99033C29),
+                  backgroundColor: _forest,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: retry,
+                child: const Text('Try again'),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -5700,201 +4406,145 @@ BoxDecoration _uBackDeco() => BoxDecoration(
     );
 ''';
 
-const _wFoodPreferences = r'''
+const _wItemEditFields = r'''
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Diets and allergies, saved to the profile and turned into words that meal
-/// ideas leave out.
+/// The editable details of one food, held in app state so the page's Save
+/// button can read them: FlutterFlow cannot read a custom widget.
 ///
-/// A diet here is a list of ingredients to avoid, not a badge: the app never
-/// says a dish is vegan, it just does not build one from meat. The words are
-/// blunt on purpose — "milk" also catches "buttermilk" — because leaving too
-/// much out is a smaller harm than leaving in what someone cannot eat.
-class FoodPreferences extends StatefulWidget {
-  const FoodPreferences({super.key, this.width, this.height});
+/// The places come from the household's own storage locations, so this never
+/// offers somewhere the food cannot go.
+class ItemEditFields extends StatefulWidget {
+  const ItemEditFields({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<FoodPreferences> createState() => _FoodPreferencesState();
+  State<ItemEditFields> createState() => _ItemEditFieldsState();
 }
 
-class _FoodPreferencesState extends State<FoodPreferences> {
-  static const _diets = <String, String>{
-    'vegetarian': 'Vegetarian',
-    'vegan': 'Vegan',
-    'pescatarian': 'Pescatarian',
-    'halal': 'Halal',
-    'kosher': 'Kosher',
+class _ItemEditFieldsState extends State<ItemEditFields> {
+  // The same words the rest of the app uses for a category.
+  static const _categories = <String, String>{
+    'dairy': 'Dairy',
+    'meat_poultry': 'Meat & poultry',
+    'seafood': 'Seafood',
+    'eggs': 'Eggs',
+    'cooked_leftovers': 'Cooked leftovers',
+    'fruit': 'Fruit',
+    'vegetables': 'Vegetables',
+    'bread_bakery': 'Bread & bakery',
+    'pantry_dry': 'Pantry & dry goods',
+    'frozen': 'Frozen food',
+    'condiments_sauces': 'Condiments & sauces',
+    'infant_food': 'Infant food & formula',
   };
-
-  static const _dietWords = <String, List<String>>{
-    'vegetarian': [
-      'meat',
-      'chicken',
-      'turkey',
-      'beef',
-      'pork',
-      'lamb',
-      'bacon',
-      'ham',
-      'sausage',
-      'fish',
-      'salmon',
-      'tuna',
-      'prawn',
-      'shellfish',
-      'gelatine',
-    ],
-    'vegan': [
-      'meat',
-      'chicken',
-      'turkey',
-      'beef',
-      'pork',
-      'lamb',
-      'bacon',
-      'ham',
-      'sausage',
-      'fish',
-      'salmon',
-      'tuna',
-      'prawn',
-      'shellfish',
-      'gelatine',
-      'milk',
-      'cheese',
-      'butter',
-      'cream',
-      'yoghurt',
-      'yogurt',
-      'egg',
-      'honey',
-    ],
-    'pescatarian': [
-      'meat',
-      'chicken',
-      'turkey',
-      'beef',
-      'pork',
-      'lamb',
-      'bacon',
-      'ham',
-      'sausage',
-    ],
-    'halal': ['pork', 'bacon', 'ham', 'gelatine', 'wine', 'beer', 'alcohol'],
-    'kosher': ['pork', 'bacon', 'ham', 'shellfish', 'prawn', 'squid'],
+  static const _dateKinds = <String, String>{
+    'use_by': 'Use by',
+    'best_before': 'Best before',
+    'sell_by': 'Sell by',
+    'unknown': 'Not sure',
   };
+  static const _months = <String>[
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
-  final Set<String> _chosen = {};
-  final TextEditingController _allergies = TextEditingController();
-  bool _loaded = false;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  TextEditingController? _name;
+  String _nameFor = '';
+  List<Map<String, dynamic>> _places = const [];
+  String _placesFor = '';
 
   @override
   void dispose() {
-    _allergies.dispose();
+    _name?.dispose();
     super.dispose();
   }
 
-  static List<String> _asWords(Object? value) {
-    if (value is List) {
-      return [
-        for (final w in value)
-          if ('$w'.trim().isNotEmpty) '$w'.trim(),
-      ];
-    }
-    return const [];
-  }
-
-  Future<void> _load() async {
-    final uid = SupaFlow.client.auth.currentUser?.id;
-    if (uid == null) return;
+  Future<void> _loadPlaces(String household) async {
     try {
-      final row = await SupaFlow.client
-          .from('profiles')
-          .select('dietary_preferences, allergens')
-          .eq('id', uid)
-          .maybeSingle();
-      if (!mounted || row == null) return;
-      setState(() {
-        _chosen
-          ..clear()
-          ..addAll(
-              _asWords(row['dietary_preferences']).where(_diets.containsKey));
-        _allergies.text = _asWords(row['allergens']).join(', ');
-        _loaded = true;
-      });
+      final rows = await SupaFlow.client
+          .from('storage_locations')
+          .select('id, name, location_type')
+          .eq('household_id', household)
+          .order('location_type')
+          .order('name');
+      if (!mounted || household != _placesFor) return;
+      setState(() => _places = List<Map<String, dynamic>>.from(rows as List));
     } catch (_) {
-      if (mounted) setState(() => _loaded = true);
+      // No signal: the other fields still work, and saving keeps the place
+      // the food already had.
     }
   }
 
-  List<String> get _allergyWords => _allergies.text
-      .split(RegExp(r'[,;\n]'))
-      .map((w) => w.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase())
-      .where((w) => w.length >= 2)
-      .toList();
+  void _set(void Function() change) => FFAppState().update(change);
 
-  /// Everything the ideas should leave out: the allergies first, because they
-  /// are the ones that matter most, then whatever the diets add.
-  String get _avoid {
-    final all = <String>[];
-    for (final w in _allergyWords) {
-      if (!all.contains(w)) all.add(w);
-    }
-    for (final diet in _chosen) {
-      for (final w in _dietWords[diet] ?? const <String>[]) {
-        if (!all.contains(w)) all.add(w);
+  static String _iso(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  static String _said(String iso) {
+    final d = DateTime.tryParse(iso);
+    if (d == null) return '';
+    return '${d.day} ${_months[d.month - 1]} ${d.year}';
+  }
+
+  Future<void> _pickDate() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final now = DateTime.tryParse(FFAppState().editPrintedDate) ?? today;
+    final first = today.subtract(const Duration(days: 730));
+    final last = today.add(const Duration(days: 1095));
+    final picked = await showDatePicker(
+      context: context,
+      initialDate:
+          now.isBefore(first) ? first : (now.isAfter(last) ? last : now),
+      firstDate: first,
+      lastDate: last,
+      helpText: 'The date printed on the pack',
+    );
+    if (picked == null || !mounted) return;
+    _set(() {
+      FFAppState().editPrintedDate = _iso(picked);
+      if (FFAppState().editDateType.isEmpty) {
+        FFAppState().editDateType = 'use_by';
       }
-    }
-    return all.join(', ');
-  }
-
-  Future<void> _save() async {
-    final uid = SupaFlow.client.auth.currentUser?.id;
-    if (uid == null || _saving) return;
-    setState(() => _saving = true);
-    var problem = '';
-    try {
-      await SupaFlow.client.from('profiles').update({
-        'dietary_preferences': _chosen.toList(),
-        'allergens': _allergyWords,
-      }).eq('id', uid);
-    } on PostgrestException catch (error) {
-      problem = error.message;
-    } catch (_) {
-      problem = 'Could not save. Check your signal and try again.';
-    }
-    final avoid = _avoid;
-    if (problem.isEmpty) {
-      FFAppState().update(() => FFAppState().ideasAvoid = avoid);
-    }
-    if (!mounted) return;
-    setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(problem.isEmpty
-          ? (avoid.isEmpty
-              ? 'Saved. Ideas can use anything in your kitchen.'
-              : 'Saved. Ideas will leave those out.')
-          : problem),
-    ));
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
     final t = FlutterFlowTheme.of(context);
-    final avoid = _avoid;
+    final household = FFAppState().currentHouseholdId;
+    if (household.isNotEmpty && household != _placesFor) {
+      _placesFor = household;
+      _loadPlaces(household);
+    }
+    // The controller follows whichever food was loaded, not every keystroke.
+    final id = FFAppState().editItemId;
+    if (id != _nameFor) {
+      _nameFor = id;
+      _name?.dispose();
+      _name = TextEditingController(text: FFAppState().editName);
+    }
+    final date = FFAppState().editPrintedDate;
+    final kind = FFAppState().editDateType;
+    final counted =
+        FFAppState().editQuantity < 1 ? 1 : FFAppState().editQuantity;
+    final placeId = FFAppState().editLocationId;
+    final known = _places.any((p) => p['id'].toString() == placeId);
 
     return SizedBox(
       width: widget.width,
@@ -5902,94 +4552,146 @@ class _FoodPreferencesState extends State<FoodPreferences> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _label(t, 'Allergies'),
+          _label(t, 'Name'),
           TextField(
-            controller: _allergies,
-            minLines: 1,
-            maxLines: 3,
-            textCapitalization: TextCapitalization.none,
-            decoration: InputDecoration(
-              hintText: 'Peanuts, sesame, shellfish…',
-              isDense: true,
-              filled: true,
-              fillColor: t.secondaryBackground,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: t.alternate),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: t.alternate),
-              ),
-            ),
-            onChanged: (_) => setState(() {}),
+            controller: _name,
+            decoration: _look(t, 'What it is'),
+            onChanged: (v) => _set(() => FFAppState().editName = v),
           ),
           const SizedBox(height: 16),
-          _label(t, 'Diet'),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+          _label(t, 'Category'),
+          DropdownButtonFormField<String>(
+            value: _categories.containsKey(FFAppState().editCategory)
+                ? FFAppState().editCategory
+                : null,
+            isExpanded: true,
+            decoration: _look(t, 'Not set'),
+            items: [
+              for (final e in _categories.entries)
+                DropdownMenuItem(
+                  value: e.key,
+                  child: Text(e.value, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (v) => _set(() => FFAppState().editCategory = v ?? ''),
+          ),
+          const SizedBox(height: 16),
+          _label(t, 'Where it is kept'),
+          DropdownButtonFormField<String>(
+            value: known ? placeId : null,
+            isExpanded: true,
+            decoration: _look(t, _places.isEmpty ? 'Loading…' : 'Not set'),
+            items: [
+              for (final p in _places)
+                DropdownMenuItem(
+                  value: p['id'].toString(),
+                  child: Text((p['name'] ?? '').toString(),
+                      overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (v) => _set(() => FFAppState().editLocationId = v ?? ''),
+          ),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              for (final e in _diets.entries)
-                _chip(t, e.value, _chosen.contains(e.key), () {
-                  setState(() => _chosen.contains(e.key)
-                      ? _chosen.remove(e.key)
-                      : _chosen.add(e.key));
-                }),
+              Expanded(child: _label(t, 'How many')),
+              _step(
+                  t,
+                  Icons.remove,
+                  'One fewer',
+                  counted > 1
+                      ? () =>
+                          _set(() => FFAppState().editQuantity = counted - 1)
+                      : null),
+              SizedBox(
+                width: 56,
+                child: Text('$counted',
+                    textAlign: TextAlign.center, style: t.titleSmall),
+              ),
+              _step(
+                  t,
+                  Icons.add,
+                  'One more',
+                  counted < 99
+                      ? () =>
+                          _set(() => FFAppState().editQuantity = counted + 1)
+                      : null),
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-            decoration: BoxDecoration(
-              color: t.accent1,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          _label(t, 'Date on the pack'),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickDate,
+                  icon: Icon(Icons.event, size: 18, color: t.primary),
+                  label: Text(
+                    date.isEmpty ? 'No date' : _said(date),
+                    overflow: TextOverflow.ellipsis,
+                    style: t.bodyMedium.copyWith(color: t.primaryText),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    alignment: Alignment.centerLeft,
+                    minimumSize: const Size(0, 48),
+                    backgroundColor: t.secondaryBackground,
+                    side: BorderSide(color: t.alternate),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              if (date.isNotEmpty)
+                IconButton(
+                  tooltip: 'Take the date off',
+                  onPressed: () => _set(() {
+                    FFAppState().editPrintedDate = '';
+                    FFAppState().editDateType = '';
+                  }),
+                  icon: Icon(Icons.close, color: t.secondaryText),
+                ),
+            ],
+          ),
+          if (date.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                Text(
-                  'This is not a medical check.',
-                  style: t.bodyMedium.copyWith(
-                      color: t.primaryText, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Ideas leave these foods out, but an idea is written by a '
-                  'machine from the names of your food. Read the label on '
-                  'anything you cook with, every time.',
-                  style: t.bodySmall.copyWith(color: t.primaryText),
-                ),
+                for (final e in _dateKinds.entries)
+                  _chip(t, e.value, kind == e.key,
+                      () => _set(() => FFAppState().editDateType = e.key)),
               ],
             ),
-          ),
-          if (_loaded && avoid.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text(
-              'Left out of ideas: $avoid',
-              style: t.bodySmall.copyWith(color: t.secondaryText),
-            ),
           ],
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 50,
-            child: FilledButton(
-              onPressed: _saving ? null : _save,
-              style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                backgroundColor: t.primary,
-                foregroundColor: t.secondaryBackground,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text(_saving ? 'Saving…' : 'Save'),
-            ),
+          const SizedBox(height: 10),
+          Text(
+            date.isEmpty
+                ? 'With no date, this food gets a typical keep time for its '
+                    'category.'
+                : 'Use by is a safety date; best before is about quality. The '
+                    'app treats them differently.',
+            style: t.bodySmall.copyWith(color: t.secondaryText),
           ),
         ],
       ),
     );
   }
+
+  InputDecoration _look(FlutterFlowTheme t, String hint) => InputDecoration(
+        hintText: hint,
+        isDense: true,
+        filled: true,
+        fillColor: t.secondaryBackground,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: t.alternate),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: t.alternate),
+        ),
+      );
 
   Widget _label(FlutterFlowTheme t, String text) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
@@ -6025,6 +4727,32 @@ class _FoodPreferencesState extends State<FoodPreferences> {
           ),
         ),
       );
+
+  Widget _step(FlutterFlowTheme t, IconData icon, String label,
+          VoidCallback? onTap) =>
+      Semantics(
+        button: true,
+        enabled: onTap != null,
+        label: label,
+        child: Opacity(
+          opacity: onTap == null ? 0.4 : 1,
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: t.secondaryBackground,
+                border: Border.all(color: t.alternate),
+              ),
+              child: Icon(icon, size: 20, color: t.primary),
+            ),
+          ),
+        ),
+      );
 }
 
 // ---- Hybrid material (design brief, 15 Sep) --------------------------------
@@ -6402,788 +5130,620 @@ BoxDecoration _uBackDeco() => BoxDecoration(
     );
 ''';
 
-const _wProfileMenu = r'''
-import 'package:flutter/material.dart';
-
-/// Profile settings, grouped and compact.
-class ProfileMenu extends StatelessWidget {
-  const ProfileMenu({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    return SizedBox(
-      width: width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _group(context, t, 'You', const [
-            _Row('My details', Icons.badge_outlined, 'OnboardingPage'),
-            _Row('Diet & allergies', Icons.no_food_outlined,
-                'FoodPreferencesPage'),
-            _Row('Security', Icons.lock_outline, 'UpdatePasswordPage'),
-          ]),
-          const SizedBox(height: 20),
-          _group(context, t, 'Kitchen', const [
-            _Row('Household', Icons.group_outlined, 'HouseholdSetupPage'),
-            _Row('Storage', Icons.kitchen_outlined, 'StorageLocationsPage'),
-            _Row('Shopping list', Icons.shopping_cart_outlined,
-                'ShoppingListPage'),
-            _Row('Receipts', Icons.receipt_long_outlined, 'ReceiptsPage'),
-            _Row('Reminders', Icons.notifications_none, 'RemindersPage'),
-            _Row('What you used', Icons.insights_outlined, 'WasteHistoryPage'),
-          ]),
-        ],
-      ),
-    );
-  }
-
-  Widget _group(BuildContext context, FlutterFlowTheme t, String heading,
-      List<_Row> rows) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Semantics(
-            header: true,
-            child: Text(heading,
-                style: t.bodyMedium.copyWith(
-                    fontSize: 14, fontWeight: FontWeight.w700, color: _muted)),
-          ),
-        ),
-        Container(
-          decoration: _uCard(20),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < rows.length; i++) ...[
-                if (i > 0)
-                  const Divider(
-                      height: 1, thickness: 1, indent: 64, color: _border),
-                _tile(context, t, rows[i]),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _tile(BuildContext context, FlutterFlowTheme t, _Row row) {
-    return Semantics(
-      button: true,
-      label: row.title,
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: () => context.pushNamed(row.route),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 56),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: _sage, borderRadius: BorderRadius.circular(12)),
-                  child: Icon(row.icon, color: _forest, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(row.title,
-                      style: t.bodyLarge.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: _ink)),
-                ),
-                const Icon(Icons.chevron_right, color: _muted, size: 22),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Row {
-  const _Row(this.title, this.icon, this.route);
-  final String title;
-  final IconData icon;
-  final String route;
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wReceiptHeader = r'''
-import 'dart:convert';
-
+const _wHouseholdMembers = r'''
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-/// The receipt at the top of the receipt review: shop, where, when, total.
-///
-/// What was read can be wrong, so "Fix" opens it for editing before the food
-/// is added. Nothing shows for a shelf photo or typed food.
-class ReceiptHeader extends StatefulWidget {
-  const ReceiptHeader({super.key, this.width, this.height});
+/// One line saying who is in the household the app is showing: "Just you so
+/// far." or "2 members: Ash and you". A member whose name is not visible is
+/// "someone".
+class HouseholdMembers extends StatefulWidget {
+  const HouseholdMembers({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
 
   @override
-  State<ReceiptHeader> createState() => _ReceiptHeaderState();
+  State<HouseholdMembers> createState() => _HouseholdMembersState();
 }
 
-class _ReceiptHeaderState extends State<ReceiptHeader> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-  static const _cream = Color(0xFFF7F7F0);
+class _HouseholdMembersState extends State<HouseholdMembers> {
+  String _for = '';
+  Future<List<String>>? _names;
 
-  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
+  Future<List<String>> _load(String household) async {
+    final members = await SupaFlow.client
+        .from('household_members')
+        .select('profile_id')
+        .eq('household_id', household)
+        .order('joined_at');
+    final ids = [
+      for (final m in members as List) (m as Map)['profile_id'].toString(),
+    ];
+    final me = SupaFlow.client.auth.currentUser?.id;
+    final names = <String>[];
+    for (final id in ids) {
+      if (id == me) {
+        names.add('you');
+        continue;
+      }
+      var name = '';
+      try {
+        final p = await SupaFlow.client
+            .from('profiles')
+            .select('display_name')
+            .eq('id', id)
+            .maybeSingle();
+        name = (p?['display_name'] ?? '').toString().trim();
+      } catch (_) {}
+      names.add(name.isEmpty ? 'someone' : name);
+    }
+    return names;
+  }
 
-  static Map<String, dynamic> _info() {
+  static String _join(List<String> n) => n.length < 2
+      ? n.join()
+      : '${n.sublist(0, n.length - 1).join(', ')} and ${n.last}';
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+    final household = FFAppState().currentHouseholdId;
+    if (household.isEmpty) return const SizedBox.shrink();
+    if (household != _for) {
+      _for = household;
+      _names = _load(household);
+    }
+    final t = FlutterFlowTheme.of(context);
+    return FutureBuilder<List<String>>(
+      future: _names,
+      builder: (context, snap) {
+        final names = snap.data;
+        if (names == null || names.isEmpty) return const SizedBox.shrink();
+        final line = names.length == 1
+            ? 'Just you so far.'
+            : '${names.length} members: ${_join(names)}';
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            children: [
+              Icon(Icons.group_outlined, size: 18, color: t.secondaryText),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(line,
+                    style: t.bodyMedium.copyWith(color: t.secondaryText)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---- Hybrid material (design brief, 15 Sep) --------------------------------
+// Cream canvas over a blurred food background (set on the page), sculpted
+// cream surfaces, forest gradient primary buttons, calm date badges.
+
+const _uForest = Color(0xFF07533A);
+const _uForestTop = Color(0xFF176C50);
+const _uInk = Color(0xFF202C24);
+const _uMuted = Color(0xFF59665D);
+const _uSage = Color(0xFFE6EDDF);
+const _uLine = Color(0xFFCDD4C3);
+const _uCream = Color(0xFFF7F7F0);
+
+bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
+
+/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
+/// narrow white top highlight, a 2px lower edge and a soft shadow.
+class _USurface extends StatelessWidget {
+  const _USurface({
+    required this.child,
+    this.padding = EdgeInsets.zero,
+    this.radius = 22,
+    this.onTap,
+    this.label,
+    this.tint,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
+  final VoidCallback? onTap;
+  final String? label;
+  final List<Color>? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = BorderRadius.circular(radius);
+    final body = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
+        ),
+        borderRadius: r,
+        border: Border.all(color: _uLine),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
+          BoxShadow(
+              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: r,
+        child: Stack(
+          children: [
+            Padding(padding: padding, child: child),
+            // The narrow white highlight along the top edge.
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 1.5,
+              child: ColoredBox(color: Color(0xCCFFFFFF)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (onTap == null) return body;
+    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
+  }
+}
+
+/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
+class _UPress extends StatefulWidget {
+  const _UPress({
+    required this.child,
+    required this.onTap,
+    this.label,
+    this.radius = 16,
+    this.enabled = true,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final String? label;
+  final double radius;
+  final bool enabled;
+
+  @override
+  State<_UPress> createState() => _UPressState();
+}
+
+class _UPressState extends State<_UPress> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = _uStill(context);
+    return Semantics(
+      button: true,
+      enabled: widget.enabled,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown:
+            widget.enabled ? (_) => setState(() => _down = true) : null,
+        onTapUp: (_) => setState(() => _down = false),
+        onTapCancel: () => setState(() => _down = false),
+        onTap: widget.enabled ? widget.onTap : null,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 100),
+          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 100),
+            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Buttons: one forest primary per task, cream secondaries, quiet text links.
+class _UButton extends StatelessWidget {
+  const _UButton(
+    this.text, {
+    required this.onTap,
+    this.icon,
+    this.kind = 'primary',
+    this.busy = false,
+    this.trailing = false,
+  });
+
+  final String text;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final String kind; // primary | secondary | danger
+  final bool busy;
+  final bool trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    final primary = kind == 'primary';
+    final danger = kind == 'danger';
+    final fg = primary
+        ? Colors.white
+        : (danger ? const Color(0xFFB42318) : _uForest);
+    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
+    final label = Text(text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodyLarge.copyWith(
+            color: fg,
+            fontSize: primary ? 16 : 15,
+            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
+    final content = busy
+        ? SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
+              Flexible(child: label),
+              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
+            ],
+          );
+    final box = Container(
+      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: primary
+              ? const [_uForestTop, _uForest]
+              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: primary
+                ? const Color(0xFF06422E)
+                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
+        boxShadow: primary
+            ? const [
+                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
+                BoxShadow(
+                    color: Color(0x2007533A),
+                    offset: Offset(0, 6),
+                    blurRadius: 10),
+              ]
+            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
+      ),
+      child: content,
+    );
+    return _UPress(
+      onTap: onTap ?? () {},
+      enabled: onTap != null && !busy,
+      label: text,
+      child: box,
+    );
+  }
+}
+
+/// The date badge from dateBadge(): "Label|tone".
+Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
+  if (spec.isEmpty) return const SizedBox.shrink();
+  final parts = spec.split('|');
+  final tone = parts.length > 1 ? parts[1] : 'calm';
+  const tones = <String, (Color, Color)>{
+    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
+    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
+    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
+    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
+  };
+  final c = tones[tone] ?? tones['calm']!;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+        color: c.$1, borderRadius: BorderRadius.circular(8)),
+    child: Text(parts.first,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
+  );
+}
+
+/// A compact picture stand-in when no suitable photo exists: the food's name
+/// set small and calm, never a borrowed photo of a different food or form.
+Widget _uFallback(BuildContext context, String name, {double height = 110}) {
+  final t = FlutterFlowTheme.of(context);
+  return Container(
+    height: height,
+    color: const Color(0xFFE4E9D9),
+    alignment: Alignment.center,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: Text(name.toUpperCase(),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodyMedium.copyWith(
+            color: const Color(0xFF526845),
+            letterSpacing: 2,
+            fontSize: 14,
+            fontWeight: FontWeight.w600)),
+  );
+}
+
+/// The back control on ordinary pages: a cream square with a forest arrow.
+Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
+      onTap: onTap,
+      label: 'Back',
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFCDD6C4)),
+          boxShadow: const [
+            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
+          ],
+        ),
+        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
+      ),
+    );
+
+/// A food card for the two-column grids: picture, two-line name, amount and
+/// the date badge.
+Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
+  final t = FlutterFlowTheme.of(context);
+  final name = '${item['name'] ?? ''}';
+  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
+  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
+  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
+  final badge = dateBadge(
+        '${item['computed_status'] ?? ''}',
+        item['days_left'] is num ? (item['days_left'] as num).round() : null,
+        DateTime.tryParse('${item['printed_date'] ?? ''}'),
+        '${item['printed_date_type'] ?? ''}',
+        '${item['status_basis'] ?? ''}',
+      ) ??
+      '';
+  return _USurface(
+    radius: 20,
+    onTap: onTap,
+    label: '$name. ${badge.split('|').first}',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 110,
+          child: photo.isEmpty
+              ? _uFallback(context, name)
+              : Image.network(photo,
+                  fit: BoxFit.cover,
+                  cacheWidth: 480,
+                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.titleSmall.copyWith(
+                      fontSize: 16,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: _uInk)),
+              const SizedBox(height: 4),
+              Text(amount.isEmpty ? ' ' : amount,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
+              const SizedBox(height: 8),
+              _uBadge(context, badge),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Food close to its date, the one rule Home, Inventory and Use soon share:
+/// past or at its limit, "use soon", or three days or fewer; never frozen.
+bool _uSoon(Map item) {
+  final status = '${item['computed_status'] ?? ''}';
+  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
+    return false;
+  }
+  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
+      .contains(status)) {
+    return true;
+  }
+  final d = item['days_left'];
+  return d is num && d <= 3;
+}
+
+/// The sculpted card as a decoration, for existing layouts.
+BoxDecoration _uCard(double radius) => BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
+      ),
+      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
+      border: Border.all(color: _uLine),
+      boxShadow: const [
+        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
+        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
+      ],
+    );
+
+/// The ordinary back control: a cream square with a forest arrow.
+BoxDecoration _uBackDeco() => BoxDecoration(
+      color: const Color(0xFFFFFDF4),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFFCDD6C4)),
+      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
+    );
+''';
+
+const _wHouseholdSwitcher = r'''
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+/// For someone in more than one household: each household, the one the app is
+/// showing marked, and a tap to show another. Nothing at all for someone in
+/// one household.
+///
+/// Switching sets the household every screen follows, and clears meal ideas,
+/// which were built from the other kitchen's food.
+class HouseholdSwitcher extends StatefulWidget {
+  const HouseholdSwitcher({super.key, this.width, this.height});
+
+  final double? width;
+  final double? height;
+
+  @override
+  State<HouseholdSwitcher> createState() => _HouseholdSwitcherState();
+}
+
+class _HouseholdSwitcherState extends State<HouseholdSwitcher> {
+  List<Map<String, dynamic>> _households = const [];
+  bool _loading = false;
+  String _reloadedFor = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (_loading) return;
+    _loading = true;
     try {
-      final v = jsonDecode(FFAppState().scanReceipt);
-      return v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{};
+      final rows = await SupaFlow.client
+          .from('households')
+          .select('id, name')
+          .order('created_at', ascending: true);
+      if (!mounted) return;
+      setState(
+          () => _households = List<Map<String, dynamic>>.from(rows as List));
     } catch (_) {
-      return <String, dynamic>{};
+      // No signal: the screen's own card still says which household it is.
+    } finally {
+      _loading = false;
     }
   }
 
-  static void _write(Map<String, dynamic> info) =>
-      FFAppState().update(() => FFAppState().scanReceipt = jsonEncode(info));
-
-  static String _when(String iso) {
-    final d = DateTime.tryParse(iso);
-    if (d == null) return '';
-    final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
-    final hasTime = iso.contains('T');
-    return '${_days[d.weekday - 1]} ${d.day} ${_months[d.month - 1]}'
-        '${hasTime ? ', $h:${d.minute.toString().padLeft(2, '0')} ${d.hour < 12 ? 'am' : 'pm'}' : ''}';
-  }
-
-  static String _money(Object? amount, Object? currency) {
-    if (amount is! num || amount <= 0) return '';
-    const symbols = {
-      'AUD': r'$',
-      'NZD': r'$',
-      'USD': r'$',
-      'CAD': r'$',
-      'GBP': '£',
-      'EUR': '€'
-    };
-    final code = '${currency ?? ''}';
-    return '${symbols[code] ?? (code.isEmpty ? r'$' : '$code ')}${amount.toStringAsFixed(2)}';
+  void _show(String id, String name) {
+    FFAppState().update(() {
+      FFAppState().currentHouseholdId = id;
+      FFAppState().mealIdeas = [];
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Now showing $name.')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
     final t = FlutterFlowTheme.of(context);
-    if (FFAppState().scannedFrom != 'receipt' ||
-        FFAppState().scannedFoods.isEmpty) {
-      return const SizedBox.shrink();
+    final current = FFAppState().currentHouseholdId;
+    final ids = [for (final h in _households) h['id'].toString()];
+
+    // A household created or joined since this loaded: read the list again,
+    // once per new id, so it appears here.
+    if (current.isNotEmpty &&
+        !ids.contains(current) &&
+        _reloadedFor != current) {
+      _reloadedFor = current;
+      _load();
     }
-    final info = _info();
-    final shop = '${info['shop'] ?? ''}'.trim();
-    final place = '${info['location'] ?? ''}'.trim();
-    final when = _when('${info['purchasedAt'] ?? ''}');
-    final total = _money(info['total'], info['currency']);
+    if (_households.length < 2) return const SizedBox.shrink();
+
     return Container(
-      width: widget.width,
-      margin: const EdgeInsets.only(top: 4, bottom: 4),
-      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
-      decoration: BoxDecoration(
-        color: _sage,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
+      width: widget.width ?? double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+      decoration: _uCard(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(Icons.receipt_long_outlined, color: _forest, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(shop.isEmpty ? 'Shop not read' : shop,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.bodyLarge
-                        .copyWith(fontWeight: FontWeight.w800, color: _ink)),
-                Text(
-                    [
-                      if (place.isNotEmpty) place,
-                      when.isEmpty ? 'time not read' : when,
-                      if (total.isNotEmpty) total,
-                    ].join(' · '),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
-              ],
-            ),
+          Text('Your households', style: t.titleMedium),
+          const SizedBox(height: 2),
+          Text(
+            'Choose which kitchen the app shows.',
+            style: t.bodySmall.copyWith(color: t.secondaryText),
           ),
-          TextButton(
-            style: TextButton.styleFrom(
-                minimumSize: const Size(48, 44), foregroundColor: _forest),
-            onPressed: () => _fix(t, info),
-            child: Text('Fix',
-                style: t.bodyMedium
-                    .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-          ),
+          const SizedBox(height: 8),
+          for (final h in _households) _row(t, h, current),
         ],
       ),
     );
   }
 
-  Future<void> _fix(FlutterFlowTheme t, Map<String, dynamic> info) async {
-    final shop = TextEditingController(text: '${info['shop'] ?? ''}');
-    final place = TextEditingController(text: '${info['location'] ?? ''}');
-    final total = TextEditingController(
-        text: info['total'] is num && (info['total'] as num) > 0
-            ? (info['total'] as num).toStringAsFixed(2)
-            : '');
-    var when = DateTime.tryParse('${info['purchasedAt'] ?? ''}');
-    InputDecoration look(String label) => InputDecoration(
-          labelText: label,
-          filled: true,
-          fillColor: const Color(0xFFFFFDF7),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _border),
-          ),
-        );
-    final save = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: _cream,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheet) => StatefulBuilder(
-        builder: (sheet, redraw) => Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
-          child: SafeArea(
-            top: false,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text('The receipt',
-                      style: t.headlineSmall.copyWith(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: _ink)),
-                  const SizedBox(height: 16),
-                  TextField(
-                      controller: shop,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: look('Shop')),
-                  const SizedBox(height: 12),
-                  TextField(
-                      controller: place,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: look('Where (branch or suburb)')),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      alignment: Alignment.centerLeft,
-                      minimumSize: const Size(0, 56),
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: _border),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
-                    onPressed: () async {
-                      final now = DateTime.now();
-                      final first = now.subtract(const Duration(days: 365));
-                      // A misread date may be outside the range: start inside.
-                      var init = when ?? now;
-                      if (init.isAfter(now)) init = now;
-                      if (init.isBefore(first)) init = first;
-                      final day = await showDatePicker(
-                        context: sheet,
-                        initialDate: init,
-                        firstDate: now.subtract(const Duration(days: 365)),
-                        lastDate: now,
-                      );
-                      if (day == null) return;
-                      final time = await showTimePicker(
-                        context: sheet,
-                        initialTime: TimeOfDay.fromDateTime(when ?? now),
-                      );
-                      redraw(() => when = DateTime(day.year, day.month, day.day,
-                          time?.hour ?? 12, time?.minute ?? 0));
-                    },
-                    icon: const Icon(Icons.event, color: _forest),
-                    label: Text(
-                        when == null
-                            ? 'When was it bought?'
-                            : 'Bought ${_when(when!.toIso8601String())}',
-                        style: t.bodyLarge.copyWith(color: _ink)),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                      controller: total,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: look('Total paid')),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 52,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                        backgroundColor: _forest,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                      ),
-                      onPressed: () => Navigator.of(sheet).pop(true),
-                      child: Text('Save',
-                          style: t.bodyLarge.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                ],
+  Widget _row(FlutterFlowTheme t, Map<String, dynamic> h, String current) {
+    final id = h['id'].toString();
+    final name = (h['name'] ?? '').toString();
+    final on = id == current;
+    return Semantics(
+      button: !on,
+      selected: on,
+      label: on ? '$name, showing now' : 'Show $name',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: on ? null : () => _show(id, name),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                on ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                size: 22,
+                color: on ? t.primary : t.secondaryText,
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.bodyLarge.copyWith(
+                    fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (on)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: t.accent1,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'Showing',
+                    style: t.bodySmall.copyWith(
+                        color: t.primary, fontWeight: FontWeight.w700),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
-    if (save == true) {
-      final amount =
-          double.tryParse(total.text.replaceAll(RegExp(r'[^0-9.]'), ''));
-      final d = when;
-      _write({
-        ...info,
-        'shop': shop.text.trim(),
-        'location': place.text.trim(),
-        'purchasedAt': d == null
-            ? ''
-            : '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}T${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}',
-        'total': amount == null ? 0 : (amount * 100).round() / 100,
-      });
-    }
-    Future.delayed(const Duration(milliseconds: 500), () {
-      shop.dispose();
-      place.dispose();
-      total.dispose();
-    });
   }
 }
 
@@ -7562,30 +6122,1033 @@ BoxDecoration _uBackDeco() => BoxDecoration(
     );
 ''';
 
-const _wScanLineEditor = r'''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+const _wLeaveHouseholdButton = r'''
+import 'dart:async';
 
-/// One line of the scan review, fixed in place.
-class ScanLineEditor extends StatefulWidget {
-  const ScanLineEditor({super.key, this.width, this.height, this.lineIndex});
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+/// "Leave this household", with the second tap as the confirmation.
+///
+/// Nothing is shown to the owner of the household: they cannot leave their own
+/// kitchen, and a button that only ever refuses is worse than no button.
+class LeaveHouseholdButton extends StatefulWidget {
+  const LeaveHouseholdButton({super.key, this.width, this.height});
 
   final double? width;
   final double? height;
-  final int? lineIndex;
 
   @override
-  State<ScanLineEditor> createState() => _ScanLineEditorState();
+  State<LeaveHouseholdButton> createState() => _LeaveHouseholdButtonState();
 }
 
-class _ScanLineEditorState extends State<ScanLineEditor> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _border = Color(0xFFDCE3D7);
+class _LeaveHouseholdButtonState extends State<LeaveHouseholdButton> {
+  String _for = '';
+  bool _owner = true; // assume owner until told otherwise: shows nothing
+  bool _asking = false;
+  bool _leaving = false;
+  Timer? _forget;
 
+  @override
+  void dispose() {
+    _forget?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _whoOwns(String household) async {
+    try {
+      final row = await SupaFlow.client
+          .from('households')
+          .select('owner_id')
+          .eq('id', household)
+          .maybeSingle();
+      final uid = SupaFlow.client.auth.currentUser?.id;
+      if (!mounted || household != _for) return;
+      setState(() =>
+          _owner = row == null || (row['owner_id'] ?? '').toString() == uid);
+    } catch (_) {
+      // Leave it hidden rather than offer something that will refuse.
+    }
+  }
+
+  Future<void> _leave() async {
+    setState(() {
+      _leaving = true;
+      _asking = false;
+    });
+    final said = await leaveHousehold();
+    if (!mounted) return;
+    setState(() => _leaving = false);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(said.isEmpty ? 'You have left that household.' : said),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+    final household = FFAppState().currentHouseholdId;
+    if (household.isEmpty) return const SizedBox.shrink();
+    if (household != _for) {
+      _for = household;
+      _owner = true;
+      _asking = false;
+      _whoOwns(household);
+    }
+    if (_owner) return const SizedBox.shrink();
+
+    final t = FlutterFlowTheme.of(context);
+    final label = _leaving
+        ? 'Leaving…'
+        : (_asking ? 'Tap again to leave' : 'Leave this household');
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: _leaving
+              ? null
+              : () {
+                  if (_asking) {
+                    _forget?.cancel();
+                    _leave();
+                    return;
+                  }
+                  setState(() => _asking = true);
+                  _forget?.cancel();
+                  _forget = Timer(const Duration(seconds: 4), () {
+                    if (mounted) setState(() => _asking = false);
+                  });
+                },
+          style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+          icon: Icon(Icons.logout, size: 18, color: t.error),
+          label: Text(
+            label,
+            style: t.bodyMedium
+                .copyWith(color: t.error, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---- Hybrid material (design brief, 15 Sep) --------------------------------
+// Cream canvas over a blurred food background (set on the page), sculpted
+// cream surfaces, forest gradient primary buttons, calm date badges.
+
+const _uForest = Color(0xFF07533A);
+const _uForestTop = Color(0xFF176C50);
+const _uInk = Color(0xFF202C24);
+const _uMuted = Color(0xFF59665D);
+const _uSage = Color(0xFFE6EDDF);
+const _uLine = Color(0xFFCDD4C3);
+const _uCream = Color(0xFFF7F7F0);
+
+bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
+
+/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
+/// narrow white top highlight, a 2px lower edge and a soft shadow.
+class _USurface extends StatelessWidget {
+  const _USurface({
+    required this.child,
+    this.padding = EdgeInsets.zero,
+    this.radius = 22,
+    this.onTap,
+    this.label,
+    this.tint,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
+  final VoidCallback? onTap;
+  final String? label;
+  final List<Color>? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = BorderRadius.circular(radius);
+    final body = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
+        ),
+        borderRadius: r,
+        border: Border.all(color: _uLine),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
+          BoxShadow(
+              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: r,
+        child: Stack(
+          children: [
+            Padding(padding: padding, child: child),
+            // The narrow white highlight along the top edge.
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 1.5,
+              child: ColoredBox(color: Color(0xCCFFFFFF)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (onTap == null) return body;
+    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
+  }
+}
+
+/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
+class _UPress extends StatefulWidget {
+  const _UPress({
+    required this.child,
+    required this.onTap,
+    this.label,
+    this.radius = 16,
+    this.enabled = true,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final String? label;
+  final double radius;
+  final bool enabled;
+
+  @override
+  State<_UPress> createState() => _UPressState();
+}
+
+class _UPressState extends State<_UPress> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = _uStill(context);
+    return Semantics(
+      button: true,
+      enabled: widget.enabled,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown:
+            widget.enabled ? (_) => setState(() => _down = true) : null,
+        onTapUp: (_) => setState(() => _down = false),
+        onTapCancel: () => setState(() => _down = false),
+        onTap: widget.enabled ? widget.onTap : null,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 100),
+          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 100),
+            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Buttons: one forest primary per task, cream secondaries, quiet text links.
+class _UButton extends StatelessWidget {
+  const _UButton(
+    this.text, {
+    required this.onTap,
+    this.icon,
+    this.kind = 'primary',
+    this.busy = false,
+    this.trailing = false,
+  });
+
+  final String text;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final String kind; // primary | secondary | danger
+  final bool busy;
+  final bool trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    final primary = kind == 'primary';
+    final danger = kind == 'danger';
+    final fg = primary
+        ? Colors.white
+        : (danger ? const Color(0xFFB42318) : _uForest);
+    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
+    final label = Text(text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodyLarge.copyWith(
+            color: fg,
+            fontSize: primary ? 16 : 15,
+            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
+    final content = busy
+        ? SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
+              Flexible(child: label),
+              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
+            ],
+          );
+    final box = Container(
+      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: primary
+              ? const [_uForestTop, _uForest]
+              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: primary
+                ? const Color(0xFF06422E)
+                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
+        boxShadow: primary
+            ? const [
+                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
+                BoxShadow(
+                    color: Color(0x2007533A),
+                    offset: Offset(0, 6),
+                    blurRadius: 10),
+              ]
+            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
+      ),
+      child: content,
+    );
+    return _UPress(
+      onTap: onTap ?? () {},
+      enabled: onTap != null && !busy,
+      label: text,
+      child: box,
+    );
+  }
+}
+
+/// The date badge from dateBadge(): "Label|tone".
+Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
+  if (spec.isEmpty) return const SizedBox.shrink();
+  final parts = spec.split('|');
+  final tone = parts.length > 1 ? parts[1] : 'calm';
+  const tones = <String, (Color, Color)>{
+    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
+    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
+    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
+    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
+  };
+  final c = tones[tone] ?? tones['calm']!;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+        color: c.$1, borderRadius: BorderRadius.circular(8)),
+    child: Text(parts.first,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
+  );
+}
+
+/// A compact picture stand-in when no suitable photo exists: the food's name
+/// set small and calm, never a borrowed photo of a different food or form.
+Widget _uFallback(BuildContext context, String name, {double height = 110}) {
+  final t = FlutterFlowTheme.of(context);
+  return Container(
+    height: height,
+    color: const Color(0xFFE4E9D9),
+    alignment: Alignment.center,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: Text(name.toUpperCase(),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodyMedium.copyWith(
+            color: const Color(0xFF526845),
+            letterSpacing: 2,
+            fontSize: 14,
+            fontWeight: FontWeight.w600)),
+  );
+}
+
+/// The back control on ordinary pages: a cream square with a forest arrow.
+Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
+      onTap: onTap,
+      label: 'Back',
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFCDD6C4)),
+          boxShadow: const [
+            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
+          ],
+        ),
+        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
+      ),
+    );
+
+/// A food card for the two-column grids: picture, two-line name, amount and
+/// the date badge.
+Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
+  final t = FlutterFlowTheme.of(context);
+  final name = '${item['name'] ?? ''}';
+  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
+  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
+  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
+  final badge = dateBadge(
+        '${item['computed_status'] ?? ''}',
+        item['days_left'] is num ? (item['days_left'] as num).round() : null,
+        DateTime.tryParse('${item['printed_date'] ?? ''}'),
+        '${item['printed_date_type'] ?? ''}',
+        '${item['status_basis'] ?? ''}',
+      ) ??
+      '';
+  return _USurface(
+    radius: 20,
+    onTap: onTap,
+    label: '$name. ${badge.split('|').first}',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 110,
+          child: photo.isEmpty
+              ? _uFallback(context, name)
+              : Image.network(photo,
+                  fit: BoxFit.cover,
+                  cacheWidth: 480,
+                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.titleSmall.copyWith(
+                      fontSize: 16,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: _uInk)),
+              const SizedBox(height: 4),
+              Text(amount.isEmpty ? ' ' : amount,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
+              const SizedBox(height: 8),
+              _uBadge(context, badge),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Food close to its date, the one rule Home, Inventory and Use soon share:
+/// past or at its limit, "use soon", or three days or fewer; never frozen.
+bool _uSoon(Map item) {
+  final status = '${item['computed_status'] ?? ''}';
+  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
+    return false;
+  }
+  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
+      .contains(status)) {
+    return true;
+  }
+  final d = item['days_left'];
+  return d is num && d <= 3;
+}
+
+/// The sculpted card as a decoration, for existing layouts.
+BoxDecoration _uCard(double radius) => BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
+      ),
+      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
+      border: Border.all(color: _uLine),
+      boxShadow: const [
+        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
+        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
+      ],
+    );
+
+/// The ordinary back control: a cream square with a forest arrow.
+BoxDecoration _uBackDeco() => BoxDecoration(
+      color: const Color(0xFFFFFDF4),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFFCDD6C4)),
+      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
+    );
+''';
+
+const _wPutItBack = r'''
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+/// The last few foods marked used or thrown out, each with a way back.
+///
+/// It sits on "What you used", which is where someone goes after a mistaken
+/// tap. Shows nothing at all when nothing has been settled.
+class PutItBack extends StatefulWidget {
+  const PutItBack({super.key, this.width, this.height});
+
+  final double? width;
+  final double? height;
+
+  @override
+  State<PutItBack> createState() => _PutItBackState();
+}
+
+class _PutItBackState extends State<PutItBack> {
+  List<Map<String, dynamic>> _settled = const [];
+  String _for = '';
+  String _busy = '';
+
+  Future<void> _load(String household) async {
+    try {
+      final rows = await SupaFlow.client
+          .from('food_items')
+          .select('id, name, status, archived_at')
+          .eq('household_id', household)
+          .not('archived_at', 'is', null)
+          .order('archived_at', ascending: false)
+          .limit(5);
+      if (!mounted || household != _for) return;
+      setState(() => _settled = List<Map<String, dynamic>>.from(rows as List));
+    } catch (_) {
+      // No signal: the figures above still read, this simply does not show.
+    }
+  }
+
+  Future<void> _back(Map<String, dynamic> row) async {
+    final id = row['id'].toString();
+    if (_busy.isNotEmpty) return;
+    setState(() => _busy = id);
+    final said = await unsettleFoodItem(id);
+    if (!mounted) return;
+    setState(() => _busy = '');
+    final name = (row['name'] ?? 'It').toString();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(said.isEmpty ? '$name is back in your kitchen.' : said),
+    ));
+    if (said.isEmpty) await _load(_for);
+  }
+
+  static String _when(Object? at) {
+    final t = DateTime.tryParse((at ?? '').toString())?.toLocal();
+    if (t == null) return '';
+    final gap = DateTime.now().difference(t);
+    if (gap.inMinutes < 1) return 'just now';
+    if (gap.inMinutes < 60) return '${gap.inMinutes} min ago';
+    if (gap.inHours < 24) return '${gap.inHours} h ago';
+    if (gap.inDays == 1) return 'yesterday';
+    return '${gap.inDays} days ago';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+    final household = FFAppState().currentHouseholdId;
+    if (household.isNotEmpty && household != _for) {
+      _for = household;
+      _load(household);
+    }
+    if (_settled.isEmpty) return const SizedBox.shrink();
+    final t = FlutterFlowTheme.of(context);
+
+    return Container(
+      width: widget.width ?? double.infinity,
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
+      decoration: _uCard(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Changed your mind?', style: t.titleMedium),
+          const SizedBox(height: 2),
+          Text(
+            'The last few you marked used or thrown out.',
+            style: t.bodySmall.copyWith(color: t.secondaryText),
+          ),
+          const SizedBox(height: 6),
+          for (final row in _settled) _row(t, row),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(FlutterFlowTheme t, Map<String, dynamic> row) {
+    final name = (row['name'] ?? '').toString();
+    final used = (row['status'] ?? '').toString() == 'consumed';
+    final when = _when(row['archived_at']);
+    final busy = _busy == row['id'].toString();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(used ? Icons.done_all : Icons.delete_outline,
+              size: 18, color: t.secondaryText),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.bodyLarge),
+                Text(
+                  [used ? 'Used' : 'Thrown out', if (when.isNotEmpty) when]
+                      .join(' - '),
+                  style: t.bodySmall.copyWith(color: t.secondaryText),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: busy ? null : () => _back(row),
+            style: TextButton.styleFrom(minimumSize: const Size(0, 44)),
+            child: Text(
+              busy ? 'Putting back...' : 'Put it back',
+              style: t.bodySmall
+                  .copyWith(color: t.primary, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---- Hybrid material (design brief, 15 Sep) --------------------------------
+// Cream canvas over a blurred food background (set on the page), sculpted
+// cream surfaces, forest gradient primary buttons, calm date badges.
+
+const _uForest = Color(0xFF07533A);
+const _uForestTop = Color(0xFF176C50);
+const _uInk = Color(0xFF202C24);
+const _uMuted = Color(0xFF59665D);
+const _uSage = Color(0xFFE6EDDF);
+const _uLine = Color(0xFFCDD4C3);
+const _uCream = Color(0xFFF7F7F0);
+
+bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
+
+/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
+/// narrow white top highlight, a 2px lower edge and a soft shadow.
+class _USurface extends StatelessWidget {
+  const _USurface({
+    required this.child,
+    this.padding = EdgeInsets.zero,
+    this.radius = 22,
+    this.onTap,
+    this.label,
+    this.tint,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
+  final VoidCallback? onTap;
+  final String? label;
+  final List<Color>? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = BorderRadius.circular(radius);
+    final body = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
+        ),
+        borderRadius: r,
+        border: Border.all(color: _uLine),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
+          BoxShadow(
+              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: r,
+        child: Stack(
+          children: [
+            Padding(padding: padding, child: child),
+            // The narrow white highlight along the top edge.
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 1.5,
+              child: ColoredBox(color: Color(0xCCFFFFFF)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (onTap == null) return body;
+    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
+  }
+}
+
+/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
+class _UPress extends StatefulWidget {
+  const _UPress({
+    required this.child,
+    required this.onTap,
+    this.label,
+    this.radius = 16,
+    this.enabled = true,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final String? label;
+  final double radius;
+  final bool enabled;
+
+  @override
+  State<_UPress> createState() => _UPressState();
+}
+
+class _UPressState extends State<_UPress> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final still = _uStill(context);
+    return Semantics(
+      button: true,
+      enabled: widget.enabled,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown:
+            widget.enabled ? (_) => setState(() => _down = true) : null,
+        onTapUp: (_) => setState(() => _down = false),
+        onTapCancel: () => setState(() => _down = false),
+        onTap: widget.enabled ? widget.onTap : null,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 100),
+          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 100),
+            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Buttons: one forest primary per task, cream secondaries, quiet text links.
+class _UButton extends StatelessWidget {
+  const _UButton(
+    this.text, {
+    required this.onTap,
+    this.icon,
+    this.kind = 'primary',
+    this.busy = false,
+    this.trailing = false,
+  });
+
+  final String text;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final String kind; // primary | secondary | danger
+  final bool busy;
+  final bool trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    final primary = kind == 'primary';
+    final danger = kind == 'danger';
+    final fg = primary
+        ? Colors.white
+        : (danger ? const Color(0xFFB42318) : _uForest);
+    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
+    final label = Text(text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodyLarge.copyWith(
+            color: fg,
+            fontSize: primary ? 16 : 15,
+            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
+    final content = busy
+        ? SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
+              Flexible(child: label),
+              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
+            ],
+          );
+    final box = Container(
+      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: primary
+              ? const [_uForestTop, _uForest]
+              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: primary
+                ? const Color(0xFF06422E)
+                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
+        boxShadow: primary
+            ? const [
+                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
+                BoxShadow(
+                    color: Color(0x2007533A),
+                    offset: Offset(0, 6),
+                    blurRadius: 10),
+              ]
+            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
+      ),
+      child: content,
+    );
+    return _UPress(
+      onTap: onTap ?? () {},
+      enabled: onTap != null && !busy,
+      label: text,
+      child: box,
+    );
+  }
+}
+
+/// The date badge from dateBadge(): "Label|tone".
+Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
+  if (spec.isEmpty) return const SizedBox.shrink();
+  final parts = spec.split('|');
+  final tone = parts.length > 1 ? parts[1] : 'calm';
+  const tones = <String, (Color, Color)>{
+    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
+    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
+    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
+    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
+  };
+  final c = tones[tone] ?? tones['calm']!;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+        color: c.$1, borderRadius: BorderRadius.circular(8)),
+    child: Text(parts.first,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
+  );
+}
+
+/// A compact picture stand-in when no suitable photo exists: the food's name
+/// set small and calm, never a borrowed photo of a different food or form.
+Widget _uFallback(BuildContext context, String name, {double height = 110}) {
+  final t = FlutterFlowTheme.of(context);
+  return Container(
+    height: height,
+    color: const Color(0xFFE4E9D9),
+    alignment: Alignment.center,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: Text(name.toUpperCase(),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodyMedium.copyWith(
+            color: const Color(0xFF526845),
+            letterSpacing: 2,
+            fontSize: 14,
+            fontWeight: FontWeight.w600)),
+  );
+}
+
+/// The back control on ordinary pages: a cream square with a forest arrow.
+Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
+      onTap: onTap,
+      label: 'Back',
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFCDD6C4)),
+          boxShadow: const [
+            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
+          ],
+        ),
+        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
+      ),
+    );
+
+/// A food card for the two-column grids: picture, two-line name, amount and
+/// the date badge.
+Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
+  final t = FlutterFlowTheme.of(context);
+  final name = '${item['name'] ?? ''}';
+  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
+  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
+  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
+  final badge = dateBadge(
+        '${item['computed_status'] ?? ''}',
+        item['days_left'] is num ? (item['days_left'] as num).round() : null,
+        DateTime.tryParse('${item['printed_date'] ?? ''}'),
+        '${item['printed_date_type'] ?? ''}',
+        '${item['status_basis'] ?? ''}',
+      ) ??
+      '';
+  return _USurface(
+    radius: 20,
+    onTap: onTap,
+    label: '$name. ${badge.split('|').first}',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 110,
+          child: photo.isEmpty
+              ? _uFallback(context, name)
+              : Image.network(photo,
+                  fit: BoxFit.cover,
+                  cacheWidth: 480,
+                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.titleSmall.copyWith(
+                      fontSize: 16,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: _uInk)),
+              const SizedBox(height: 4),
+              Text(amount.isEmpty ? ' ' : amount,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
+              const SizedBox(height: 8),
+              _uBadge(context, badge),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Food close to its date, the one rule Home, Inventory and Use soon share:
+/// past or at its limit, "use soon", or three days or fewer; never frozen.
+bool _uSoon(Map item) {
+  final status = '${item['computed_status'] ?? ''}';
+  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
+    return false;
+  }
+  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
+      .contains(status)) {
+    return true;
+  }
+  final d = item['days_left'];
+  return d is num && d <= 3;
+}
+
+/// The sculpted card as a decoration, for existing layouts.
+BoxDecoration _uCard(double radius) => BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
+      ),
+      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
+      border: Border.all(color: _uLine),
+      boxShadow: const [
+        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
+        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
+      ],
+    );
+
+/// The ordinary back control: a cream square with a forest arrow.
+BoxDecoration _uBackDeco() => BoxDecoration(
+      color: const Color(0xFFFFFDF4),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFFCDD6C4)),
+      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
+    );
+''';
+
+const _wShelfReview = r'''
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
+/// The photo map: each shelf photo with its foods outlined and numbered, and
+/// the list below to tick (yes), cross (no) or fix each one in place,
+/// including an optional use-by date.
+///
+/// Reads the map from app state rather than taking it as a parameter:
+/// FlutterFlow cannot pass a list to a custom widget.
+class ShelfReview extends StatefulWidget {
+  const ShelfReview({super.key, this.width, this.height});
+
+  final double? width;
+  final double? height;
+
+  @override
+  State<ShelfReview> createState() => _ShelfReviewState();
+}
+
+class _ShelfReviewState extends State<ShelfReview> {
   // The same words the category picker uses.
-  static const _labels = <String, String>{
+  static const _categoryNames = <String, String>{
     'dairy': 'Dairy',
     'meat_poultry': 'Meat & poultry',
     'seafood': 'Seafood',
@@ -7599,2175 +7162,727 @@ class _ScanLineEditorState extends State<ScanLineEditor> {
     'condiments_sauces': 'Condiments & sauces',
     'infant_food': 'Infant food & formula',
   };
+  static const _places = <String, String>{
+    'fridge': 'Fridge',
+    'freezer': 'Freezer',
+    'pantry': 'Pantry',
+  };
+  static const _months = <String>[
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
-  final _name = TextEditingController();
-  final _price = TextEditingController();
-  String _category = '';
-  int _quantity = 1;
-  String _place = '';
-  List<Map<String, dynamic>> _places = const [];
-  bool _placesLoaded = false;
-  bool _started = false;
+  int _selected = -1;
+  int _editing = -1;
 
-  int get _i => widget.lineIndex ?? -1;
-
-  @override
-  void initState() {
-    super.initState();
-    final foods = FFAppState().scannedFoods;
-    if (_i >= 0 && _i < foods.length) {
-      final f = foods[_i];
-      _name.text = f.name;
-      _category = f.category;
-      _quantity = f.quantity < 1 ? 1 : f.quantity;
-      _place = f.place;
-      _price.text = f.price > 0 ? f.price.toStringAsFixed(2) : '';
-      _started = true;
-    }
-    _loadPlaces();
-  }
+  // What the kitchen already holds, so the map can say so before the same
+  // food is added twice. Lower case, and plurals dropped, because a photo
+  // says "Eggs" where the kitchen says "Egg".
+  Set<String> _have = {};
+  String _haveFor = '';
+  final Map<int, TextEditingController> _names = {};
 
   @override
   void dispose() {
-    _name.dispose();
-    _price.dispose();
+    for (final c in _names.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  Future<void> _loadPlaces() async {
-    final household = FFAppState().currentHouseholdId;
-    if (household.isEmpty) return;
-    try {
-      final rows = await SupaFlow.client
-          .from('storage_locations')
-          .select('id, name, location_type')
-          .eq('household_id', household)
-          .order('location_type')
-          .order('name');
-      if (!mounted) return;
-      setState(() {
-        _places = List<Map<String, dynamic>>.from(rows as List);
-        _placesLoaded = true;
-      });
-    } catch (_) {
-      if (mounted) setState(() => _placesLoaded = true);
-    }
-  }
-
-  static IconData _placeIcon(String type) {
-    switch (type) {
-      case 'fridge':
-        return Icons.kitchen_outlined;
-      case 'freezer':
-        return Icons.ac_unit;
-      case 'pantry':
-        return Icons.inventory_2_outlined;
-      default:
-        return Icons.shelves;
-    }
-  }
-
-  void _save() {
-    final name = _name.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Give it a name first.')));
-      return;
-    }
-    String placeName = '';
-    for (final p in _places) {
-      if (p['id'].toString() == _place)
-        placeName = (p['name'] ?? '').toString();
-    }
-    final paid =
-        double.tryParse(_price.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
-    final price = paid > 0 ? (paid * 100).round() / 100 : 0.0;
-    final detail = <String>[
-      if (_quantity > 1) '$_quantity of them',
-      _labels[_category] ?? 'No category',
-      if (placeName.isNotEmpty) placeName,
-      if (price > 0) '\$${price.toStringAsFixed(2)}',
-    ].join(' · ');
-    if (_i >= 0 && _i < FFAppState().scannedFoods.length) {
-      FFAppState().update(() {
-        FFAppState().updateScannedFoodsAtIndex(
-          _i,
-          (_) => ScannedFoodStruct(
-            name: name[0].toUpperCase() + name.substring(1),
-            category: _category,
-            quantity: _quantity,
-            place: _place,
-            detail: detail,
-            price: price,
-          ),
-        );
-      });
-    }
-    GoRouter.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    if (!_started) {
-      return Text('This line is no longer on the list.',
-          style: t.bodyLarge.copyWith(color: _muted));
-    }
-    return SizedBox(
-      width: widget.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _label(t, 'Name'),
-          TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.sentences,
-            style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-            decoration: _box('e.g. Mandarins'),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(child: _label(t, 'How many')),
-              _stepper(Icons.remove, _quantity > 1,
-                  () => setState(() => _quantity--)),
-              SizedBox(
-                width: 48,
-                child: Text('$_quantity',
-                    textAlign: TextAlign.center,
-                    style: t.titleMedium.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: _ink)),
-              ),
-              _stepper(
-                  Icons.add, _quantity < 24, () => setState(() => _quantity++)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _label(t, 'Price paid'),
-          TextField(
-            controller: _price,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: t.bodyLarge.copyWith(fontSize: 16, color: _ink),
-            decoration: _box('Optional, for budgets'),
-          ),
-          const SizedBox(height: 20),
-          _label(t, 'Kept in'),
-          if (!_placesLoaded)
-            Text('Loading your places…',
-                style: t.bodyMedium.copyWith(color: _muted, fontSize: 14))
-          else ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final p in _places)
-                  _choice(
-                    t,
-                    (p['name'] ?? '').toString(),
-                    _place == p['id'].toString(),
-                    () => setState(() => _place = p['id'].toString()),
-                    icon: _placeIcon((p['location_type'] ?? '').toString()),
-                  ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48), foregroundColor: _forest),
-                onPressed: () async {
-                  await context.pushNamed('StorageLocationsPage');
-                  if (mounted) _loadPlaces();
-                },
-                icon: const Icon(Icons.add, size: 18),
-                label: Text('Add a place, like a fruit bowl',
-                    style: t.bodyMedium
-                        .copyWith(color: _forest, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          _label(t, 'Category'),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final e in _labels.entries)
-                _choice(t, e.value, _category == e.key,
-                    () => setState(() => _category = e.key)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-  elevation: 3,
-  shadowColor: const Color(0x99033C29),
-                backgroundColor: _forest,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: _save,
-              child: Text('Save this line',
-                  style: t.bodyLarge.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _label(FlutterFlowTheme t, String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text,
-            style: t.bodyMedium.copyWith(
-                fontSize: 14, fontWeight: FontWeight.w700, color: _muted)),
+  MapFoodStruct _copy(MapFoodStruct f,
+          {String? name,
+          String? category,
+          String? decision,
+          String? place,
+          String? useBy,
+          int? quantity}) =>
+      MapFoodStruct(
+        name: name ?? f.name,
+        category: category ?? f.category,
+        quantity: quantity ?? f.quantity,
+        kind: f.kind,
+        box: f.box,
+        photo: f.photo,
+        decision: decision ?? f.decision,
+        place: place ?? f.place,
+        useBy: useBy ?? f.useBy,
       );
 
-  InputDecoration _box(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: const Color(0xFFFFFDF7),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _forest, width: 1.5),
-        ),
-      );
-
-  Widget _choice(FlutterFlowTheme t, String label, bool on, VoidCallback onTap,
-          {IconData? icon}) =>
-      Semantics(
-        button: true,
-        selected: on,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(999),
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: on ? _forest : Colors.white,
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: on ? _forest : _border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 18, color: on ? Colors.white : _forest),
-                  const SizedBox(width: 6),
-                ],
-                Text(label,
-                    style: t.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: on ? Colors.white : _ink)),
-              ],
-            ),
-          ),
-        ),
-      );
-
-  Widget _stepper(IconData icon, bool enabled, VoidCallback onTap) => Opacity(
-        opacity: enabled ? 1 : 0.4,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: enabled ? onTap : null,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: _border),
-            ),
-            child: Icon(icon, color: _forest, size: 20),
-          ),
-        ),
-      );
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
+  void _change(int i, MapFoodStruct Function(MapFoodStruct) change) {
+    FFAppState().update(() => FFAppState().updateMapFoodsAtIndex(i, change));
   }
-}
 
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
+  void _decide(int i, String decision) {
+    final now = FFAppState().mapFoods[i].decision == decision ? '' : decision;
+    _change(i, (f) => _copy(f, decision: now));
+    final next = FFAppState().mapFoods.indexWhere((f) => f.decision.isEmpty);
+    setState(() => _selected = next >= 0 ? next : i);
   }
-}
 
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wWasteChart = r'''
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-/// Six months of used up versus thrown out.
-class WasteChart extends StatefulWidget {
-  const WasteChart({super.key, this.width, this.height});
-
-  final double? width;
-  final double? height;
-
-  @override
-  State<WasteChart> createState() => _WasteChartState();
-}
-
-class _Month {
-  _Month(this.start);
-  final DateTime start;
-  int used = 0;
-  int thrown = 0;
-  int get total => used + thrown;
-}
-
-class _WasteChartState extends State<WasteChart> {
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _border = Color(0xFFDCE3D7);
-  static const _grid = Color(0xFFEDF2E8);
-  // Validated pair (colour-blind separation passes; green is under 3:1 on
-  // white, so counts are always shown as text).
-  static const _usedColour = Color(0xFF5BAE72);
-  static const _thrownColour = Color(0xFFB8461C);
-
-  static const _monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-
-  String _for = '';
-  bool _loading = true;
-  List<_Month> _months = const [];
-  int _chosen = 5;
-
-  Future<void> _load(String household) async {
-    final now = DateTime.now();
-    final months = [
-      for (var i = 5; i >= 0; i--) _Month(DateTime(now.year, now.month - i, 1)),
-    ];
-    try {
-      final rows = await SupaFlow.client
-          .from('food_items')
-          .select('status, archived_at')
-          .eq('household_id', household)
-          .inFilter('status', ['consumed', 'discarded']).gte(
-              'archived_at', months.first.start.toUtc().toIso8601String());
-      for (final r in rows as List) {
-        final at =
-            DateTime.tryParse((r['archived_at'] ?? '').toString())?.toLocal();
-        if (at == null) continue;
-        for (final m in months) {
-          if (at.year == m.start.year && at.month == m.start.month) {
-            if (r['status'] == 'consumed') {
-              m.used++;
-            } else {
-              m.thrown++;
-            }
-          }
+  void _yesToTheRest() {
+    FFAppState().update(() {
+      final foods = FFAppState().mapFoods;
+      for (var i = 0; i < foods.length; i++) {
+        if (foods[i].decision.isEmpty) {
+          FFAppState()
+              .updateMapFoodsAtIndex(i, (f) => _copy(f, decision: 'yes'));
         }
       }
-      if (!mounted || household != _for) return;
-      setState(() {
-        _months = months;
-        _loading = false;
-        _chosen = 5;
-      });
+    });
+  }
+
+  // yyyy-mm-dd, as the database stores a date.
+  static String _iso(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  // "14 Sep", with the year only when it is not this year.
+  static String _said(String iso) {
+    final d = DateTime.tryParse(iso);
+    if (d == null) return '';
+    final day = '${d.day} ${_months[d.month - 1]}';
+    return d.year == DateTime.now().year ? day : '$day ${d.year}';
+  }
+
+  Future<void> _pickUseBy(int i, MapFoodStruct f) async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final first = today.subtract(const Duration(days: 60));
+    final last = today.add(const Duration(days: 730));
+    var start =
+        DateTime.tryParse(f.useBy) ?? today.add(const Duration(days: 3));
+    if (start.isBefore(first)) start = first;
+    if (start.isAfter(last)) start = last;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: start,
+      firstDate: first,
+      lastDate: last,
+      helpText: 'Use-by date on the pack',
+    );
+    if (picked == null || !mounted) return;
+    _change(i, (x) => _copy(x, useBy: _iso(picked), decision: 'yes'));
+  }
+
+  static String _plain(String name) {
+    final n = name.trim().toLowerCase();
+    if (n.length > 4 && n.endsWith('es')) return n.substring(0, n.length - 2);
+    if (n.length > 3 && n.endsWith('s')) return n.substring(0, n.length - 1);
+    return n;
+  }
+
+  Future<void> _loadHave(String household) async {
+    try {
+      final rows = await SupaFlow.client
+          .from('food_items_status')
+          .select('name')
+          .eq('household_id', household)
+          .limit(200);
+      if (!mounted || household != _haveFor) return;
+      final names = <String>{};
+      for (final r in rows as List) {
+        final plain = _plain(((r as Map)['name'] ?? '').toString());
+        if (plain.isNotEmpty) names.add(plain);
+      }
+      setState(() => _have = names);
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      // No signal: the map still works, it just cannot warn about duplicates.
     }
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    // The Scan camera's first photo was a receipt: its lines are already in
+    // the receipt review, so open that instead of an empty photo map.
+    if (FFAppState().receiptFromCamera) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !FFAppState().receiptFromCamera) return;
+        FFAppState().receiptFromCamera = false;
+        GoRouter.of(context).pushReplacementNamed('ScanReviewPage');
+      });
+    }
     final t = FlutterFlowTheme.of(context);
     final household = FFAppState().currentHouseholdId;
-    if (household.isNotEmpty && household != _for) {
-      _for = household;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _load(household));
+    if (household.isNotEmpty && household != _haveFor) {
+      _haveFor = household;
+      _loadHave(household);
     }
-    // Nothing yet: the page's own figures and note say so.
-    if (_loading || _months.every((m) => m.total == 0)) {
-      return const SizedBox.shrink();
-    }
-    final peak = _months.map((m) => m.total).reduce((a, b) => a > b ? a : b);
-    final chosen = _months[_chosen];
-    final pct =
-        chosen.total == 0 ? null : (chosen.used * 100 / chosen.total).round();
+    final foods = FFAppState().mapFoods;
+    final photos = FFAppState().mapPhotos;
+    final place =
+        FFAppState().mapPlace.isEmpty ? 'fridge' : FFAppState().mapPlace;
+    if (_selected >= foods.length) _selected = -1;
+    final checked = foods.where((f) => f.decision.isNotEmpty).length;
 
-    return Container(
-      width: widget.width,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-      decoration: _uCard(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('The last six months',
-              style: t.titleMedium.copyWith(
-                  fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              _key(t, _usedColour, 'Used up'),
-              const SizedBox(width: 16),
-              _key(t, _thrownColour, 'Thrown out'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 176,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (var i = 0; i < _months.length; i++)
-                  Expanded(child: _bar(t, i, peak)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, thickness: 1, color: _grid),
-          const SizedBox(height: 10),
-          Text(
-            chosen.total == 0
-                ? '${_monthNames[chosen.start.month - 1]}: nothing finished with yet.'
-                : '${_monthNames[chosen.start.month - 1]}: ${chosen.used} used, ${chosen.thrown} thrown out — $pct% used.',
-            style: t.bodyLarge.copyWith(
-                fontSize: 15, color: _ink, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _key(FlutterFlowTheme t, Color c, String label) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration:
-                BoxDecoration(color: c, borderRadius: BorderRadius.circular(3)),
-          ),
-          const SizedBox(width: 6),
-          Text(label, style: t.bodySmall.copyWith(color: _muted, fontSize: 13)),
-        ],
-      );
-
-  Widget _bar(FlutterFlowTheme t, int i, int peak) {
-    final m = _months[i];
-    final on = i == _chosen;
-    const plot = 120.0;
-    final usedH = peak == 0 ? 0.0 : plot * m.used / peak;
-    final thrownH = peak == 0 ? 0.0 : plot * m.thrown / peak;
-    final month = _monthNames[m.start.month - 1];
-    return Semantics(
-      button: true,
-      selected: on,
-      label: '$month: ${m.used} used, ${m.thrown} thrown out',
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() => _chosen = i),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text('${m.total}',
-                style: t.bodySmall.copyWith(
-                    fontSize: 12,
-                    color: on ? _ink : _muted,
-                    fontWeight: on ? FontWeight.w800 : FontWeight.w600)),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 26,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (m.thrown > 0)
-                    Container(
-                      height: thrownH < 3 ? 3 : thrownH,
-                      decoration: BoxDecoration(
-                        color: _thrownColour,
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(4)),
-                      ),
-                    ),
-                  // A 2px gap between the two parts of the bar.
-                  if (m.thrown > 0 && m.used > 0) const SizedBox(height: 2),
-                  if (m.used > 0)
-                    Container(
-                      height: usedH < 3 ? 3 : usedH,
-                      decoration: BoxDecoration(
-                        color: _usedColour,
-                        borderRadius: m.thrown > 0
-                            ? BorderRadius.zero
-                            : const BorderRadius.vertical(
-                                top: Radius.circular(4)),
-                      ),
-                    ),
-                  if (m.total == 0) Container(height: 2, color: _grid),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: on ? const Color(0xFFEDF2E8) : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(month.substring(0, 3),
-                  style: t.bodySmall.copyWith(
-                      fontSize: 12,
-                      color: on ? _ink : _muted,
-                      fontWeight: on ? FontWeight.w800 : FontWeight.w500)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wReviewSummary = r'''
-import 'package:flutter/material.dart';
-
-/// What will be recorded, as one card.
-class ReviewSummary extends StatelessWidget {
-  const ReviewSummary({
-    super.key,
-    this.width,
-    this.height,
-    this.foodName,
-    this.category,
-    this.locationLabel,
-    this.printedDate,
-    this.printedDateType,
-  });
-
-  final double? width;
-  final double? height;
-  final String? foodName;
-  final String? category;
-  final String? locationLabel;
-  final DateTime? printedDate;
-  final String? printedDateType;
-
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  String _line(String field) =>
-      reviewLine(field, foodName, category, locationLabel, printedDate,
-          printedDateType) ??
-      '';
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final rows = <(IconData, String, String)>[
-      (Icons.restaurant, 'What it is', _line('name')),
-      (Icons.category_outlined, 'Category', _line('category')),
-      (Icons.kitchen_outlined, 'Where it goes', _line('where')),
-      (Icons.calendar_today_outlined, 'The date', _line('date')),
-    ];
-    final note = _line('dateNote');
-
-    return SizedBox(
-      width: width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            decoration: _uCard(20),
-            child: Column(
-              children: [
-                for (var i = 0; i < rows.length; i++) ...[
-                  if (i > 0)
-                    const Divider(
-                        height: 1, thickness: 1, indent: 52, color: _border),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(rows[i].$1, color: _forest, size: 20),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(rows[i].$2,
-                                  style: t.bodySmall.copyWith(
-                                      fontSize: 13,
-                                      color: _muted,
-                                      fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 2),
-                              Text(rows[i].$3.isEmpty ? 'Not set' : rows[i].$3,
-                                  style: t.bodyLarge.copyWith(
-                                      fontSize: i == 0 ? 18 : 16,
-                                      fontWeight: i == 0
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
-                                      color: _ink)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (note.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: _sage,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info_outline, color: _forest, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(note,
-                        style: t.bodyMedium
-                            .copyWith(fontSize: 14, color: _ink, height: 1.4)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-// ---- Hybrid material (design brief, 15 Sep) --------------------------------
-// Cream canvas over a blurred food background (set on the page), sculpted
-// cream surfaces, forest gradient primary buttons, calm date badges.
-
-const _uForest = Color(0xFF07533A);
-const _uForestTop = Color(0xFF176C50);
-const _uInk = Color(0xFF202C24);
-const _uMuted = Color(0xFF59665D);
-const _uSage = Color(0xFFE6EDDF);
-const _uLine = Color(0xFFCDD4C3);
-const _uCream = Color(0xFFF7F7F0);
-
-bool _uStill(BuildContext c) => MediaQuery.of(c).disableAnimations;
-
-/// A sculpted cream surface: warm diagonal gradient, thin sage border, a
-/// narrow white top highlight, a 2px lower edge and a soft shadow.
-class _USurface extends StatelessWidget {
-  const _USurface({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.radius = 22,
-    this.onTap,
-    this.label,
-    this.tint,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final VoidCallback? onTap;
-  final String? label;
-  final List<Color>? tint;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = BorderRadius.circular(radius);
-    final body = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: tint ?? const [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-        ),
-        borderRadius: r,
-        border: Border.all(color: _uLine),
-        boxShadow: const [
-          BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-          BoxShadow(
-              color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: r,
-        child: Stack(
-          children: [
-            Padding(padding: padding, child: child),
-            // The narrow white highlight along the top edge.
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 1.5,
-              child: ColoredBox(color: Color(0xCCFFFFFF)),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return body;
-    return _UPress(onTap: onTap!, label: label, radius: radius, child: body);
-  }
-}
-
-/// A tap target that sinks 1px while pressed (tonal only with reduced motion).
-class _UPress extends StatefulWidget {
-  const _UPress({
-    required this.child,
-    required this.onTap,
-    this.label,
-    this.radius = 16,
-    this.enabled = true,
-  });
-
-  final Widget child;
-  final VoidCallback onTap;
-  final String? label;
-  final double radius;
-  final bool enabled;
-
-  @override
-  State<_UPress> createState() => _UPressState();
-}
-
-class _UPressState extends State<_UPress> {
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final still = _uStill(context);
-    return Semantics(
-      button: true,
-      enabled: widget.enabled,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
-        onTap: widget.enabled ? widget.onTap : null,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: widget.enabled ? (_down && still ? 0.85 : 1) : 0.55,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 100),
-            offset: _down && !still ? const Offset(0, 0.01) : Offset.zero,
-            child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Buttons: one forest primary per task, cream secondaries, quiet text links.
-class _UButton extends StatelessWidget {
-  const _UButton(
-    this.text, {
-    required this.onTap,
-    this.icon,
-    this.kind = 'primary',
-    this.busy = false,
-    this.trailing = false,
-  });
-
-  final String text;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final String kind; // primary | secondary | danger
-  final bool busy;
-  final bool trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
-    final primary = kind == 'primary';
-    final danger = kind == 'danger';
-    final fg = primary
-        ? Colors.white
-        : (danger ? const Color(0xFFB42318) : _uForest);
-    final iconW = icon == null ? null : Icon(icon, size: 20, color: fg);
-    final label = Text(text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyLarge.copyWith(
-            color: fg,
-            fontSize: primary ? 16 : 15,
-            fontWeight: primary ? FontWeight.w700 : FontWeight.w600));
-    final content = busy
-        ? SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconW != null && !trailing) ...[iconW, const SizedBox(width: 8)],
-              Flexible(child: label),
-              if (iconW != null && trailing) ...[const SizedBox(width: 8), iconW],
-            ],
-          );
-    final box = Container(
-      constraints: BoxConstraints(minHeight: primary ? 52 : 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: primary
-              ? const [_uForestTop, _uForest]
-              : const [Color(0xFFFFFEFA), Color(0xFFEDF0E4)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: primary
-                ? const Color(0xFF06422E)
-                : (danger ? const Color(0xFFEBC5BF) : const Color(0xFFCCD7C2))),
-        boxShadow: primary
-            ? const [
-                BoxShadow(color: Color(0xFF033C29), offset: Offset(0, 3)),
-                BoxShadow(
-                    color: Color(0x2007533A),
-                    offset: Offset(0, 6),
-                    blurRadius: 10),
-              ]
-            : const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-      ),
-      child: content,
-    );
-    return _UPress(
-      onTap: onTap ?? () {},
-      enabled: onTap != null && !busy,
-      label: text,
-      child: box,
-    );
-  }
-}
-
-/// The date badge from dateBadge(): "Label|tone".
-Widget _uBadge(BuildContext context, String spec, {double size = 12}) {
-  if (spec.isEmpty) return const SizedBox.shrink();
-  final parts = spec.split('|');
-  final tone = parts.length > 1 ? parts[1] : 'calm';
-  const tones = <String, (Color, Color)>{
-    'urgent': (Color(0xFFFDE3E0), Color(0xFFB42318)),
-    'warm': (Color(0xFFFFEAD4), Color(0xFF884311)),
-    'calm': (Color(0xFFE6EDDF), Color(0xFF335837)),
-    'cold': (Color(0xFFE1ECF7), Color(0xFF285E8E)),
-  };
-  final c = tones[tone] ?? tones['calm']!;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-        color: c.$1, borderRadius: BorderRadius.circular(8)),
-    child: Text(parts.first,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-            color: c.$2, fontSize: size, fontWeight: FontWeight.w600)),
-  );
-}
-
-/// A compact picture stand-in when no suitable photo exists: the food's name
-/// set small and calm, never a borrowed photo of a different food or form.
-Widget _uFallback(BuildContext context, String name, {double height = 110}) {
-  final t = FlutterFlowTheme.of(context);
-  return Container(
-    height: height,
-    color: const Color(0xFFE4E9D9),
-    alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Text(name.toUpperCase(),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodyMedium.copyWith(
-            color: const Color(0xFF526845),
-            letterSpacing: 2,
-            fontSize: 14,
-            fontWeight: FontWeight.w600)),
-  );
-}
-
-/// The back control on ordinary pages: a cream square with a forest arrow.
-Widget _uBack(BuildContext context, VoidCallback onTap) => _UPress(
-      onTap: onTap,
-      label: 'Back',
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFCDD6C4)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))
-          ],
-        ),
-        child: const Icon(Icons.arrow_back, color: _uForest, size: 22),
-      ),
-    );
-
-/// A food card for the two-column grids: picture, two-line name, amount and
-/// the date badge.
-Widget _uFoodCard(BuildContext context, Map item, {required VoidCallback onTap}) {
-  final t = FlutterFlowTheme.of(context);
-  final name = '${item['name'] ?? ''}';
-  final photo = foodPhoto(name, '${item['image_url'] ?? ''}') ?? '';
-  final qty = item['quantity'] is num ? (item['quantity'] as num).toDouble() : null;
-  final amount = quantityLabel(qty, '${item['unit'] ?? ''}') ?? '';
-  final badge = dateBadge(
-        '${item['computed_status'] ?? ''}',
-        item['days_left'] is num ? (item['days_left'] as num).round() : null,
-        DateTime.tryParse('${item['printed_date'] ?? ''}'),
-        '${item['printed_date_type'] ?? ''}',
-        '${item['status_basis'] ?? ''}',
-      ) ??
-      '';
-  return _USurface(
-    radius: 20,
-    onTap: onTap,
-    label: '$name. ${badge.split('|').first}',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 110,
-          child: photo.isEmpty
-              ? _uFallback(context, name)
-              : Image.network(photo,
-                  fit: BoxFit.cover,
-                  cacheWidth: 480,
-                  errorBuilder: (_, __, ___) => _uFallback(context, name)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.titleSmall.copyWith(
-                      fontSize: 16,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: _uInk)),
-              const SizedBox(height: 4),
-              Text(amount.isEmpty ? ' ' : amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall.copyWith(color: _uMuted, fontSize: 13)),
-              const SizedBox(height: 8),
-              _uBadge(context, badge),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Food close to its date, the one rule Home, Inventory and Use soon share:
-/// past or at its limit, "use soon", or three days or fewer; never frozen.
-bool _uSoon(Map item) {
-  final status = '${item['computed_status'] ?? ''}';
-  if (status == 'frozen' || status == 'consumed' || status == 'discarded') {
-    return false;
-  }
-  if (const {'past_use_by', 'use_today', 'use_soon', 'past_best_before'}
-      .contains(status)) {
-    return true;
-  }
-  final d = item['days_left'];
-  return d is num && d <= 3;
-}
-
-/// The sculpted card as a decoration, for existing layouts.
-BoxDecoration _uCard(double radius) => BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFEF9), Color(0xFFF3F3E9)],
-      ),
-      borderRadius: BorderRadius.circular(radius < 18 ? radius : 22),
-      border: Border.all(color: _uLine),
-      boxShadow: const [
-        BoxShadow(color: Color(0xFFD2D8C9), offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x14263824), offset: Offset(0, 8), blurRadius: 16),
-      ],
-    );
-
-/// The ordinary back control: a cream square with a forest arrow.
-BoxDecoration _uBackDeco() => BoxDecoration(
-      color: const Color(0xFFFFFDF4),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFCDD6C4)),
-      boxShadow: const [BoxShadow(color: Color(0xFFD6DFCC), offset: Offset(0, 2))],
-    );
-''';
-
-const _wProductPhotoPicker = r'''
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
-
-/// Find the product photo for one food (owner, 14 Sep: product pictures by
-/// country, "packaged differently in different countries").
-///
-/// Searches Open Food Facts for the food's name among products sold in the
-/// person's country, shows the packs it finds, and uses the one the person
-/// taps — nothing is picked for them. The chosen photo is copied into the
-/// household's own storage (so the food's screen credits Open Food Facts),
-/// and recorded in product_images with the country and the person's sharing
-/// choice. Shown inside a bottom sheet; closes with true when a photo is used.
-class ProductPhotoPicker extends StatefulWidget {
-  const ProductPhotoPicker({
-    super.key,
-    this.width,
-    this.height,
-    this.itemId,
-    this.foodName,
-  });
-
-  final double? width;
-  final double? height;
-  final String? itemId;
-  final String? foodName;
-
-  @override
-  State<ProductPhotoPicker> createState() => _ProductPhotoPickerState();
-}
-
-class _ProductPhotoPickerState extends State<ProductPhotoPicker> {
-  static const _forest = Color(0xFF07533A);
-  static const _ink = Color(0xFF202C24);
-  static const _muted = Color(0xFF59665D);
-  static const _sage = Color(0xFFEDF2E8);
-  static const _border = Color(0xFFDCE3D7);
-
-  static const _countries = <String, String>{
-    'AU': 'Australia',
-    'NZ': 'New Zealand',
-    'GB': 'the UK',
-    'IE': 'Ireland',
-    'US': 'the US',
-    'CA': 'Canada',
-    'FR': 'France',
-    'DE': 'Germany',
-  };
-
-  final _query = TextEditingController();
-  String _country = 'AU';
-  bool _searching = false;
-  bool _using = false;
-  String _note = '';
-  List<Map<String, String>> _found = const [];
-
-  @override
-  void initState() {
-    super.initState();
-    _query.text = (widget.foodName ?? '').trim();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _start());
-  }
-
-  @override
-  void dispose() {
-    _query.dispose();
-    super.dispose();
-  }
-
-  Future<void> _start() async {
-    final uid = SupaFlow.client.auth.currentUser?.id;
-    if (uid != null) {
-      try {
-        final p = await SupaFlow.client
-            .from('profiles')
-            .select('country_code')
-            .eq('id', uid)
-            .maybeSingle();
-        final cc = '${p?['country_code'] ?? ''}'.toUpperCase();
-        if (_countries.containsKey(cc)) _country = cc;
-      } catch (_) {}
-    }
-    if (mounted) _search();
-  }
-
-  Future<void> _setCountry(String cc) async {
-    setState(() => _country = cc);
-    final uid = SupaFlow.client.auth.currentUser?.id;
-    if (uid != null) {
-      try {
-        await SupaFlow.client
-            .from('profiles')
-            .update({'country_code': cc}).eq('id', uid);
-      } catch (_) {}
-    }
-    _search();
-  }
-
-  Future<void> _search() async {
-    if (!mounted) return;
-    final q = _query.text.trim();
-    if (q.isEmpty) return;
-    setState(() {
-      _searching = true;
-      _note = '';
-    });
-    final url = Uri.parse(
-        'https://${_country.toLowerCase()}.openfoodfacts.org/cgi/search.pl'
-        '?search_terms=${Uri.encodeQueryComponent(q)}&search_simple=1'
-        '&action=process&json=1&page_size=12'
-        '&fields=code,product_name,brands,image_front_small_url');
-    try {
-      final res = await http.get(url, headers: {
-        'User-Agent': 'UseItFresh/1.0 (https://useitfresh.app)',
-      }).timeout(const Duration(seconds: 15));
-      if (res.statusCode != 200) throw 'status ${res.statusCode}';
-      final body = json.decode(res.body);
-      final products = body is Map && body['products'] is List
-          ? body['products'] as List
-          : const [];
-      final found = <Map<String, String>>[
-        for (final p in products)
-          if (p is Map &&
-              '${p['image_front_small_url'] ?? ''}'.startsWith('https://'))
-            {
-              'code': '${p['code'] ?? ''}',
-              'name': '${p['product_name'] ?? ''}'.trim(),
-              'brand': '${p['brands'] ?? ''}'.split(',').first.trim(),
-              'image': '${p['image_front_small_url']}',
-            }
-      ];
-      if (!mounted) return;
-      setState(() {
-        _found = found;
-        _searching = false;
-        _note = found.isEmpty
-            ? 'No photos found for “$q” in ${_countries[_country]}. Try a shorter name or a brand.'
-            : '';
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _searching = false;
-        _note = 'Could not reach the product database. Check your signal.';
-      });
-    }
-  }
-
-  Future<void> _use(Map<String, String> p) async {
-    final id = (widget.itemId ?? '').trim();
-    if (id.isEmpty || _using) return;
-    setState(() => _using = true);
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    final client = SupaFlow.client;
-    final storage = client.storage.from('food-images');
-    String? path;
-    try {
-      final food = await client
-          .from('food_items')
-          .select('household_id, name, image_url')
-          .eq('id', id)
-          .single();
-      final household = '${food['household_id']}';
-      final small = p['image']!;
-      final larger = small.replaceFirst(RegExp(r'\.200\.jpg$'), '.400.jpg');
-      var res = await http
-          .get(Uri.parse(larger))
-          .timeout(const Duration(seconds: 12));
-      if (res.statusCode != 200 && larger != small) {
-        res = await http
-            .get(Uri.parse(small))
-            .timeout(const Duration(seconds: 12));
-      }
-      if (res.statusCode != 200 || res.bodyBytes.isEmpty) throw 'no image';
-      path = '$household/product-${const Uuid().v4()}.jpg';
-      await storage.uploadBinary(path, res.bodyBytes,
-          fileOptions:
-              const FileOptions(contentType: 'image/jpeg', upsert: false));
-      final signed = await storage.createSignedUrl(path, 60 * 60 * 24 * 365);
-      await client
-          .from('food_items')
-          .update({'image_url': signed}).eq('id', id);
-
-      // The picture it replaced, if the app stored it.
-      final old = _storagePath('${food['image_url'] ?? ''}');
-      if (old != null) {
-        try {
-          await storage.remove([old]);
-          await client.from('product_images').delete().eq('storage_path', old);
-        } catch (_) {}
-      }
-      // What the app knows about this product's picture, and whether this
-      // person agreed to share product photos beyond the household.
-      try {
-        var consent = false;
-        final uid = client.auth.currentUser?.id;
-        if (uid != null) {
-          final s = await client
-              .from('user_settings')
-              .select('share_product_photos')
-              .eq('profile_id', uid)
-              .maybeSingle();
-          consent = s?['share_product_photos'] == true;
-        }
-        final code = p['code'] ?? '';
-        await client.from('product_images').insert({
-          'household_id': household,
-          if (RegExp(r'^[0-9]{6,14}$').hasMatch(code)) 'barcode': code,
-          'name_key': '${food['name'] ?? p['name']}'.trim().toLowerCase(),
-          'country_code': _country,
-          'storage_path': path,
-          'source': 'open_food_facts',
-          'licence': 'Open Food Facts contributors, CC BY-SA',
-          'share_consent': consent,
-          'created_by': uid,
-        });
-      } catch (_) {}
-      messenger.showSnackBar(const SnackBar(
-          content: Text('Photo added. Credit: Open Food Facts.')));
-      if (mounted) navigator.pop(true);
-    } catch (_) {
-      if (path != null) {
-        try {
-          await storage.remove([path]);
-        } catch (_) {}
-      }
-      if (mounted) {
-        setState(() => _using = false);
-        messenger.showSnackBar(const SnackBar(
-            content: Text('Could not use that photo. Check your signal.')));
-      }
-    }
-  }
-
-  static String? _storagePath(String signedUrl) {
-    const marker = '/object/sign/food-images/';
-    final at = signedUrl.indexOf(marker);
-    if (at < 0) return null;
-    final rest = signedUrl.substring(at + marker.length);
-    final q = rest.indexOf('?');
-    return Uri.decodeComponent(q < 0 ? rest : rest.substring(0, q));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = FlutterFlowTheme.of(context);
     return SizedBox(
       width: widget.width,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Find the product photo',
-              style: t.headlineSmall.copyWith(
-                  fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
-          const SizedBox(height: 4),
-          Text(
-              'Pick the pack that matches yours. Packs differ from country to country.',
-              style: t.bodyMedium.copyWith(color: _muted, fontSize: 14)),
+          _placeChips(t, place),
           const SizedBox(height: 12),
+          for (final url in photos) ...[
+            _PhotoMap(
+              url: url,
+              selected: _selected,
+              entries: [
+                for (var i = 0; i < foods.length; i++)
+                  if (foods[i].photo == url) MapEntry(i, foods[i]),
+              ],
+              onTap: (i) => setState(() => _selected = i),
+            ),
+            const SizedBox(height: 10),
+          ],
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _query,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _search(),
-                  decoration: InputDecoration(
-                    hintText: 'Name or brand',
-                    filled: true,
-                    fillColor: const Color(0xFFFFFDF7),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _border),
+                child: Text(
+                  '$checked of ${foods.length} checked',
+                  style: t.bodySmall.copyWith(color: t.secondaryText),
+                ),
+              ),
+              if (checked < foods.length)
+                TextButton(
+                  onPressed: _yesToTheRest,
+                  child: Text(
+                    'Yes to the rest',
+                    style: t.bodySmall.copyWith(
+                        color: t.primary, fontWeight: FontWeight.w700),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          for (var i = 0; i < foods.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _row(t, i, foods[i], place),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _placeChips(FlutterFlowTheme t, String place) => Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text('This is the',
+              style: t.bodySmall.copyWith(color: t.secondaryText)),
+          for (final e in _places.entries)
+            Semantics(
+              button: true,
+              selected: place == e.key,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: () =>
+                    FFAppState().update(() => FFAppState().mapPlace = e.key),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: place == e.key ? t.primary : t.secondaryBackground,
+                    border: Border.all(
+                        color: place == e.key ? t.primary : t.alternate),
+                  ),
+                  child: Text(
+                    e.value,
+                    style: t.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: place == e.key ? Colors.white : t.primaryText,
                     ),
                   ),
                 ),
               ),
+            ),
+        ],
+      );
+
+  Widget _row(FlutterFlowTheme t, int i, MapFoodStruct f, String place) {
+    final yes = f.decision == 'yes';
+    final no = f.decision == 'no';
+    final selected = i == _selected;
+    final where = _places[f.place.isEmpty ? place : f.place] ?? 'Fridge';
+    final useBy = _said(f.useBy);
+    final detail = <String>[
+      '${f.quantity < 1 ? 1 : f.quantity}×',
+      if (f.kind.isNotEmpty) f.kind,
+      _categoryNames[f.category] ?? 'No category',
+      where,
+      if (useBy.isNotEmpty) 'use by $useBy',
+    ].join(' · ');
+
+    return Opacity(
+      opacity: no ? 0.55 : 1,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+        decoration: BoxDecoration(
+          color: t.secondaryBackground,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? t.primary : t.alternate,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: yes
+                        ? t.primary
+                        : (no ? t.error.withOpacity(0.15) : t.accent1),
+                  ),
+                  child: Text(
+                    '${i + 1}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: yes ? Colors.white : (no ? t.error : t.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() {
+                      _selected = i;
+                      _editing = _editing == i ? -1 : i;
+                    }),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          f.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.titleSmall.copyWith(
+                            decoration: no ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        Text(
+                          detail,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.bodySmall.copyWith(color: t.secondaryText),
+                        ),
+                        // Said, not decided: photographing the same shelf
+                        // every week should not quietly stack up five milks,
+                        // and a second one is often exactly right.
+                        if (_have.contains(_plain(f.name)))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: t.accent1,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Already in your kitchen',
+                                style: t.bodySmall.copyWith(
+                                    color: t.primary,
+                                    fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                _round(t, '✓', yes, t.primary, () => _decide(i, 'yes'),
+                    'Yes, add ${f.name}'),
+                const SizedBox(width: 6),
+                _round(t, '✕', no, t.error, () => _decide(i, 'no'),
+                    'No, leave out ${f.name}'),
+              ],
+            ),
+            if (_editing == i) _editor(t, i, f, place),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _round(FlutterFlowTheme t, String glyph, bool on, Color colour,
+          VoidCallback onTap, String label) =>
+      Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: on ? colour : t.secondaryBackground,
+              border: Border.all(color: on ? colour : t.alternate),
+            ),
+            child: Text(
+              glyph,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: on ? Colors.white : t.secondaryText,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget _count(FlutterFlowTheme t, IconData icon, String label, bool enabled,
+          VoidCallback onTap) =>
+      Semantics(
+        button: true,
+        enabled: enabled,
+        label: label,
+        child: Opacity(
+          opacity: enabled ? 1 : 0.4,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: enabled ? onTap : null,
+            child: Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: t.secondaryBackground,
+                border: Border.all(color: t.alternate),
+              ),
+              child: Icon(icon, color: t.primary, size: 20),
+            ),
+          ),
+        ),
+      );
+
+  Widget _editor(FlutterFlowTheme t, int i, MapFoodStruct f, String place) {
+    final controller =
+        _names.putIfAbsent(i, () => TextEditingController(text: f.name));
+    InputDecoration look(String label) => InputDecoration(
+          labelText: label,
+          isDense: true,
+          filled: true,
+          fillColor: t.primaryBackground,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: t.alternate),
+          ),
+        );
+    final useBy = _said(f.useBy);
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: controller,
+            decoration: look('Name'),
+            onChanged: (v) {
+              if (v.trim().isNotEmpty) {
+                _change(i, (x) => _copy(x, name: v.trim(), decision: 'yes'));
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          // Owner, 14 Sep: the photo read 5 cans of tuna, there were 4, and
+          // there was no way to change it.
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+            decoration: BoxDecoration(
+              color: t.primaryBackground,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: t.alternate),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text('How many',
+                      style: t.bodyMedium.copyWith(color: t.secondaryText)),
+                ),
+                _count(t, Icons.remove, 'One fewer', f.quantity > 1, () {
+                  _change(
+                      i,
+                      (x) =>
+                          _copy(x, quantity: x.quantity - 1, decision: 'yes'));
+                }),
+                SizedBox(
+                  width: 44,
+                  child: Text(
+                    '${f.quantity < 1 ? 1 : f.quantity}',
+                    textAlign: TextAlign.center,
+                    style: t.titleMedium.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                _count(t, Icons.add, 'One more', f.quantity < 99, () {
+                  _change(
+                      i,
+                      (x) => _copy(x,
+                          quantity: (x.quantity < 1 ? 1 : x.quantity) + 1,
+                          decision: 'yes'));
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _categoryNames.containsKey(f.category)
+                      ? f.category
+                      : null,
+                  isExpanded: true,
+                  decoration: look('Category'),
+                  items: [
+                    for (final e in _categoryNames.entries)
+                      DropdownMenuItem(
+                        value: e.key,
+                        child: Text(e.value, overflow: TextOverflow.ellipsis),
+                      ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      _change(i, (x) => _copy(x, category: v, decision: 'yes'));
+                    }
+                  },
+                ),
+              ),
               const SizedBox(width: 8),
-              IconButton.filled(
-                style: IconButton.styleFrom(
-                    backgroundColor: _forest, minimumSize: const Size(52, 52)),
-                tooltip: 'Search',
-                onPressed: _searching ? null : _search,
-                icon: const Icon(Icons.search, color: Colors.white),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: f.place.isEmpty ? place : f.place,
+                  isExpanded: true,
+                  decoration: look('Kept in'),
+                  items: [
+                    for (final e in _places.entries)
+                      DropdownMenuItem(value: e.key, child: Text(e.value)),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      _change(i, (x) => _copy(x, place: v, decision: 'yes'));
+                    }
+                  },
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                for (final e in _countries.entries) ...[
-                  ChoiceChip(
-                    label: Text(e.value),
-                    selected: _country == e.key,
-                    selectedColor: _sage,
-                    onSelected: (_) => _setCountry(e.key),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _pickUseBy(i, f),
+                  icon: Icon(Icons.event, size: 18, color: t.primary),
+                  label: Text(
+                    useBy.isEmpty
+                        ? 'Add use-by date (optional)'
+                        : 'Use by $useBy',
+                    overflow: TextOverflow.ellipsis,
+                    style: t.bodyMedium.copyWith(color: t.primaryText),
                   ),
-                  const SizedBox(width: 6),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (_searching || _using)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(
-                child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(color: _forest)),
+                  style: OutlinedButton.styleFrom(
+                    alignment: Alignment.centerLeft,
+                    minimumSize: const Size(0, 44),
+                    backgroundColor: t.primaryBackground,
+                    side: BorderSide(color: t.alternate),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
               ),
-            )
-          else if (_note.isNotEmpty)
-            Text(_note,
-                style: t.bodyLarge.copyWith(color: _muted, fontSize: 16))
-          else
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 0.72,
-              children: [
-                for (final p in _found)
-                  Semantics(
-                    button: true,
-                    label: 'Use ${p['name']}',
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () => _use(p),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: _uCard(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: Image.network(p['image']!,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) =>
-                                      Container(color: _sage)),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                                [p['brand'], p['name']]
-                                    .where((s) => (s ?? '').isNotEmpty)
-                                    .join(' · '),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: t.bodySmall
-                                    .copyWith(color: _ink, fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          const SizedBox(height: 8),
-          Text('Photos from Open Food Facts, used with credit.',
-              style: t.bodySmall.copyWith(color: _muted, fontSize: 12)),
+              if (useBy.isNotEmpty)
+                IconButton(
+                  tooltip: 'Take the date off',
+                  onPressed: () => _change(i, (x) => _copy(x, useBy: '')),
+                  icon: Icon(Icons.close, color: t.secondaryText),
+                ),
+            ],
+          ),
         ],
       ),
     );
+  }
+}
+
+/// One photo with its foods outlined. The photo is shown at its own shape,
+/// so an outline given on a 0-1000 scale lands where the food is.
+class _PhotoMap extends StatefulWidget {
+  const _PhotoMap({
+    required this.url,
+    required this.entries,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String url;
+  final List<MapEntry<int, MapFoodStruct>> entries;
+  final int selected;
+  final void Function(int) onTap;
+
+  @override
+  State<_PhotoMap> createState() => _PhotoMapState();
+}
+
+class _PhotoMapState extends State<_PhotoMap> {
+  double? _aspect;
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(_PhotoMap old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) _resolve();
+  }
+
+  void _resolve() {
+    _stop();
+    final stream = NetworkImage(widget.url).resolve(ImageConfiguration.empty);
+    final listener = ImageStreamListener((info, _) {
+      if (!mounted) return;
+      setState(() => _aspect = info.image.width / info.image.height);
+    }, onError: (_, __) {});
+    stream.addListener(listener);
+    _stream = stream;
+    _listener = listener;
+  }
+
+  void _stop() {
+    final stream = _stream, listener = _listener;
+    if (stream != null && listener != null) stream.removeListener(listener);
+  }
+
+  @override
+  void dispose() {
+    _stop();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FlutterFlowTheme.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: AspectRatio(
+        aspectRatio: _aspect ?? 3 / 4,
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final w = c.maxWidth, h = c.maxHeight;
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.network(
+                    widget.url,
+                    fit: BoxFit.fill,
+                    errorBuilder: (_, __, ___) => Container(color: t.alternate),
+                  ),
+                ),
+                for (final e in widget.entries)
+                  ..._outline(t, e.key, e.value, w, h),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _outline(
+      FlutterFlowTheme t, int i, MapFoodStruct f, double w, double h) {
+    final p = f.box.split(',').map((s) => double.tryParse(s.trim())).toList();
+    if (p.length != 4 || p.any((v) => v == null)) return const [];
+    final top = p[0]! / 1000 * h, left = p[1]! / 1000 * w;
+    final bh = (p[2]! - p[0]!) / 1000 * h, bw = (p[3]! - p[1]!) / 1000 * w;
+    if (bw < 6 || bh < 6) return const [];
+
+    final yes = f.decision == 'yes', no = f.decision == 'no';
+    final selected = i == widget.selected;
+    final edge = yes
+        ? const Color(0xFF3FD08B)
+        : (no ? const Color(0xFFFF8E78) : Colors.white);
+    final mark = yes ? '✓ ' : (no ? '✕ ' : '');
+    final label = bw < 90 ? '${i + 1}' : '${i + 1} ${f.name}';
+
+    return [
+      Positioned(
+        left: left,
+        top: top,
+        width: bw,
+        height: bh,
+        child: Semantics(
+          button: true,
+          label: '${i + 1}. ${f.name}',
+          child: GestureDetector(
+            onTap: () => widget.onTap(i),
+            child: Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: no
+                    ? Colors.black.withOpacity(0.45)
+                    : (yes ? t.primary.withOpacity(0.14) : Colors.transparent),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: edge, width: yes ? 3 : 2),
+                boxShadow: [
+                  if (selected)
+                    const BoxShadow(color: Colors.white, spreadRadius: 3)
+                  else
+                    const BoxShadow(color: Color(0x55000000), blurRadius: 2),
+                ],
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  color: yes ? t.primary : (no ? t.error : Colors.white),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '$mark$label',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: (yes || no) ? Colors.white : t.primaryText,
+                    decoration: no ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 }
 
